@@ -1,0 +1,24 @@
+{
+  "title": "투어 요약 리포트",
+  "visitedPlaces": ["정문", "대운동장", "본관", "분수대", "중앙도서관", "진수당", "후문"],
+  "tips": [
+    {
+      "id": "library-mobile-pass",
+      "title": "도서관 모바일 입장",
+      "description": "JBNU 앱 모바일 QR코드 인식 필수",
+      "icon": "lightbulb"
+    },
+    {
+      "id": "student-cafeteria",
+      "title": "학생식당 이용 팁",
+      "description": "진수당 식당은 오전 11:30부터 매우 혼잡",
+      "icon": "lightbulb"
+    },
+    {
+      "id": "campus-shuttle",
+      "title": "교내 무료 순환버스",
+      "description": "아침 8:40부터 10분 간격으로 운행",
+      "icon": "lightbulb"
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+{
+  "courseTitle": "AI Campus Tour",
+  "stops": [
+    {
+      "id": "student-hall",
+      "name": "학생회관",
+      "description": "학생회관은 학생 식당, 동아리방, 학생 지원 시설이 모여 있는 캠퍼스 생활의 중심 공간입니다.",
+      "tags": [
+        { "label": "운영", "value": "09:00-18:00" },
+        { "label": "주요시설", "value": "학생식당" },
+        { "label": "편의", "value": "ATM" }
+      ],
+      "studentTip": [
+        "점심시간에는 학생식당이 붐비니 11:30 전후 방문을 추천해요.",
+        "처음 방문했다면 학생 지원 창구 위치를 미리 확인해두면 좋아요."
+      ],
+      "nextStopId": "geonji-square",
+      "walkingMinutesToNext": 4,
+      "mapPoint": { "x": 150, "y": 200 }
+    },
+    {
+      "id": "geonji-square",
+      "name": "건지광장",
+      "description": "건지광장은 캠퍼스 중앙부의 열린 공간으로 약속 장소와 행사 공간으로 자주 사용됩니다.",
+      "tags": [
+        { "label": "공간", "value": "야외광장" },
+        { "label": "추천", "value": "사진 명소" },
+        { "label": "동선", "value": "중앙 연결" }
+      ],
+      "studentTip": [
+        "동아리 홍보나 학교 행사가 열리는 날에는 이곳에서 가장 먼저 분위기를 느낄 수 있어요.",
+        "중앙도서관으로 이동하기 전 잠깐 쉬어가기 좋은 장소입니다."
+      ],
+      "nextStopId": "central-library",
+      "walkingMinutesToNext": 3,
+      "mapPoint": { "x": 220, "y": 150 }
+    },
+    {
+      "id": "central-library",
+      "name": "중앙도서관",
+      "description": "중앙도서관은 자료 열람, 개인 학습, 팀 프로젝트를 위한 공간을 제공하는 대표 학습 시설입니다.",
+      "tags": [
+        { "label": "운영", "value": "09:00-22:00" },
+        { "label": "열람", "value": "1-4층 열람실" },
+        { "label": "편의", "value": "카페/스터디존" }
+      ],
+      "studentTip": [
+        "시험 기간에는 좌석이 빠르게 차니 모바일 좌석 확인을 활용해보세요.",
+        "1층에는 카페와 편의 시설이 있어 오래 머무르기 좋아요."
+      ],
+      "nextStopId": "museum",
+      "walkingMinutesToNext": 5,
+      "mapPoint": { "x": 250, "y": 115 }
+    },
+    {
+      "id": "museum",
+      "name": "박물관",
+      "description": "박물관은 전북대학교의 역사와 지역 문화 자료를 살펴볼 수 있는 전시 공간입니다.",
+      "tags": [
+        { "label": "관람", "value": "상설전시" },
+        { "label": "추천", "value": "학교 역사" },
+        { "label": "소요", "value": "20분" }
+      ],
+      "studentTip": [
+        "학교의 역사와 캠퍼스 문화를 이해하고 싶다면 투어 마지막에 들르기 좋아요.",
+        "전시 일정은 학기 중 변경될 수 있어 방문 전 확인을 추천해요."
+      ],
+      "walkingMinutesToNext": 0,
+      "mapPoint": { "x": 285, "y": 92 }
+    }
+  ],
+  "routeSegments": [
+    {
+      "fromStopId": "student-hall",
+      "toStopId": "geonji-square",
+      "points": [
+        { "x": 150, "y": 200 },
+        { "x": 168, "y": 184 },
+        { "x": 190, "y": 168 },
+        { "x": 220, "y": 150 }
+      ]
+    },
+    {
+      "fromStopId": "geonji-square",
+      "toStopId": "central-library",
+      "points": [
+        { "x": 220, "y": 150 },
+        { "x": 231, "y": 139 },
+        { "x": 242, "y": 126 },
+        { "x": 250, "y": 115 }
+      ]
+    },
+    {
+      "fromStopId": "central-library",
+      "toStopId": "museum",
+      "points": [
+        { "x": 250, "y": 115 },
+        { "x": 262, "y": 105 },
+        { "x": 274, "y": 98 },
+        { "x": 285, "y": 92 }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,99 @@
+{
+  "currentLocation": {
+    "lat": 35.8469,
+    "lng": 127.1297
+  },
+  "currentLocationPoint": {
+    "x": 181,
+    "y": 366
+  },
+  "categories": [
+    { "id": "parking", "label": "주차장" },
+    { "id": "cafe", "label": "카페" },
+    { "id": "convenience", "label": "편의점" },
+    { "id": "cafeteria", "label": "학생식당" }
+  ],
+  "places": [
+    {
+      "id": "jinsudang-cafeteria",
+      "name": "진수당 학생식당",
+      "description": "다양하고 저렴한 학식 제공",
+      "category": "cafeteria",
+      "distanceMeters": 180,
+      "coordinate": { "lat": 35.8472, "lng": 127.1301 },
+      "mapPoint": { "x": 214, "y": 325 }
+    },
+    {
+      "id": "library-emart24",
+      "name": "중앙도서관 매점 (이마트24)",
+      "description": "도서관 지하 1층 스낵바",
+      "category": "convenience",
+      "distanceMeters": 260,
+      "coordinate": { "lat": 35.8477, "lng": 127.1299 },
+      "mapPoint": { "x": 239, "y": 302 }
+    },
+    {
+      "id": "student-hall-atm",
+      "name": "학생회관 신한은행 ATM",
+      "description": "수수료 우대 혜택",
+      "category": "convenience",
+      "distanceMeters": 220,
+      "coordinate": { "lat": 35.8466, "lng": 127.1288 },
+      "mapPoint": { "x": 154, "y": 382 }
+    },
+    {
+      "id": "engineering-cafe",
+      "name": "공과대학 카페",
+      "description": "강의동 근처 테이크아웃 카페",
+      "category": "cafe",
+      "distanceMeters": 290,
+      "coordinate": { "lat": 35.8481, "lng": 127.1304 },
+      "mapPoint": { "x": 279, "y": 225 }
+    },
+    {
+      "id": "main-gate-parking",
+      "name": "정문 주차장",
+      "description": "방문객 단기 주차 가능",
+      "category": "parking",
+      "distanceMeters": 310,
+      "coordinate": { "lat": 35.8459, "lng": 127.1289 },
+      "mapPoint": { "x": 107, "y": 452 }
+    },
+    {
+      "id": "central-library",
+      "name": "중앙도서관",
+      "description": "자료 열람과 개인 학습 공간",
+      "category": "cafe",
+      "distanceMeters": 240,
+      "coordinate": { "lat": 35.8476, "lng": 127.1298 },
+      "mapPoint": { "x": 231, "y": 312 }
+    },
+    {
+      "id": "student-hall",
+      "name": "학생회관",
+      "description": "학생 편의시설과 동아리 공간",
+      "category": "cafeteria",
+      "distanceMeters": 200,
+      "coordinate": { "lat": 35.8467, "lng": 127.1291 },
+      "mapPoint": { "x": 165, "y": 374 }
+    },
+    {
+      "id": "jinsudang",
+      "name": "진수당",
+      "description": "강의실과 학생식당이 있는 주요 건물",
+      "category": "cafeteria",
+      "distanceMeters": 180,
+      "coordinate": { "lat": 35.8472, "lng": 127.1301 },
+      "mapPoint": { "x": 214, "y": 325 }
+    },
+    {
+      "id": "engineering-building-1",
+      "name": "공과대학 1호관",
+      "description": "공과대학 주요 강의동",
+      "category": "parking",
+      "distanceMeters": 280,
+      "coordinate": { "lat": 35.8484, "lng": 127.1305 },
+      "mapPoint": { "x": 300, "y": 207 }
+    }
+  ]
+}
