@@ -1,0 +1,45 @@
+services:
+  # -----------------------------------------------
+  # 1. FastAPI 백엔드 서버
+  # -----------------------------------------------
+  backend:
+    build: ./backend           # ./backend/Dockerfile 을 사용해 이미지를 빌드
+    container_name: campus-ai-backend
+    ports:
+      - "8000:8000"            # 내 컴퓨터의 8000포트 → 컨테이너의 8000포트 연결
+    volumes:
+      - ./backend:/app         # 내 컴퓨터의 코드 변경이 컨테이너에 실시간 반영됨 (핫 리로드)
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687      # neo4j 컨테이너의 주소 (서비스명으로 접근)
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    depends_on:
+      neo4j:
+        condition: service_healthy       # Neo4j가 완전히 켜진 후에 백엔드를 실행
+    restart: unless-stopped
+
+  # -----------------------------------------------
+  # 2. Neo4j 지식 그래프 데이터베이스
+  # -----------------------------------------------
+  neo4j:
+    image: neo4j:5.20-community          # 공식 Neo4j 이미지 (무료 Community Edition)
+    container_name: campus-ai-neo4j
+    ports:
+      - "7474:7474"            # 브라우저용 Neo4j UI: http://localhost:7474 에서 확인
+      - "7687:7687"            # Bolt 프로토콜: 백엔드가 DB에 접속할 때 사용하는 포트
+    volumes:
+      - neo4j_data:/data       # DB 데이터를 컨테이너 밖(볼륨)에 영구 저장 → 컨테이너 삭제해도 데이터 유지
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "${NEO4J_USER}", "-p", "${NEO4J_PASSWORD}", "RETURN 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+# -----------------------------------------------
+# 볼륨 선언 (DB 데이터 영구 저장 공간)
+# -----------------------------------------------
+volumes:
+  neo4j_data:

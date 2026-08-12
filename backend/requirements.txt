@@ -1,0 +1,16 @@
+# FastAPI 프레임워크 (웹 서버)
+fastapi==0.115.0
+
+# Uvicorn (FastAPI를 실행시켜주는 ASGI 서버)
+uvicorn[standard]==0.30.6
+
+# Neo4j 공식 파이썬 드라이버 (GraphDB 연결용)
+neo4j==5.24.0
+
+# 환경변수 파일(.env) 로드용
+python-dotenv==1.0.1
+
+# LLM 연동 및 프롬프트 관리용 (GraphRAG 구현)
+langchain==0.3.0
+langchain-google-genai==2.0.0
+pyyaml==6.0.2
