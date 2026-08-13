@@ -100,7 +100,8 @@ def get_buildings(
             MATCH (b:Building) WHERE b.zone = $zone AND b.building_id IS NOT NULL
             RETURN b.building_id AS id, b.name AS name, b.alias AS alias,
                    b.zone AS zone, b.map_num AS map_num, b.address AS address,
-                   b.phone AS phone, b.is_24h AS is_24h, b.operating_hrs AS operating_hrs
+                   b.phone AS phone, b.is_24h AS is_24h, b.operating_hrs AS operating_hrs,
+                   b.latitude AS lat, b.longitude AS lng
             ORDER BY b.map_num
         """, {"zone": zone})
     else:
@@ -108,7 +109,8 @@ def get_buildings(
             MATCH (b:Building) WHERE b.building_id IS NOT NULL
             RETURN b.building_id AS id, b.name AS name, b.alias AS alias,
                    b.zone AS zone, b.map_num AS map_num, b.address AS address,
-                   b.phone AS phone, b.is_24h AS is_24h, b.operating_hrs AS operating_hrs
+                   b.phone AS phone, b.is_24h AS is_24h, b.operating_hrs AS operating_hrs,
+                   b.latitude AS lat, b.longitude AS lng
             ORDER BY b.map_num
         """)
     return {"total": len(rows), "buildings": rows}
@@ -250,20 +252,25 @@ def search(
     """
     rows = query_neo4j("""
         MATCH (b:Building) WHERE b.name CONTAINS $q OR coalesce(b.alias,'') CONTAINS $q
-        RETURN '건물' AS category, b.name AS name, b.map_num AS detail, b.zone AS location
+        RETURN '건물' AS category, b.name AS name, b.map_num AS detail, b.zone AS location,
+               b.latitude AS lat, b.longitude AS lng
         UNION
         MATCH (f:Floor)-[:HAS_ROOM]->(r:Room)
         WHERE r.name CONTAINS $q OR r.type CONTAINS $q
-        RETURN '호실' AS category, r.name AS name, r.room_no AS detail, f.building_name AS location
+        RETURN '호실' AS category, r.name AS name, r.room_no AS detail, f.building_name AS location,
+               null AS lat, null AS lng
         UNION
         MATCH (s:Store) WHERE s.name CONTAINS $q OR s.type CONTAINS $q
-        RETURN '매장' AS category, s.name AS name, s.type AS detail, s.location AS location
+        RETURN '매장' AS category, s.name AS name, s.type AS detail, s.location AS location,
+               null AS lat, null AS lng
         UNION
         MATCH (d:Department) WHERE d.name CONTAINS $q
-        RETURN '부서' AS category, d.name AS name, d.type AS detail, '' AS location
+        RETURN '부서' AS category, d.name AS name, d.type AS detail, '' AS location,
+               null AS lat, null AS lng
         UNION
         MATCH (t:Transportation) WHERE t.name CONTAINS $q OR t.type CONTAINS $q
-        RETURN '교통' AS category, t.name AS name, t.type AS detail, t.routes AS location
+        RETURN '교통' AS category, t.name AS name, t.type AS detail, t.routes AS location,
+               null AS lat, null AS lng
         LIMIT 50
     """, {"q": q})
     return {"query": q, "total": len(rows), "results": rows}
