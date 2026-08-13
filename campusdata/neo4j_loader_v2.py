@@ -12,7 +12,7 @@ Neo4j에 노드와 관계를 생성하는 스크립트 v2.
   LOCATED_IN, HAS_FLOOR, HAS_ROOM, HAS_STORE (기존)
 """
 
-import csv, os, time
+import csv, os, re, time
 import openpyxl
 from neo4j import GraphDatabase
 
@@ -23,6 +23,7 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "campus-ai-password-2024")
 
 BASE    = os.path.dirname(os.path.abspath(__file__))
 XLSX    = os.path.join(BASE, "jbnu_campus_graphdb_data.xlsx")
+COORDINATES_XLSX = os.path.join(BASE, "building_coordinates_20260809.xlsx")
 PARSED  = os.path.join(BASE, "parsed")   # 기존 파싱 결과 폴더
 
 
@@ -49,6 +50,39 @@ def read_csv(filename):
     path = os.path.join(PARSED, filename)
     with open(path, encoding="utf-8-sig") as f:
         return list(csv.DictReader(f))
+
+
+def read_building_coordinates():
+    """좌표 통합문서에서 건물번호별 단일 위도·경도를 추출합니다."""
+    wb = openpyxl.load_workbook(COORDINATES_XLSX, read_only=True, data_only=True)
+    points = {}
+
+    def add(map_num, lat, lng, source_title):
+        if not map_num or not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
+            return
+        point = (float(lat), float(lng))
+        existing = points.get(str(map_num))
+        if existing and (existing["latitude"], existing["longitude"]) != point:
+            raise ValueError(f"건물번호 {map_num}에 서로 다른 좌표가 있습니다.")
+        points[str(map_num)] = {
+            "map_num": str(map_num),
+            "latitude": point[0],
+            "longitude": point[1],
+            "coordinate_source": source_title,
+        }
+
+    for row in wb["학교"].iter_rows(values_only=True):
+        if len(row) < 9 or not row[2]:
+            continue
+        match = re.search(r"(?:^|\s)(\d+-\d+)(?:\s|$)", str(row[2]))
+        if match:
+            add(match.group(1), row[7], row[8], "학교")
+
+    for row in wb["좌표 미매칭 목록"].iter_rows(values_only=True):
+        if len(row) >= 8:
+            add(row[0], row[3], row[4], "좌표 미매칭 목록")
+
+    return list(points.values())
 
 
 def run(driver, query, batch=None, params=None):
@@ -240,6 +274,18 @@ def load_all(driver):
     """, batch=data)
     print(f"  → 완료\n")
 
+    # ── 6c. 건물 위도·경도 ───────────────────────────────────
+    data = read_building_coordinates()
+    print(f"📍 Building 좌표 갱신 중... ({len(data)}건)")
+    run(driver, """
+        UNWIND $batch AS r
+        MATCH (b:Building {map_num: r.map_num})
+        SET b.latitude          = r.latitude,
+            b.longitude         = r.longitude,
+            b.coordinate_source = r.coordinate_source
+    """, batch=data)
+    print(f"  → 완료\n")
+
     # ── 6b. 기존 파싱 데이터: Floor ───────────────────────────
     data = read_csv("nodes_floor.csv")
     print(f"🏢  Floor 노드 생성 중... ({len(data)}건)")
@@ -347,6 +393,7 @@ def verify(driver):
         ("HAS_FLOOR",      "MATCH ()-[r:HAS_FLOOR]->()  RETURN count(r) AS c"),
         ("HAS_ROOM",       "MATCH ()-[r:HAS_ROOM]->()   RETURN count(r) AS c"),
         ("HAS_STORE",      "MATCH ()-[r:HAS_STORE]->()  RETURN count(r) AS c"),
+        ("Building+좌표",  "MATCH (n:Building) WHERE n.latitude IS NOT NULL AND n.longitude IS NOT NULL RETURN count(n) AS c"),
     ]
     with driver.session() as session:
         for label, q in queries:

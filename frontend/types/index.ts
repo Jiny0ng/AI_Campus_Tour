@@ -1,5 +1,6 @@
 export * from "./api";
 export * from "./campus";
+export * from "./campusSearch";
 export * from "./campusGuide";
 export * from "./campusTour";
 export * from "./chat";

@@ -4,15 +4,16 @@ services:
   # -----------------------------------------------
   backend:
     build: ./backend           # ./backend/Dockerfile 을 사용해 이미지를 빌드
-    container_name: campus-ai-backend
+    container_name: campustour-backend
     ports:
-      - "8000:8000"            # 내 컴퓨터의 8000포트 → 컨테이너의 8000포트 연결
+      - "8001:8000"            # 기존 campus-ai 프로젝트와 포트 충돌 방지
     volumes:
       - ./backend:/app         # 내 컴퓨터의 코드 변경이 컨테이너에 실시간 반영됨 (핫 리로드)
     environment:
       - NEO4J_URI=bolt://neo4j:7687      # neo4j 컨테이너의 주소 (서비스명으로 접근)
       - NEO4J_USER=${NEO4J_USER}
       - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
     depends_on:
       neo4j:
         condition: service_healthy       # Neo4j가 완전히 켜진 후에 백엔드를 실행
@@ -23,10 +24,10 @@ services:
   # -----------------------------------------------
   neo4j:
     image: neo4j:5.20-community          # 공식 Neo4j 이미지 (무료 Community Edition)
-    container_name: campus-ai-neo4j
+    container_name: campustour-neo4j
     ports:
-      - "7474:7474"            # 브라우저용 Neo4j UI: http://localhost:7474 에서 확인
-      - "7687:7687"            # Bolt 프로토콜: 백엔드가 DB에 접속할 때 사용하는 포트
+      - "7475:7474"            # CampusTour Neo4j Browser
+      - "7688:7687"            # CampusTour 전용 Bolt 포트
     volumes:
       - neo4j_data:/data       # DB 데이터를 컨테이너 밖(볼륨)에 영구 저장 → 컨테이너 삭제해도 데이터 유지
     environment:
@@ -37,6 +38,23 @@ services:
       timeout: 10s
       retries: 10
     restart: unless-stopped
+
+  # Neo4j가 준비된 후 XLSX/CSV 마스터 데이터를 한 번 적재합니다.
+  data-loader:
+    build: ./backend
+    container_name: campustour-data-loader
+    command: ["python", "/data/neo4j_loader_v2.py"]
+    volumes:
+      - ./campusdata:/data:ro
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+    depends_on:
+      neo4j:
+        condition: service_healthy
+    profiles: ["seed"]
+    restart: "no"
 
 # -----------------------------------------------
 # 볼륨 선언 (DB 데이터 영구 저장 공간)

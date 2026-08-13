@@ -20,7 +20,7 @@ Mobile-first Next.js web application for AI campus tour and campus guide flows.
 Create `.env.local` from `.env.example` and set the required values.
 
 ```env
-API_BASE_URL=http://campus-ai-backend:8000
+API_BASE_URL=http://localhost:8001
 NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=your_naver_map_ncp_key_id
 ```
 
@@ -31,6 +31,9 @@ The app uses NAVER Maps JavaScript API v3 with the `ncpKeyId` script parameter.
 ## Local Ports
 
 - Frontend: `http://localhost:4173`
-- Backend: `http://localhost:8000`
+- Backend: `http://localhost:8001`
+- Neo4j Browser: `http://localhost:7475`
 
-When configuring backend CORS, allow `http://localhost:4173`.
+The frontend API client is server-side only, so browser CORS is not required for
+the current integration. Use `docker compose --profile seed up data-loader` only
+when you intentionally want to rebuild the Neo4j dataset from the XLSX/CSV files.
