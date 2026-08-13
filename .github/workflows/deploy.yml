@@ -1,0 +1,37 @@
+name: Deploy to GCP VM
+
+on:
+  push:
+    branches:
+      - main # main 브랜치에 코드가 푸시되면 실행됩니다.
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy to GCP VM via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            # 1. 작업 디렉토리로 이동 (디렉토리가 없으면 최초 클론 시 사용하는 폴더 이름에 맞게 수정하세요)
+            cd ~/CampusTour
+            
+            # 2. 최신 코드 가져오기
+            git fetch --all
+            git reset --hard origin/main
+            
+            # 3. 최신 도커 이미지 빌드 및 재시작 (무중단 배포를 원한다면 별도 스크립트가 필요하지만, 우선 가장 확실한 재시작 방식을 사용합니다)
+            docker-compose down
+            docker-compose build
+            docker-compose up -d
+            
+            # 4. 안 쓰는 더미 이미지 정리 (디스크 용량 확보)
+            docker image prune -f
