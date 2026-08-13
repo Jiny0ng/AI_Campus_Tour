@@ -5,6 +5,7 @@ from typing import Optional
 from fastapi import FastAPI, Query
 from neo4j import GraphDatabase
 
+from fastapi.middleware.cors import CORSMiddleware
 from routers import tour
 
 # ───────────────────────────────────────────────
@@ -31,6 +32,15 @@ app = FastAPI(
     description="Neo4j 지식 그래프 기반 캠퍼스 안내 서비스",
     version="0.2.0",
     lifespan=lifespan,
+)
+
+# CORS 미들웨어 추가 (GCP 배포 시 프론트엔드 통신 허용)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # 보안 강화를 위해 실제 프론트엔드 도메인으로 변경 권장
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # 라우터 등록
