@@ -22,7 +22,7 @@ jobs:
           port: 22
           script: |
             # 1. 작업 디렉토리로 이동 (디렉토리가 없으면 최초 클론 시 사용하는 폴더 이름에 맞게 수정하세요)
-            cd ~/CampusTour
+            cd ~/AI_Campus_Tour
             
             # 2. 최신 코드 가져오기
             git fetch --all
