@@ -267,11 +267,13 @@ export function NaverMap({
           lng: position.coords.longitude,
         };
 
-        setUserLocation(nextLocation);
-
-        if (followUserLocation && mapRef.current && window.naver?.maps) {
-          mapRef.current.setCenter(new window.naver.maps.LatLng(nextLocation.lat, nextLocation.lng));
-        }
+        setUserLocation(prev => {
+          const isFirstLocation = prev === null;
+          if ((isFirstLocation || followUserLocation) && mapRef.current && window.naver?.maps) {
+            mapRef.current.setCenter(new window.naver.maps.LatLng(nextLocation.lat, nextLocation.lng));
+          }
+          return nextLocation;
+        });
       },
       () => {
         // Keep the map usable even when the user denies GPS permission.
