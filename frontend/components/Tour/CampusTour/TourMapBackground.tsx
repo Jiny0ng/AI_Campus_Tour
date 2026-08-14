@@ -4,9 +4,9 @@ import { campusCenter } from "@/constants/campus";
 import type { CampusTourPoint, CampusTourRouteSegment, CampusTourStop } from "@/types";
 
 type TourMapBackgroundProps = {
-  currentStop: CampusTourStop;
+  currentStop?: CampusTourStop;
   nextStop?: CampusTourStop;
-  completedSegments: CampusTourRouteSegment[];
+  completedSegments?: CampusTourRouteSegment[];
 };
 
 function toPolylinePoints(points: CampusTourPoint[]) {
@@ -16,44 +16,48 @@ function toPolylinePoints(points: CampusTourPoint[]) {
 export function TourMapBackground({
   currentStop,
   nextStop,
-  completedSegments,
+  completedSegments = [],
 }: TourMapBackgroundProps) {
   return (
     <div className="absolute inset-0 overflow-hidden bg-map">
       <NaverMap center={campusCenter} zoom={16} />
       <div className="pointer-events-none absolute inset-0 bg-white/5" />
 
-      <div className="absolute left-4 right-4 top-[57px] z-10 flex h-[38px] items-center gap-2 rounded-full bg-surface/95 px-4 shadow-card">
-        <span className="size-3 rounded-full border-2 border-muted" />
-        <span className="truncate text-sm font-bold text-ink">{currentStop.name}</span>
-      </div>
+      {currentStop && (
+        <>
+          <div className="absolute left-4 right-4 top-[57px] z-10 flex h-[38px] items-center gap-2 rounded-full bg-surface/95 px-4 shadow-card">
+            <span className="size-3 rounded-full border-2 border-muted" />
+            <span className="truncate text-sm font-bold text-ink">{currentStop.name}</span>
+          </div>
 
-      <svg
-        viewBox="0 0 390 844"
-        className="pointer-events-none absolute inset-0 z-10 h-full w-full"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
-        {completedSegments.map((segment) => (
-          <polyline
-            key={`${segment.fromStopId}-${segment.toStopId}`}
-            points={toPolylinePoints(segment.points)}
-            fill="none"
-            stroke="#0F8A7A"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="2 12"
-          />
-        ))}
-      </svg>
+          <svg
+            viewBox="0 0 390 844"
+            className="pointer-events-none absolute inset-0 z-10 h-full w-full"
+            preserveAspectRatio="none"
+            aria-hidden
+          >
+            {completedSegments.map((segment) => (
+              <polyline
+                key={`${segment.fromStopId}-${segment.toStopId}`}
+                points={toPolylinePoints(segment.points)}
+                fill="none"
+                stroke="#0F8A7A"
+                strokeWidth="6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeDasharray="2 12"
+              />
+            ))}
+          </svg>
 
-      <div
-        className="pointer-events-none absolute z-20 grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-primary-soft shadow-marker"
-        style={{ left: currentStop.mapPoint.x, top: currentStop.mapPoint.y }}
-      >
-        <span className="size-3 rounded-full bg-primary" />
-      </div>
+          <div
+            className="pointer-events-none absolute z-20 grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-primary-soft shadow-marker"
+            style={{ left: currentStop.mapPoint.x, top: currentStop.mapPoint.y }}
+          >
+            <span className="size-3 rounded-full bg-primary" />
+          </div>
+        </>
+      )}
 
       {nextStop ? (
         <div

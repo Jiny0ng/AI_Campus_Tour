@@ -66,20 +66,7 @@ function loadNaverMapScript(clientId: string) {
   return naverMapScriptPromise;
 }
 
-function StaticFallbackMap() {
-  return (
-    <div className="absolute inset-0 bg-map">
-      <div className="absolute inset-0 opacity-80">
-        <div className="absolute left-[-14%] top-[48%] h-20 w-[130%] -rotate-[18deg] bg-white" />
-        <div className="absolute left-[62%] top-[-4%] h-[112%] w-16 rotate-[15deg] bg-white" />
-        <div className="absolute left-[14%] top-[17%] h-12 w-14 rounded border border-line bg-surface" />
-        <div className="absolute left-[49%] top-[23%] h-11 w-16 rounded border border-line bg-surface" />
-        <div className="absolute left-[20%] top-[43%] h-14 w-[74px] rounded border border-line bg-surface" />
-        <div className="absolute bottom-[8%] right-[12%] h-28 w-[92px] rounded border border-line bg-map-building" />
-      </div>
-    </div>
-  );
-}
+
 
 function createMarkerIcon(type: NaverMapMarker["type"] = "facility") {
   const markerColor = {
@@ -409,10 +396,9 @@ export function NaverMap({
       className={cn("absolute inset-0 overflow-hidden bg-map", className)}
       onPointerDown={requestOrientationPermission}
     >
-      <StaticFallbackMap />
       <div
         ref={containerRef}
-        className={cn("absolute inset-0 z-0 size-full", failed && "opacity-0")}
+        className="absolute inset-0 z-0 size-full"
       />
     </div>
   );

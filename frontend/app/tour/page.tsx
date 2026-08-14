@@ -1,6 +1,15 @@
 import { CampusTourScreen } from "@/components/Tour";
-import { campusTourData } from "@/dummy";
 
 export default function TourPage() {
-  return <CampusTourScreen data={campusTourData} />;
+  const emptyTourData = {
+    id: "",
+    title: "",
+    description: "",
+    durationMinutes: 0,
+    totalDistanceMeters: 0,
+    stops: [],
+    routeSegments: [],
+  };
+
+  return <CampusTourScreen data={emptyTourData} />;
 }
