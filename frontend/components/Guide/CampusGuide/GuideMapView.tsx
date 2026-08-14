@@ -18,7 +18,8 @@ export function GuideMapView({
   onSelectPlace,
 }: GuideMapViewProps) {
   const markers = places.map((place) => ({
-    coordinate: place.coordinate,
+    id: place.id,
+    position: place.coordinate,
     type: (selectedPlaceId === place.id ? "destination" : "facility") as any,
   }));
 
