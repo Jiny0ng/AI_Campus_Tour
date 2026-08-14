@@ -44,7 +44,9 @@ app.add_middleware(
 )
 
 # 라우터 등록
+from routers import review
 app.include_router(tour.router)
+app.include_router(review.router)
 
 def query_neo4j(query: str, params: dict = None):
     driver = app.state.neo4j_driver

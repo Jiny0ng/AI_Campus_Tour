@@ -1,7 +1,5 @@
-import { MapPin } from "lucide-react";
 import { NaverMap } from "@/components/Map";
 import type { GuidePlace } from "@/types";
-import { createRoutePath } from "@/utils/map";
 
 type NavigationMapViewProps = {
   currentLocationPoint: { x: number; y: number };
@@ -12,7 +10,7 @@ export function NavigationMapView({
   currentLocationPoint,
   destination,
 }: NavigationMapViewProps) {
-  const markers = [{ coordinate: destination.coordinate, type: "destination" as any }];
+  const markers = [{ id: destination.id, position: destination.coordinate, type: "destination" as any }];
   return (
     <div className="absolute inset-0 overflow-hidden bg-map">
       <NaverMap center={destination.coordinate} zoom={16} markers={markers} />
