@@ -17,11 +17,14 @@ services:
   # 2. Next.js 프론트엔드
   # -----------------------------------------------
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_NAVER_MAP_CLIENT_ID: ${NEXT_PUBLIC_NAVER_MAP_CLIENT_ID:?NEXT_PUBLIC_NAVER_MAP_CLIENT_ID must be set}
     container_name: campustour-frontend
     environment:
       - API_BASE_URL=http://backend:8000 # 도커 내부 네트워크를 통해 백엔드와 통신
-      - NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=${NEXT_PUBLIC_NAVER_MAP_CLIENT_ID}
+      - NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=${NEXT_PUBLIC_NAVER_MAP_CLIENT_ID:?NEXT_PUBLIC_NAVER_MAP_CLIENT_ID must be set}
     depends_on:
       - backend
     restart: unless-stopped
