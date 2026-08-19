@@ -30,3 +30,25 @@ export type CampusTourData = {
   stops: CampusTourStop[];
   routeSegments: CampusTourRouteSegment[];
 };
+
+export type CampusTourNearbySpot = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  docentText: string;
+  latitude: number;
+  longitude: number;
+  distanceMeters: number;
+};
+
+export type CampusTourSegmentInfo = {
+  pois: Array<{ name: string; category: string }>;
+  tips: Array<{
+    name: string;
+    icon: string;
+    category: string;
+    tip: string;
+  }>;
+  nearbySpots: CampusTourNearbySpot[];
+};

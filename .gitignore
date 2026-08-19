@@ -24,6 +24,9 @@ env/
 # Logs
 logs/
 *.log
+*.tsbuildinfo
+~$*
+.cleanup-quarantine/
 
 .next
 node_modules

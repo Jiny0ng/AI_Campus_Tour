@@ -16,7 +16,7 @@ type CampusMapProps = {
 
 export function CampusMap({
   center = campusCenter,
-  zoom = 16,
+  zoom = 18,
   markers = [],
   routes = [],
   className,

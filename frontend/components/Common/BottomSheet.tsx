@@ -1,6 +1,6 @@
 "use client";
 
-import { PropsWithChildren, ReactNode } from "react";
+import { PropsWithChildren, ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/cn";
@@ -27,22 +27,37 @@ export function BottomSheet({
   contentClassName,
   children,
 }: BottomSheetProps) {
+  const sheetRef = useRef<HTMLElement | null>(null);
+  const [maxDragY, setMaxDragY] = useState(0);
+
+  useLayoutEffect(() => {
+    const sheet = sheetRef.current;
+    if (!sheet) return;
+
+    const updateMaxDrag = () => {
+      const handleVisibleHeight = 44;
+      setMaxDragY(Math.max(0, sheet.getBoundingClientRect().height - handleVisibleHeight));
+    };
+
+    updateMaxDrag();
+    const observer = new ResizeObserver(updateMaxDrag);
+    observer.observe(sheet);
+
+    return () => observer.disconnect();
+  }, [open]);
+
   return (
     <AnimatePresence>
       {open && (
         <motion.section
+          ref={sheetRef}
           initial={false}
           animate={{ y: 0 }}
           exit={{ y: "100%" }}
           transition={{ type: "spring", bounce: 0, duration: 0.4 }}
           drag="y"
-          dragConstraints={{ top: 0 }}
-          dragElastic={0.05}
-          onDragEnd={(e, { offset, velocity }) => {
-            if (offset.y > 100 || velocity.y > 300) {
-              onClose?.();
-            }
-          }}
+          dragConstraints={{ top: 0, bottom: maxDragY }}
+          dragElastic={0}
           className={cn(
             "fixed inset-x-0 bottom-0 z-20 mx-auto flex max-h-[90dvh] w-full max-w-[430px] flex-col rounded-t-sheet bg-surface px-5 pb-[calc(24px+env(safe-area-inset-bottom))] pt-3 shadow-sheet",
             className,
