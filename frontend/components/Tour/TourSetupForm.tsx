@@ -30,7 +30,10 @@ export function TourSetupForm({
       return;
     }
 
-    router.push(APP_ROUTES.tour);
+    // college label(한국어 단과대명)을 URL query로 전달
+    const selectedCollege = colleges.find((c) => c.value === college);
+    const collegeName = selectedCollege?.label ?? college;
+    router.push(`${APP_ROUTES.tour}?theme=${encodeURIComponent(collegeName)}`);
   }
 
   return (

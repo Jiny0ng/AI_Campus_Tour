@@ -17,3 +17,4 @@ pyyaml==6.0.2
 
 # Campus graph seed workbook loader
 openpyxl==3.1.5
+networkx==3.3

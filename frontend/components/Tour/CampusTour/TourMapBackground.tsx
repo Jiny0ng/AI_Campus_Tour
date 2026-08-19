@@ -1,73 +1,109 @@
+"use client";
+
 import { MapPin } from "lucide-react";
 import { NaverMap } from "@/components/Map";
-import { campusCenter } from "@/constants/campus";
-import type { CampusTourPoint, CampusTourRouteSegment, CampusTourStop } from "@/types";
+import type { CampusCoordinate } from "@/types";
+import type { CampusTourRouteSegment, CampusTourStop } from "@/types";
 
 type TourMapBackgroundProps = {
-  currentStop: CampusTourStop;
+  center: CampusCoordinate;
+  initialZoom?: number;
+  currentStop?: CampusTourStop;
   nextStop?: CampusTourStop;
-  completedSegments: CampusTourRouteSegment[];
+  remainingSegments?: CampusTourRouteSegment[];
+  isLoading?: boolean;
+  onMapReady?: (map: naver.maps.Map) => void;
 };
 
-function toPolylinePoints(points: CampusTourPoint[]) {
-  return points.map((point) => `${point.x},${point.y}`).join(" ");
-}
-
 export function TourMapBackground({
+  center,
+  initialZoom = 18,
   currentStop,
   nextStop,
-  completedSegments,
+  remainingSegments = [],
+  isLoading = false,
+  onMapReady,
 }: TourMapBackgroundProps) {
+
+  // 화면 하단 바텀시트를 고려하여 지도의 시각적 중심이 상단 1/3 지점에 오도록
+  // 실제 지도 중심(카메라)을 남쪽으로 살짝 이동시킵니다.
+  // zoom 18일때 약 30m(0.0003도), zoom 15일때 약 200m(0.0018도)
+  const offsetAmount = initialZoom >= 18 ? 0.0003 : 0.0018;
+  const shiftedCenter = { lat: center.lat - offsetAmount, lng: center.lng };
+
+  // 남은 경로 segments를 평탄화하여 렌더링 시 끊김 방지 (접근 경로 vs 본 경로)
+  const approachPoints: { lat: number; lng: number }[] = [];
+  const mainPoints: { lat: number; lng: number }[] = [];
+
+  remainingSegments.forEach((segment) => {
+    const isApproach = segment.fromStopId === "current_location";
+    const mappedPoints = segment.points.map((p) => ({ lat: p.y, lng: p.x }));
+    if (isApproach) {
+      approachPoints.push(...mappedPoints);
+    } else {
+      mainPoints.push(...mappedPoints);
+    }
+  });
+
+  const routes = [];
+  if (approachPoints.length > 0) {
+    routes.push({
+      id: "route-approach",
+      path: approachPoints,
+      strokeColor: "#9CA3AF", // 회색
+      strokeWeight: 6,
+      strokeOpacity: 0.8,
+    });
+  }
+  if (mainPoints.length > 0) {
+    routes.push({
+      id: "route-main",
+      path: mainPoints,
+      strokeColor: "#0F8A7A", // 테마색
+      strokeWeight: 6,
+      strokeOpacity: 0.95,
+    });
+  }
+
+  // 현재/다음 정류장 마커
+  const markers = [];
+  if (currentStop) {
+    markers.push({
+      id: `marker-${currentStop.id}`,
+      title: currentStop.name,
+      position: { lat: currentStop.mapPoint.y, lng: currentStop.mapPoint.x },
+      type: "current" as const,
+    });
+  }
+  if (nextStop) {
+    markers.push({
+      id: `marker-${nextStop.id}`,
+      title: nextStop.name,
+      position: { lat: nextStop.mapPoint.y, lng: nextStop.mapPoint.x },
+      type: "destination" as const,
+    });
+  }
+
   return (
     <div className="absolute inset-0 overflow-hidden bg-map">
-      <NaverMap center={campusCenter} zoom={16} />
+      <NaverMap
+        center={shiftedCenter}
+        zoom={initialZoom}
+        routes={routes}
+        markers={markers}
+        showUserLocation
+        followUserLocation={false}
+        onReady={onMapReady}
+      />
       <div className="pointer-events-none absolute inset-0 bg-white/5" />
 
-      <div className="absolute left-4 right-4 top-[57px] z-10 flex h-[38px] items-center gap-2 rounded-full bg-surface/95 px-4 shadow-card">
-        <span className="size-3 rounded-full border-2 border-muted" />
-        <span className="truncate text-sm font-bold text-ink">{currentStop.name}</span>
-      </div>
-
-      <svg
-        viewBox="0 0 390 844"
-        className="pointer-events-none absolute inset-0 z-10 h-full w-full"
-        preserveAspectRatio="none"
-        aria-hidden
-      >
-        {completedSegments.map((segment) => (
-          <polyline
-            key={`${segment.fromStopId}-${segment.toStopId}`}
-            points={toPolylinePoints(segment.points)}
-            fill="none"
-            stroke="#0F8A7A"
-            strokeWidth="6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeDasharray="2 12"
-          />
-        ))}
-      </svg>
-
-      <div
-        className="pointer-events-none absolute z-20 grid size-7 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-primary-soft shadow-marker"
-        style={{ left: currentStop.mapPoint.x, top: currentStop.mapPoint.y }}
-      >
-        <span className="size-3 rounded-full bg-primary" />
-      </div>
-
-      {nextStop ? (
-        <div
-          className="pointer-events-none absolute z-20 -translate-x-1/2 -translate-y-full"
-          style={{ left: nextStop.mapPoint.x, top: nextStop.mapPoint.y }}
-        >
-          <div className="grid size-9 place-items-center rounded-full border-4 border-white bg-primary text-white shadow-marker">
-            <MapPin size={18} fill="currentColor" />
-          </div>
-          <div className="absolute left-1/2 top-[42px] -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-[11px] font-bold text-white shadow-card">
-            {nextStop.name}
-          </div>
+      {/* 로딩 중 배너 */}
+      {isLoading && (
+        <div className="absolute left-4 right-4 top-[57px] z-10 flex h-[38px] animate-pulse items-center gap-2 rounded-full bg-surface/95 px-4 shadow-card">
+          <span className="h-3 w-3 rounded-full bg-muted" />
+          <span className="h-3 w-36 rounded-full bg-muted/50" />
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

@@ -16,7 +16,7 @@ type CampusMapProps = {
 
 export function CampusMap({
   center = campusCenter,
-  zoom = 16,
+  zoom = 18,
   markers = [],
   routes = [],
   className,
@@ -25,7 +25,7 @@ export function CampusMap({
   return (
     <div className={cn("relative min-h-dvh overflow-hidden bg-map", className)}>
       <NaverMap center={center} zoom={zoom} markers={markers} routes={routes} />
-      {children ? <div className="absolute inset-0 z-10">{children}</div> : null}
+      {children ? <div className="absolute inset-0 z-10 pointer-events-none">{children}</div> : null}
     </div>
   );
 }

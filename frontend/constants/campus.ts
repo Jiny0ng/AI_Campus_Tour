@@ -5,7 +5,7 @@ export const campusCenter: CampusCoordinate = {
   lng: 127.1297,
 };
 
-export const DEFAULT_MAP_ZOOM = 16;
+export const DEFAULT_MAP_ZOOM = 18;
 
 export const JEONBUK_UNIVERSITY = {
   id: "jeonbuk-university",

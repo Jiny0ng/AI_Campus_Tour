@@ -24,6 +24,10 @@ API_BASE_URL=http://localhost:8001
 NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=your_naver_map_ncp_key_id
 ```
 
+The backend also requires `NAVER_MAP_CLIENT_SECRET` in the repository root
+`.env` to call NAVER Maps Directions 5. Keep this value server-side and never
+prefix it with `NEXT_PUBLIC_`.
+
 `API_BASE_URL` is for server-side FastAPI calls. Keep it without the `NEXT_PUBLIC_` prefix so the internal Docker service URL is not exposed to the browser.
 
 The app uses NAVER Maps JavaScript API v3 with the `ncpKeyId` script parameter.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { CampusCoordinate } from "@/types";
 import type { NaverMapMarker, NaverMapRoute } from "@/types/naver-map";
@@ -26,6 +26,14 @@ type DeviceOrientationEventWithPermission = DeviceOrientationEvent & {
 
 type DeviceOrientationConstructorWithPermission = typeof DeviceOrientationEvent & {
   requestPermission?: () => Promise<PermissionState>;
+};
+
+type NaverMapWithMorph = naver.maps.Map & {
+  morph: (
+    center: naver.maps.LatLng,
+    zoom: number,
+    options: { duration: number; easing: string },
+  ) => void;
 };
 
 let naverMapScriptPromise: Promise<void> | null = null;
@@ -66,20 +74,7 @@ function loadNaverMapScript(clientId: string) {
   return naverMapScriptPromise;
 }
 
-function StaticFallbackMap() {
-  return (
-    <div className="absolute inset-0 bg-map">
-      <div className="absolute inset-0 opacity-80">
-        <div className="absolute left-[-14%] top-[48%] h-20 w-[130%] -rotate-[18deg] bg-white" />
-        <div className="absolute left-[62%] top-[-4%] h-[112%] w-16 rotate-[15deg] bg-white" />
-        <div className="absolute left-[14%] top-[17%] h-12 w-14 rounded border border-line bg-surface" />
-        <div className="absolute left-[49%] top-[23%] h-11 w-16 rounded border border-line bg-surface" />
-        <div className="absolute left-[20%] top-[43%] h-14 w-[74px] rounded border border-line bg-surface" />
-        <div className="absolute bottom-[8%] right-[12%] h-28 w-[92px] rounded border border-line bg-map-building" />
-      </div>
-    </div>
-  );
-}
+
 
 function createMarkerIcon(type: NaverMapMarker["type"] = "facility") {
   const markerColor = {
@@ -158,7 +153,7 @@ function getDeviceHeading(event: DeviceOrientationEventWithPermission) {
 
 export function NaverMap({
   center,
-  zoom = 16,
+  zoom = 18,
   markers = [],
   routes = [],
   className,
@@ -182,8 +177,8 @@ export function NaverMap({
   const [heading, setHeading] = useState<number | null>(null);
   const [orientationPermissionRequested, setOrientationPermissionRequested] = useState(false);
   const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
-
-  const stableCenter = useMemo(() => center, [center.lat, center.lng]);
+  const initialCenterRef = useRef(center);
+  const initialZoomRef = useRef(zoom);
 
   useEffect(() => {
     let cancelled = false;
@@ -201,8 +196,11 @@ export function NaverMap({
         }
 
         const map = new window.naver.maps.Map(containerRef.current, {
-          center: new window.naver.maps.LatLng(stableCenter.lat, stableCenter.lng),
-          zoom,
+          center: new window.naver.maps.LatLng(
+            initialCenterRef.current.lat,
+            initialCenterRef.current.lng,
+          ),
+          zoom: initialZoomRef.current,
           minZoom,
           maxZoom,
           draggable: interactive,
@@ -224,7 +222,12 @@ export function NaverMap({
 
         const refreshMap = () => {
           map.refresh?.();
-          map.setCenter(new window.naver!.maps.LatLng(stableCenter.lat, stableCenter.lng));
+          map.setCenter(
+            new window.naver!.maps.LatLng(
+              initialCenterRef.current.lat,
+              initialCenterRef.current.lng,
+            ),
+          );
         };
 
         window.requestAnimationFrame(refreshMap);
@@ -253,7 +256,7 @@ export function NaverMap({
       userLocationMarkerRef.current = null;
       mapRef.current = null;
     };
-  }, [clientId, interactive, maxZoom, minZoom, onError, onReady, stableCenter, zoom]);
+  }, [clientId, interactive, maxZoom, minZoom, onError, onReady]);
 
   useEffect(() => {
     if (!showUserLocation || typeof navigator === "undefined" || !navigator.geolocation) {
@@ -338,8 +341,11 @@ export function NaverMap({
       return;
     }
 
-    map.setCenter(new window.naver.maps.LatLng(center.lat, center.lng));
-    map.setZoom(zoom);
+    // 부드러운 애니메이션 효과를 위해 morph 사용
+    (map as NaverMapWithMorph).morph(new window.naver.maps.LatLng(center.lat, center.lng), zoom, {
+      duration: 1000,
+      easing: "easeOutCubic",
+    });
   }, [center.lat, center.lng, zoom]);
 
   useEffect(() => {
@@ -409,10 +415,9 @@ export function NaverMap({
       className={cn("absolute inset-0 overflow-hidden bg-map", className)}
       onPointerDown={requestOrientationPermission}
     >
-      <StaticFallbackMap />
       <div
         ref={containerRef}
-        className={cn("absolute inset-0 z-0 size-full", failed && "opacity-0")}
+        className="absolute inset-0 z-0 size-full"
       />
     </div>
   );
