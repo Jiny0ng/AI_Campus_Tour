@@ -32,6 +32,7 @@ jobs:
             
             # 3. 빌드 성공 후 새 컨테이너로 교체
             docker-compose build
+            docker-compose down --remove-orphans
             docker-compose up -d --remove-orphans
             docker-compose ps
             
