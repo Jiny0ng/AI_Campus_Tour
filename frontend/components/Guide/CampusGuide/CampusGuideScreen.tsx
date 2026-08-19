@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Compass, LocateFixed } from "lucide-react";
+import { ChevronLeft, Compass, LocateFixed } from "lucide-react";
 import { FloatingButton, SearchBar } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import type { CampusGuideData, GuidePlace, GuidePlaceCategory } from "@/types";
@@ -73,12 +73,22 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
         />
 
         <div className="pointer-events-auto absolute left-4 right-4 top-[57px] z-30">
-          <SearchBar
-            value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
-            placeholder="건물, 시설, 편의점 검색..."
-            containerClassName="h-[38px] bg-surface/95"
-          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="grid size-[38px] shrink-0 place-items-center rounded-full bg-surface text-ink shadow-card"
+              aria-label="뒤로가기"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <SearchBar
+              value={keyword}
+              onChange={(event) => setKeyword(event.target.value)}
+              placeholder="건물, 시설, 편의점 검색..."
+              containerClassName="h-[38px] flex-1 bg-surface/95"
+            />
+          </div>
           <GuideSearchResults places={searchResults} onSelectPlace={handleSelectPlace} />
           <div className="mt-3">
             <GuideCategoryBar

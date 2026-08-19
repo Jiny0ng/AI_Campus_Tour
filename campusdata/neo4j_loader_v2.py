@@ -24,7 +24,7 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "campus-ai-password-2024")
 BASE    = os.path.dirname(os.path.abspath(__file__))
 XLSX    = os.path.join(BASE, "jbnu_campus_graphdb_data.xlsx")
 COORDINATES_XLSX = os.path.join(BASE, "building_coordinates_20260809.xlsx")
-PARSED  = os.path.join(BASE, "parsed")   # 기존 파싱 결과 폴더
+CSV_DIR = BASE
 
 
 # ─── 유틸 ─────────────────────────────────────────────────────
@@ -47,7 +47,7 @@ def read_xlsx_sheet(wb, sheet_name):
 
 
 def read_csv(filename):
-    path = os.path.join(PARSED, filename)
+    path = os.path.join(CSV_DIR, filename)
     with open(path, encoding="utf-8-sig") as f:
         return list(csv.DictReader(f))
 

@@ -12,7 +12,7 @@ class ReviewCreate(BaseModel):
     content: str
 
 def get_llm():
-    return ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7)
+    return ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0.7)
 
 @router.post("/{building_name}/reviews")
 async def create_review(building_name: str, review: ReviewCreate, request: Request):
