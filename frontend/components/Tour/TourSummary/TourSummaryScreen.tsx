@@ -5,6 +5,7 @@ import { MapPin, Sparkles } from "lucide-react";
 import { Button } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import { APP_ROUTES } from "@/constants/routes";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 import type { TourSummaryData } from "@/types";
 import { TourSummaryTipCard } from "./TourSummaryTipCard";
 
@@ -14,6 +15,7 @@ type TourSummaryScreenProps = {
 
 export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
   const router = useRouter();
+  const { t } = useAppSettings();
 
   return (
     <MobileShell className="bg-surface">
@@ -22,12 +24,12 @@ export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
           <div className="flex items-center gap-3">
             <Sparkles size={18} className="text-primary" />
             <h1 className="text-[22px] font-extrabold tracking-[-0.01em] text-ink">
-              {data.title}
+              {t("summary.title")}
             </h1>
           </div>
 
           <section className="mt-7">
-            <h2 className="text-sm font-extrabold text-ink">오늘 방문한 장소</h2>
+            <h2 className="text-sm font-extrabold text-ink">{t("summary.visited")}</h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {data.visitedPlaces.map((place) => (
                 <span
@@ -42,10 +44,17 @@ export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
           </section>
 
           <section className="mt-5">
-            <h2 className="text-sm font-extrabold text-ink">핵심 요약 팁</h2>
+            <h2 className="text-sm font-extrabold text-ink">{t("summary.tips")}</h2>
             <div className="mt-3 space-y-2.5">
               {data.tips.map((tip) => (
-                <TourSummaryTipCard key={tip.id} tip={tip} />
+                <TourSummaryTipCard
+                  key={tip.id}
+                  tip={{
+                    ...tip,
+                    title: t(`summary.${tip.id}.title`),
+                    description: t(`summary.${tip.id}.description`),
+                  }}
+                />
               ))}
             </div>
           </section>
@@ -59,7 +68,7 @@ export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
           className="mt-6 h-12 rounded-card text-base"
           onClick={() => router.push(APP_ROUTES.home)}
         >
-          처음 화면으로 돌아가기
+          {t("summary.home")}
         </Button>
       </main>
     </MobileShell>

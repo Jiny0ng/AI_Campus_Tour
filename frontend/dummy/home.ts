@@ -5,8 +5,8 @@ export const homeServiceOptions: HomeServiceOption[] = [
   {
     id: "tour",
     title: "캠퍼스 투어",
-    description: "오리엔테이션 · 추천 코스 · 개인 맞춤형",
-    href: APP_ROUTES.tourSetup,
+    description: "주요 명소를 따라가는 캠퍼스 투어",
+    href: APP_ROUTES.tour,
   },
   {
     id: "guide",

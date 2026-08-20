@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { CampusCoordinate } from "@/types";
+import { clientDebug } from "@/lib/clientDebug";
 import type { NaverMapMarker, NaverMapRoute } from "@/types/naver-map";
 
 type NaverMapProps = {
@@ -14,6 +15,8 @@ type NaverMapProps = {
   interactive?: boolean;
   showUserLocation?: boolean;
   followUserLocation?: boolean;
+  recenterUserLocationToken?: number;
+  headingUp?: boolean;
   minZoom?: number;
   maxZoom?: number;
   onReady?: (map: naver.maps.Map) => void;
@@ -139,6 +142,73 @@ function createUserLocationIcon(heading: number | null) {
   };
 }
 
+function distanceBetweenPoints(first: CampusCoordinate, second: CampusCoordinate) {
+  const earthRadius = 6371000;
+  const toRadians = (degrees: number) => degrees * Math.PI / 180;
+  const latitudeDelta = toRadians(second.lat - first.lat);
+  const longitudeDelta = toRadians(second.lng - first.lng);
+  const value = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(toRadians(first.lat)) * Math.cos(toRadians(second.lat))
+    * Math.sin(longitudeDelta / 2) ** 2;
+  return earthRadius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
+
+function bearingBetweenPoints(first: CampusCoordinate, second: CampusCoordinate) {
+  const toRadians = (degrees: number) => degrees * Math.PI / 180;
+  const toDegrees = (radians: number) => radians * 180 / Math.PI;
+  const firstLatitude = toRadians(first.lat);
+  const secondLatitude = toRadians(second.lat);
+  const longitudeDelta = toRadians(second.lng - first.lng);
+  const y = Math.sin(longitudeDelta) * Math.cos(secondLatitude);
+  const x = Math.cos(firstLatitude) * Math.sin(secondLatitude)
+    - Math.sin(firstLatitude) * Math.cos(secondLatitude) * Math.cos(longitudeDelta);
+  return (toDegrees(Math.atan2(y, x)) + 360) % 360;
+}
+
+function sampleDirectionArrows(path: CampusCoordinate[], spacingMeters: number) {
+  if (path.length < 2) return [];
+
+  const arrows: Array<{ position: CampusCoordinate; bearing: number }> = [];
+  let distanceUntilArrow = spacingMeters / 2;
+
+  for (let index = 0; index < path.length - 1; index += 1) {
+    const start = path[index];
+    const end = path[index + 1];
+    const segmentDistance = distanceBetweenPoints(start, end);
+    if (segmentDistance <= 0) continue;
+
+    let consumedDistance = 0;
+    while (consumedDistance + distanceUntilArrow <= segmentDistance) {
+      consumedDistance += distanceUntilArrow;
+      const ratio = consumedDistance / segmentDistance;
+      arrows.push({
+        position: {
+          lat: start.lat + (end.lat - start.lat) * ratio,
+          lng: start.lng + (end.lng - start.lng) * ratio,
+        },
+        bearing: bearingBetweenPoints(start, end),
+      });
+      distanceUntilArrow = spacingMeters;
+    }
+    distanceUntilArrow -= segmentDistance - consumedDistance;
+  }
+
+  return arrows;
+}
+
+function createRouteArrowIcon(bearing: number, color: string) {
+  return {
+    content: `
+      <div style="width:18px;height:18px;display:grid;place-items:center;transform:rotate(${bearing}deg);filter:drop-shadow(0 1px 1px rgba(17,24,39,.2));">
+        <svg width="12" height="12" viewBox="0 0 15 15" aria-hidden="true">
+          <path d="M7.5 1.5 L13.2 12.8 L7.5 9.7 L1.8 12.8 Z" fill="${color}" />
+        </svg>
+      </div>
+    `,
+    anchor: new window.naver!.maps.Point(9, 9),
+  };
+}
+
 function getDeviceHeading(event: DeviceOrientationEventWithPermission) {
   if (typeof event.webkitCompassHeading === "number") {
     return event.webkitCompassHeading;
@@ -160,6 +230,8 @@ export function NaverMap({
   interactive = true,
   showUserLocation = true,
   followUserLocation = false,
+  recenterUserLocationToken = 0,
+  headingUp = false,
   minZoom = 6,
   maxZoom = 21,
   onReady,
@@ -169,11 +241,15 @@ export function NaverMap({
   const mapRef = useRef<naver.maps.Map | null>(null);
   const markerRefs = useRef<naver.maps.Marker[]>([]);
   const routeRefs = useRef<naver.maps.Polyline[]>([]);
+  const routeArrowMarkerRefs = useRef<naver.maps.Marker[]>([]);
   const userLocationMarkerRef = useRef<naver.maps.Marker | null>(null);
+  const mapDragListenerRef = useRef<unknown | null>(null);
+  const handledRecenterTokenRef = useRef(0);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [userLocation, setUserLocation] = useState<CampusCoordinate | null>(null);
+  const isFollowingUserRef = useRef(followUserLocation);
   const [heading, setHeading] = useState<number | null>(null);
   const [orientationPermissionRequested, setOrientationPermissionRequested] = useState(false);
   const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
@@ -217,6 +293,13 @@ export function NaverMap({
         });
 
         mapRef.current = map;
+        mapDragListenerRef.current = window.naver.maps.Event.addListener(
+          map,
+          "dragstart",
+          () => {
+            isFollowingUserRef.current = false;
+          },
+        );
         setReady(true);
         onReady?.(map);
 
@@ -248,12 +331,18 @@ export function NaverMap({
       cancelled = true;
       markerRefs.current.forEach((marker) => marker.setMap(null));
       routeRefs.current.forEach((route) => route.setMap(null));
+      routeArrowMarkerRefs.current.forEach((marker) => marker.setMap(null));
       userLocationMarkerRef.current?.setMap(null);
+      if (mapDragListenerRef.current && window.naver?.maps.Event) {
+        window.naver.maps.Event.removeListener(mapDragListenerRef.current);
+      }
       resizeObserverRef.current?.disconnect();
       mapRef.current?.destroy?.();
       markerRefs.current = [];
       routeRefs.current = [];
+      routeArrowMarkerRefs.current = [];
       userLocationMarkerRef.current = null;
+      mapDragListenerRef.current = null;
       mapRef.current = null;
     };
   }, [clientId, interactive, maxZoom, minZoom, onError, onReady]);
@@ -272,11 +361,20 @@ export function NaverMap({
 
         setUserLocation(prev => {
           const isFirstLocation = prev === null;
-          if ((isFirstLocation || followUserLocation) && mapRef.current && window.naver?.maps) {
+          if ((isFirstLocation || isFollowingUserRef.current) && mapRef.current && window.naver?.maps) {
             mapRef.current.setCenter(new window.naver.maps.LatLng(nextLocation.lat, nextLocation.lng));
           }
           return nextLocation;
         });
+
+        const gpsHeading = position.coords.heading;
+        if (typeof gpsHeading === "number" && gpsHeading >= 0) {
+          setHeading((currentHeading) => {
+            if (currentHeading === null) return gpsHeading;
+            const delta = ((gpsHeading - currentHeading + 540) % 360) - 180;
+            return currentHeading + delta * 0.35;
+          });
+        }
       },
       () => {
         // Keep the map usable even when the user denies GPS permission.
@@ -291,7 +389,35 @@ export function NaverMap({
     return () => {
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [followUserLocation, showUserLocation]);
+  }, [showUserLocation]);
+
+  useEffect(() => {
+    isFollowingUserRef.current = followUserLocation;
+  }, [followUserLocation]);
+
+  useEffect(() => {
+    if (
+      recenterUserLocationToken <= handledRecenterTokenRef.current
+      || !userLocation
+      || !mapRef.current
+      || !window.naver?.maps
+    ) {
+      return;
+    }
+
+    handledRecenterTokenRef.current = recenterUserLocationToken;
+    isFollowingUserRef.current = true;
+    clientDebug("map", "recenter-requested", {
+      token: recenterUserLocationToken,
+      userLocation,
+      zoomTarget: 18,
+    });
+    mapRef.current.setZoom(18);
+    mapRef.current.setCenter(
+      new window.naver.maps.LatLng(userLocation.lat, userLocation.lng),
+    );
+    clientDebug("map", "recenter-applied", { zoomTarget: 18 });
+  }, [recenterUserLocationToken, userLocation]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -302,7 +428,11 @@ export function NaverMap({
       const nextHeading = getDeviceHeading(event as DeviceOrientationEventWithPermission);
 
       if (nextHeading !== null) {
-        setHeading(nextHeading);
+        setHeading((currentHeading) => {
+          if (currentHeading === null) return nextHeading;
+          const delta = ((nextHeading - currentHeading + 540) % 360) - 180;
+          return currentHeading + delta * 0.25;
+        });
       }
     }
 
@@ -375,6 +505,7 @@ export function NaverMap({
     }
 
     routeRefs.current.forEach((route) => route.setMap(null));
+    routeArrowMarkerRefs.current.forEach((marker) => marker.setMap(null));
     routeRefs.current = routes.map(
       (route) =>
         new window.naver!.maps.Polyline({
@@ -385,6 +516,18 @@ export function NaverMap({
           strokeOpacity: route.strokeOpacity ?? 0.95,
         }),
     );
+    routeArrowMarkerRefs.current = routes.flatMap((route) => {
+      if (!route.showDirectionArrows) return [];
+      return sampleDirectionArrows(route.path, route.arrowSpacingMeters ?? 24).map(
+        (arrow) => new window.naver!.maps.Marker({
+          map,
+          position: new window.naver!.maps.LatLng(arrow.position.lat, arrow.position.lng),
+          icon: createRouteArrowIcon(arrow.bearing, route.arrowColor ?? "#FFFFFF"),
+          clickable: false,
+          zIndex: 20,
+        }),
+      );
+    });
   }, [ready, routes]);
 
   useEffect(() => {
@@ -418,6 +561,11 @@ export function NaverMap({
       <div
         ref={containerRef}
         className="absolute inset-0 z-0 size-full"
+        style={headingUp && heading !== null ? {
+          transform: `rotate(${-heading}deg) scale(1.45)`,
+          transformOrigin: "50% 50%",
+          transition: "transform 180ms linear",
+        } : undefined}
       />
     </div>
   );

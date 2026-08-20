@@ -15,6 +15,4 @@ langchain==0.3.0
 langchain-google-genai==2.0.0
 pyyaml==6.0.2
 
-# Campus graph seed workbook loader
-openpyxl==3.1.5
 networkx==3.3

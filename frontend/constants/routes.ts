@@ -1,7 +1,6 @@
 export const APP_ROUTES = {
   home: "/",
   tour: "/tour",
-  tourSetup: "/tour/setup",
   tourSummary: "/tour/summary",
   guide: "/guide",
   map: "/map",

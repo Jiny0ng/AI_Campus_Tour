@@ -1,13 +1,17 @@
+"use client";
+
 import { Sparkles } from "lucide-react";
 import { BottomSheet } from "@/components/Common";
 import type { HomeServiceOption } from "@/types";
 import { HomeServiceOptionCard } from "./HomeServiceOptionCard";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 type HomeServiceSheetProps = {
   options: HomeServiceOption[];
 };
 
 export function HomeServiceSheet({ options }: HomeServiceSheetProps) {
+  const { t } = useAppSettings();
   return (
     <BottomSheet className="pointer-events-auto px-4 pb-[calc(20px+env(safe-area-inset-bottom))]">
       <div className="space-y-4">
@@ -17,7 +21,7 @@ export function HomeServiceSheet({ options }: HomeServiceSheetProps) {
             <span>Campus Guide</span>
           </p>
           <h1 className="mt-3 whitespace-pre-line text-xl font-extrabold leading-7 text-ink">
-            원하는 서비스를{"\n"}선택해주세요.
+            {t("home.prompt")}
           </h1>
         </div>
 

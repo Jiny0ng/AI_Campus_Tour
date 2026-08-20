@@ -11,6 +11,7 @@ type TourMapBackgroundProps = {
   currentStop?: CampusTourStop;
   nextStop?: CampusTourStop;
   remainingSegments?: CampusTourRouteSegment[];
+  recenterUserLocationToken?: number;
   isLoading?: boolean;
   onMapReady?: (map: naver.maps.Map) => void;
 };
@@ -21,6 +22,7 @@ export function TourMapBackground({
   currentStop,
   nextStop,
   remainingSegments = [],
+  recenterUserLocationToken = 0,
   isLoading = false,
   onMapReady,
 }: TourMapBackgroundProps) {
@@ -51,8 +53,11 @@ export function TourMapBackground({
       id: "route-approach",
       path: approachPoints,
       strokeColor: "#9CA3AF", // 회색
-      strokeWeight: 6,
+      strokeWeight: 7,
       strokeOpacity: 0.8,
+      showDirectionArrows: true,
+      arrowColor: "#FFFFFF",
+      arrowSpacingMeters: 24,
     });
   }
   if (mainPoints.length > 0) {
@@ -60,8 +65,11 @@ export function TourMapBackground({
       id: "route-main",
       path: mainPoints,
       strokeColor: "#0F8A7A", // 테마색
-      strokeWeight: 6,
+      strokeWeight: 8,
       strokeOpacity: 0.95,
+      showDirectionArrows: true,
+      arrowColor: "#FFFFFF",
+      arrowSpacingMeters: 24,
     });
   }
 
@@ -92,7 +100,9 @@ export function TourMapBackground({
         routes={routes}
         markers={markers}
         showUserLocation
-        followUserLocation={false}
+        followUserLocation
+        recenterUserLocationToken={recenterUserLocationToken}
+        headingUp
         onReady={onMapReady}
       />
       <div className="pointer-events-none absolute inset-0 bg-white/5" />

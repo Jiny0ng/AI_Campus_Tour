@@ -24,6 +24,8 @@ async def lifespan(app: FastAPI):
     )
     print("✅ Neo4j 연결 성공")
     load_graph()
+    tour.warm_tour_cache()
+    print("✅ 단일 투어 경로 캐시 준비 완료")
     yield
     app.state.neo4j_driver.close()
     print("🔌 Neo4j 연결 종료")

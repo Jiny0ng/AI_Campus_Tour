@@ -1,423 +1,408 @@
-"""
-neo4j_loader_v2.py
-==================
-jbnu_campus_graphdb_data.xlsx (마스터 데이터) + 기존 CSV 파일들을 읽어
-Neo4j에 노드와 관계를 생성하는 스크립트 v2.
+"""Load the current campus CSV files into Neo4j.
 
-노드 종류:
-  Building, Facility, Department, Transportation, Room (신규 마스터 데이터)
-  Floor, Store (기존 파싱 데이터)
-
-관계 종류:
-  LOCATED_IN, HAS_FLOOR, HAS_ROOM, HAS_STORE (기존)
+The loader is idempotent by default. Pass ``--reset`` only when a full graph
+rebuild is explicitly required.
 """
 
-import csv, os, re, time
-import openpyxl
+from __future__ import annotations
+
+import argparse
+import csv
+import os
+import time
+from pathlib import Path
+from typing import Any, Iterable
+
 from neo4j import GraphDatabase
 
-# ─── 접속 정보 ─────────────────────────────────────────────────
-NEO4J_URI      = os.getenv("NEO4J_URI",      "bolt://localhost:7687")
-NEO4J_USER     = os.getenv("NEO4J_USER",     "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "campus-ai-password-2024")
 
-BASE    = os.path.dirname(os.path.abspath(__file__))
-XLSX    = os.path.join(BASE, "jbnu_campus_graphdb_data.xlsx")
-COORDINATES_XLSX = os.path.join(BASE, "building_coordinates_20260809.xlsx")
-CSV_DIR = BASE
+NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
+DATA_DIR = Path(__file__).resolve().parent
 
 
-# ─── 유틸 ─────────────────────────────────────────────────────
-def s(v):
-    """None → '' / 나머지 strip"""
-    return str(v).strip() if v is not None else ""
+def read_csv(filename: str) -> list[dict[str, str]]:
+    path = DATA_DIR / filename
+    if not path.is_file():
+        raise FileNotFoundError(f"Required CSV is missing: {path}")
+    with path.open("r", encoding="utf-8-sig", newline="") as file:
+        return [
+            {str(key).strip(): (value or "").strip() for key, value in row.items()}
+            for row in csv.DictReader(file)
+        ]
 
 
-def read_xlsx_sheet(wb, sheet_name):
-    ws = wb[sheet_name]
-    rows = list(ws.iter_rows(values_only=True))
-    if not rows:
-        return []
-    headers = [s(h) for h in rows[0]]
-    result = []
-    for row in rows[1:]:
-        record = {headers[i]: s(row[i]) for i in range(len(headers))}
-        result.append(record)
-    return result
+def optional_float(value: str) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
 
 
-def read_csv(filename):
-    path = os.path.join(CSV_DIR, filename)
-    with open(path, encoding="utf-8-sig") as f:
-        return list(csv.DictReader(f))
+def run(driver, query: str, **parameters: Any) -> None:
+    with driver.session() as session:
+        session.run(query, **parameters).consume()
 
 
-def read_building_coordinates():
-    """좌표 통합문서에서 건물번호별 단일 위도·경도를 추출합니다."""
-    wb = openpyxl.load_workbook(COORDINATES_XLSX, read_only=True, data_only=True)
-    points = {}
+def ensure_unique(values: Iterable[str], label: str) -> None:
+    seen: set[str] = set()
+    duplicates: set[str] = set()
+    for value in values:
+        if value in seen:
+            duplicates.add(value)
+        seen.add(value)
+    if duplicates:
+        raise ValueError(f"Duplicate {label}: {', '.join(sorted(duplicates))}")
 
-    def add(map_num, lat, lng, source_title):
-        if not map_num or not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
-            return
-        point = (float(lat), float(lng))
-        existing = points.get(str(map_num))
-        if existing and (existing["latitude"], existing["longitude"]) != point:
-            raise ValueError(f"건물번호 {map_num}에 서로 다른 좌표가 있습니다.")
-        points[str(map_num)] = {
-            "map_num": str(map_num),
-            "latitude": point[0],
-            "longitude": point[1],
-            "coordinate_source": source_title,
+
+def validate_source_data() -> None:
+    buildings = read_csv("nodes_building.csv")
+    route = read_csv("tour_route.csv")
+
+    building_names = [row["name"] for row in buildings if row["name"]]
+    ensure_unique(building_names, "building names")
+
+    route_ids = [row["place_id"] for row in route]
+    route_orders = [row["order"] for row in route]
+    ensure_unique(route_ids, "tour place IDs")
+    ensure_unique(route_orders, "tour orders")
+
+    expected_orders = list(range(1, len(route) + 1))
+    actual_orders = sorted(int(order) for order in route_orders)
+    if actual_orders != expected_orders:
+        raise ValueError(
+            f"Tour order must be continuous: expected {expected_orders}, got {actual_orders}"
+        )
+
+    for row in route:
+        if not row["place_id"] or not row["name"]:
+            raise ValueError(f"Tour stop needs place_id and name: {row}")
+        if optional_float(row["latitude"]) is None or optional_float(row["longitude"]) is None:
+            raise ValueError(f"Tour stop needs valid coordinates: {row['place_id']}")
+
+
+def create_indexes(driver) -> None:
+    queries = (
+        "CREATE INDEX building_name IF NOT EXISTS FOR (n:Building) ON (n.name)",
+        "CREATE CONSTRAINT tour_stop_id IF NOT EXISTS FOR (n:TourStop) REQUIRE n.place_id IS UNIQUE",
+        "CREATE CONSTRAINT docent_spot_id IF NOT EXISTS FOR (n:DocentSpot) REQUIRE n.spot_id IS UNIQUE",
+        "CREATE INDEX store_name IF NOT EXISTS FOR (n:Store) ON (n.name)",
+        "CREATE INDEX floor_building IF NOT EXISTS FOR (n:Floor) ON (n.building_name)",
+        "CREATE INDEX room_building IF NOT EXISTS FOR (n:Room) ON (n.building_name)",
+    )
+    for query in queries:
+        run(driver, query)
+
+
+def building_name_lookup() -> tuple[dict[str, str], dict[str, str]]:
+    rows = read_csv("nodes_building.csv")
+    by_name = {row["name"]: row["name"] for row in rows if row["name"]}
+    by_code = {
+        row["code"]: row["name"]
+        for row in rows
+        if row["code"] and row["name"]
+    }
+    return by_name, by_code
+
+
+def canonical_building_name(
+    row: dict[str, str], by_name: dict[str, str], by_code: dict[str, str]
+) -> str | None:
+    code = row.get("building_code", "")
+    name = row.get("building_name", "")
+    return by_code.get(code) or by_name.get(name)
+
+
+def load_buildings(driver) -> int:
+    rows = read_csv("nodes_building.csv")
+    batch = [
+        {
+            "code": row["code"] or None,
+            "name": row["name"],
+            "main_function": row["main_function"],
+            "latitude": optional_float(row["latitude"]),
+            "longitude": optional_float(row["longitude"]),
+            "coordinate_source": row["coordinate_source"],
+            "source_url": row["source_url"],
+            "related_content": row["related_content"],
         }
-
-    for row in wb["학교"].iter_rows(values_only=True):
-        if len(row) < 9 or not row[2]:
-            continue
-        match = re.search(r"(?:^|\s)(\d+-\d+)(?:\s|$)", str(row[2]))
-        if match:
-            add(match.group(1), row[7], row[8], "학교")
-
-    for row in wb["좌표 미매칭 목록"].iter_rows(values_only=True):
-        if len(row) >= 8:
-            add(row[0], row[3], row[4], "좌표 미매칭 목록")
-
-    return list(points.values())
-
-
-def run(driver, query, batch=None, params=None):
-    with driver.session() as session:
-        if batch is not None:
-            session.run(query, batch=batch)
-        else:
-            session.run(query, **(params or {}))
-
-
-# ══════════════════════════════════════════════════════════════
-def load_all(driver):
-
-    wb = openpyxl.load_workbook(XLSX)
-
-    # 0. 초기화
-    print("⚠️  기존 데이터 전체 초기화 중...")
-    run(driver, "MATCH (n) DETACH DELETE n")
-    print("  → 완료\n")
-
-    # 인덱스
-    print("📌 인덱스 생성 중...")
-    for q in [
-        "CREATE INDEX IF NOT EXISTS FOR (n:Building)       ON (n.building_id)",
-        "CREATE INDEX IF NOT EXISTS FOR (n:Building)       ON (n.name)",
-        "CREATE INDEX IF NOT EXISTS FOR (n:Facility)       ON (n.facility_id)",
-        "CREATE INDEX IF NOT EXISTS FOR (n:Department)     ON (n.department_id)",
-        "CREATE INDEX IF NOT EXISTS FOR (n:Transportation) ON (n.transportation_id)",
-        "CREATE INDEX IF NOT EXISTS FOR (n:Room)           ON (n.room_id)",
-        "CREATE INDEX IF NOT EXISTS FOR (n:Floor)          ON (n.building_name)",
-        "CREATE INDEX IF NOT EXISTS FOR (n:Store)          ON (n.name)",
-    ]:
-        run(driver, q)
-    print("  → 완료\n")
-
-    # ── 1. Building ────────────────────────────────────────────
-    data = read_xlsx_sheet(wb, "Buildings")
-    print(f"🏛️  Building 노드 생성 중... ({len(data)}건)")
-    batch = [{
-        "id":            r["building_id:ID(Building)"],
-        "name":          r["name"],
-        "alias":         r["alias"],
-        "zone":          r["zone"],
-        "map_num":       r["map_location_number"],
-        "campus":        r["campus"],
-        "address":       r["address"],
-        "phone":         r["phone"],
-        "is_24h":        r["is_24_hours:boolean"],
-        "floors":        r["floors"],
-        "operating_hrs": r["operating_hours"],
-        "source_url":    r["source_url"],
-    } for r in data if r["building_id:ID(Building)"]]
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (b:Building {building_id: r.id})
-        SET b.name          = r.name,
-            b.alias         = r.alias,
-            b.zone          = r.zone,
-            b.map_num       = r.map_num,
-            b.campus        = r.campus,
-            b.address       = r.address,
-            b.phone         = r.phone,
-            b.is_24h        = r.is_24h,
-            b.floors        = r.floors,
-            b.operating_hrs = r.operating_hrs,
-            b.source_url    = r.source_url
-    """, batch=batch)
-    print(f"  → 완료\n")
-
-    # ── 2. Facility ────────────────────────────────────────────
-    data = read_xlsx_sheet(wb, "Facilities")
-    print(f"🏥  Facility 노드 생성 중... ({len(data)}건)")
-    batch = [{
-        "id":          r["facility_id:ID(Facility)"],
-        "type":        r["type"],
-        "name":        r["name"],
-        "floor":       r["floor"],
-        "room_number": r["room_number"],
-        "hours_wd":    r["operating_hours_weekday"],
-        "hours_we":    r["operating_hours_weekend"],
-        "hours_vac":   r["operating_hours_vacation"],
-        "contact":     r["contact"],
-        "description": r["description"],
-        "source_url":  r["source_url"],
-    } for r in data if r["facility_id:ID(Facility)"]]
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (f:Facility {facility_id: r.id})
-        SET f.type        = r.type,
-            f.name        = r.name,
-            f.floor       = r.floor,
-            f.room_number = r.room_number,
-            f.hours_wd    = r.hours_wd,
-            f.hours_we    = r.hours_we,
-            f.hours_vac   = r.hours_vac,
-            f.contact     = r.contact,
-            f.description = r.description,
-            f.source_url  = r.source_url
-    """, batch=batch)
-    print(f"  → 완료\n")
-
-    # ── 3. Department ──────────────────────────────────────────
-    data = read_xlsx_sheet(wb, "Departments")
-    print(f"🏫  Department 노드 생성 중... ({len(data)}건)")
-    batch = [{
-        "id":          r["department_id:ID(Department)"],
-        "type":        r["type"],
-        "name":        r["name"],
-        "hours":       r["operating_hours"],
-        "phone":       r["phone"],
-        "email":       r["email"],
-        "website":     r["website"],
-        "description": r["description"],
-        "source_url":  r["source_url"],
-    } for r in data if r["department_id:ID(Department)"]]
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (d:Department {department_id: r.id})
-        SET d.type        = r.type,
-            d.name        = r.name,
-            d.hours       = r.hours,
-            d.phone       = r.phone,
-            d.email       = r.email,
-            d.website     = r.website,
-            d.description = r.description,
-            d.source_url  = r.source_url
-    """, batch=batch)
-    print(f"  → 완료\n")
-
-    # ── 4. Transportation ──────────────────────────────────────
-    data = read_xlsx_sheet(wb, "Transportation")
-    print(f"🚌  Transportation 노드 생성 중... ({len(data)}건)")
-    batch = [{
-        "id":          r["transportation_id:ID(Transportation)"],
-        "type":        r["type"],
-        "name":        r["name"],
-        "routes":      r["routes:string[]"],
-        "hours":       r["operating_hours"],
-        "description": r["description"],
-        "source_url":  r["source_url"],
-    } for r in data if r["transportation_id:ID(Transportation)"]]
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (t:Transportation {transportation_id: r.id})
-        SET t.type        = r.type,
-            t.name        = r.name,
-            t.routes      = r.routes,
-            t.hours       = r.hours,
-            t.description = r.description,
-            t.source_url  = r.source_url
-    """, batch=batch)
-    print(f"  → 완료\n")
-
-    # ── 5. Room (신규 마스터) ──────────────────────────────────
-    data = read_xlsx_sheet(wb, "Rooms")
-    print(f"🚪  Room 노드 생성 중... ({len(data)}건)")
-    batch = [{
-        "id":          r["room_id:ID(Room)"],
-        "room_number": r["room_number"],
-        "name":        r["name"],
-        "type":        r["type"],
-        "floor":       r["floor"],
-        "description": r["description"],
-        "source_url":  r["source_url"],
-    } for r in data if r["room_id:ID(Room)"]]
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (rm:Room {room_id: r.id})
-        SET rm.room_number = r.room_number,
-            rm.name        = r.name,
-            rm.type        = r.type,
-            rm.floor       = r.floor,
-            rm.description = r.description,
-            rm.source_url  = r.source_url
-    """, batch=batch)
-    print(f"  → 완료\n")
-
-    # ── 6a. 기존 파싱 Building (Floor 연결용) ─────────────────
-    # Floor의 building_name이 기존 파싱 형식("단과대 · 건물명")이므로
-    # 신규 xlsx Building과 별도로 파싱 Building도 함께 적재
-    data = read_csv("nodes_building.csv")
-    print(f"🏛️  Building(파싱) 노드 보완 중... ({len(data)}건)")
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (b:Building {name: r.name})
-        ON CREATE SET b.code          = r.code,
-                      b.main_function = r.main_function,
-                      b.source        = 'parsed'
-    """, batch=data)
-    print(f"  → 완료\n")
-
-    # ── 6c. 건물 위도·경도 ───────────────────────────────────
-    data = read_building_coordinates()
-    print(f"📍 Building 좌표 갱신 중... ({len(data)}건)")
-    run(driver, """
-        UNWIND $batch AS r
-        MATCH (b:Building {map_num: r.map_num})
-        SET b.latitude          = r.latitude,
-            b.longitude         = r.longitude,
-            b.coordinate_source = r.coordinate_source
-    """, batch=data)
-    print(f"  → 완료\n")
-
-    # ── 6b. 기존 파싱 데이터: Floor ───────────────────────────
-    data = read_csv("nodes_floor.csv")
-    print(f"🏢  Floor 노드 생성 중... ({len(data)}건)")
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (f:Floor {building_name: r.building_name, floor: r.floor})
-        SET f.building_code = r.building_code
-    """, batch=data)
-    print(f"  → 완료\n")
-
-    # ── 7. 기존 파싱 데이터: Room (상세 호실) ─────────────────
-    data = read_csv("nodes_room.csv")
-    print(f"🚪  Room(상세 호실) 노드 생성 중... ({len(data)}건)")
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (rm:Room {building_name: r.building_name, floor: r.floor, room_no: r.room_no})
-        SET rm.name = r.name,
-            rm.type = r.type
-    """, batch=data)
-    print(f"  → 완료\n")
-
-    # ── 8. 기존 파싱 데이터: Store ─────────────────────────────
-    data = read_csv("nodes_store.csv")
-    print(f"🏪  Store 노드 생성 중... ({len(data)}건)")
-    run(driver, """
-        UNWIND $batch AS r
-        MERGE (s:Store {name: r.name})
-        SET s.type        = r.type,
-            s.location    = r.location,
-            s.hours       = r.hours,
-            s.restriction = r.restriction,
-            s.phone       = r.phone,
-            s.note        = r.note
-    """, batch=data)
-    print(f"  → 완료\n")
-
-    # ══ 관계 생성 ══════════════════════════════════════════════
-
-    # ── 9. LOCATED_IN (Facility → Building) ───────────────────
-    data = read_xlsx_sheet(wb, "Relationships")
-    print(f"🔗  관계 생성 중... ({len(data)}건)")
-    rels = [r for r in data if r[":TYPE"] == "LOCATED_IN"]
-    run(driver, """
-        UNWIND $batch AS r
-        MATCH (src {facility_id: r.start})
-        MATCH (tgt:Building {building_id: r.end})
-        MERGE (src)-[:LOCATED_IN {description: r.desc}]->(tgt)
-    """, batch=[{
-        "start": r[":START_ID"],
-        "end":   r[":END_ID"],
-        "desc":  r["description"],
-    } for r in rels])
-    print(f"  → LOCATED_IN {len(rels)}개 완료\n")
-
-    # ── 10. HAS_FLOOR (Building → Floor) ──────────────────────
-    data = read_csv("rels_building_floor.csv")
-    run(driver, """
-        UNWIND $batch AS r
-        MATCH (b:Building {name: r.building_name})
-        MATCH (f:Floor {building_name: r.building_name, floor: r.floor})
-        MERGE (b)-[:HAS_FLOOR]->(f)
-    """, batch=data)
-    print(f"  → HAS_FLOOR {len(data)}개 완료\n")
-
-    # ── 11. HAS_ROOM (Floor → Room) ───────────────────────────
-    data = read_csv("rels_floor_room.csv")
-    run(driver, """
-        UNWIND $batch AS r
-        MATCH (f:Floor {building_name: r.building_name, floor: r.floor})
-        MATCH (rm:Room {building_name: r.building_name, floor: r.floor, room_no: r.room_no})
-        MERGE (f)-[:HAS_ROOM]->(rm)
-    """, batch=data)
-    print(f"  → HAS_ROOM {len(data)}개 완료\n")
-
-    # ── 12. HAS_STORE (Building → Store) ──────────────────────
-    run(driver, """
-        MATCH (s:Store)
-        MATCH (b:Building)
-        WHERE s.location CONTAINS b.name OR b.name CONTAINS s.location
-        MERGE (b)-[:HAS_STORE]->(s)
-    """)
-    run(driver, """
-        MATCH (s:Store)
-        WHERE NOT (s)<-[:HAS_STORE]-() AND s.location <> ''
-        MERGE (b:Building {name: s.location})
-        MERGE (b)-[:HAS_STORE]->(s)
-    """)
-    print(f"  → HAS_STORE 완료\n")
-
-
-# ══════════════════════════════════════════════════════════════
-def verify(driver):
-    print("=" * 55)
-    print("📊 최종 적재 결과 검증")
-    print("=" * 55)
-    queries = [
-        ("Building",       "MATCH (n:Building)       RETURN count(n) AS c"),
-        ("Facility",       "MATCH (n:Facility)       RETURN count(n) AS c"),
-        ("Department",     "MATCH (n:Department)     RETURN count(n) AS c"),
-        ("Transportation", "MATCH (n:Transportation) RETURN count(n) AS c"),
-        ("Room",           "MATCH (n:Room)           RETURN count(n) AS c"),
-        ("Floor",          "MATCH (n:Floor)          RETURN count(n) AS c"),
-        ("Store",          "MATCH (n:Store)          RETURN count(n) AS c"),
-        ("LOCATED_IN",     "MATCH ()-[r:LOCATED_IN]->() RETURN count(r) AS c"),
-        ("HAS_FLOOR",      "MATCH ()-[r:HAS_FLOOR]->()  RETURN count(r) AS c"),
-        ("HAS_ROOM",       "MATCH ()-[r:HAS_ROOM]->()   RETURN count(r) AS c"),
-        ("HAS_STORE",      "MATCH ()-[r:HAS_STORE]->()  RETURN count(r) AS c"),
-        ("Building+좌표",  "MATCH (n:Building) WHERE n.latitude IS NOT NULL AND n.longitude IS NOT NULL RETURN count(n) AS c"),
+        for row in rows
+        if row["name"]
     ]
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (building:Building {name: row.name})
+        SET building.code = row.code,
+            building.main_function = row.main_function,
+            building.latitude = row.latitude,
+            building.longitude = row.longitude,
+            building.coordinate_source = row.coordinate_source,
+            building.source_url = row.source_url,
+            building.related_content = row.related_content,
+            building.source = 'nodes_building.csv'
+        """,
+        batch=batch,
+    )
+    return len(batch)
+
+
+def load_tour_stops(driver) -> int:
+    rows = sorted(read_csv("tour_route.csv"), key=lambda row: int(row["order"]))
+    batch = [
+        {
+            "order": int(row["order"]),
+            "place_id": row["place_id"],
+            "name": row["name"],
+            "latitude": float(row["latitude"]),
+            "longitude": float(row["longitude"]),
+        }
+        for row in rows
+    ]
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (stop:TourStop:Place {place_id: row.place_id})
+        SET stop.order = row.order,
+            stop.name = row.name,
+            stop.latitude = row.latitude,
+            stop.longitude = row.longitude,
+            stop.source = 'tour_route.csv'
+        """,
+        batch=batch,
+    )
+    run(
+        driver,
+        """
+        MATCH (first:TourStop), (second:TourStop)
+        WHERE second.order = first.order + 1
+        MERGE (first)-[:NEXT_STOP]->(second)
+        """,
+    )
+    return len(batch)
+
+
+def load_floors(driver) -> int:
+    source_rows = read_csv("nodes_floor.csv")
+    by_name, by_code = building_name_lookup()
+    rows = []
+    for row in source_rows:
+        canonical_name = canonical_building_name(row, by_name, by_code)
+        if canonical_name:
+            rows.append({**row, "building_name": canonical_name})
+    skipped = len(source_rows) - len(rows)
+    if skipped:
+        print(f"Skipped {skipped} floors without a canonical nodes_building.csv match")
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (floor:Floor {building_name: row.building_name, floor: row.floor})
+        SET floor.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
+            floor.source = 'nodes_floor.csv'
+        WITH row, floor
+        MATCH (building:Building {name: row.building_name})
+        MERGE (building)-[:HAS_FLOOR]->(floor)
+        """,
+        batch=rows,
+    )
+    return len(rows)
+
+
+def load_rooms(driver) -> int:
+    source_rows = read_csv("nodes_room.csv")
+    floor_rows = read_csv("nodes_floor.csv")
+    by_name, by_code = building_name_lookup()
+    valid_floors = {
+        (canonical_name, row["floor"])
+        for row in floor_rows
+        if (canonical_name := canonical_building_name(row, by_name, by_code))
+    }
+    rows = []
+    for row in source_rows:
+        canonical_name = canonical_building_name(row, by_name, by_code)
+        if canonical_name and (canonical_name, row["floor"]) in valid_floors:
+            rows.append({**row, "building_name": canonical_name})
+    skipped = len(source_rows) - len(rows)
+    if skipped:
+        print(f"Skipped {skipped} rooms without a canonical floor match")
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (room:Room {
+            building_name: row.building_name,
+            floor: row.floor,
+            room_no: row.room_no,
+            name: row.name
+        })
+        SET room.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
+            room.type = row.type,
+            room.source = 'nodes_room.csv'
+        WITH row, room
+        MATCH (floor:Floor {building_name: row.building_name, floor: row.floor})
+        MERGE (floor)-[:HAS_ROOM]->(room)
+        """,
+        batch=rows,
+    )
+    return len(rows)
+
+
+def load_stores(driver) -> int:
+    rows = read_csv("nodes_store.csv")
+    batch = [
+        {
+            **row,
+            "latitude": optional_float(row["latitude"]),
+            "longitude": optional_float(row["longitude"]),
+        }
+        for row in rows
+        if row["name"]
+    ]
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (store:Store {name: row.name})
+        SET store.no = row.no,
+            store.location = row.location,
+            store.type = row.type,
+            store.hours = row.hours,
+            store.restriction = row.restriction,
+            store.phone = row.phone,
+            store.note = row.note,
+            store.latitude = row.latitude,
+            store.longitude = row.longitude,
+            store.coordinate_source = row.coordinate_source,
+            store.source = 'nodes_store.csv'
+        WITH row, store
+        OPTIONAL MATCH (building:Building)
+        WHERE row.location CONTAINS building.name OR building.name CONTAINS row.location
+        FOREACH (_ IN CASE WHEN building IS NULL THEN [] ELSE [1] END |
+            MERGE (building)-[:HAS_STORE]->(store)
+        )
+        """,
+        batch=batch,
+    )
+    return len(batch)
+
+
+def load_docent_spots(driver) -> int:
+    rows = read_csv("nodes_docent_spot.csv")
+    batch = [
+        {
+            **row,
+            "latitude": optional_float(row["latitude"]),
+            "longitude": optional_float(row["longitude"]),
+        }
+        for row in rows
+        if row["spot_id"] and row["name"]
+    ]
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (spot:DocentSpot:Place {spot_id: row.spot_id})
+        SET spot.name = row.name,
+            spot.type = row.type,
+            spot.spot_type = row.spot_type,
+            spot.nearby_area = row.nearby_area,
+            spot.campus = row.campus,
+            spot.description = row.description,
+            spot.docent_text = row.docent_text,
+            spot.latitude = row.latitude,
+            spot.longitude = row.longitude,
+            spot.coordinate_source = row.coordinate_source,
+            spot.source_url = row.source_url,
+            spot.note = row.note,
+            spot.source = 'nodes_docent_spot.csv'
+        """,
+        batch=batch,
+    )
+    return len(batch)
+
+
+def verify(driver) -> None:
     with driver.session() as session:
-        for label, q in queries:
-            cnt = session.run(q).single()["c"]
-            icon = "✅" if cnt > 0 else "❌"
-            print(f"  {icon} {label:20s}: {cnt}개")
+        counts = session.run(
+            """
+            MATCH (building:Building)
+            WITH count(building) AS buildings,
+                 count(CASE WHEN building.latitude IS NOT NULL AND building.longitude IS NOT NULL THEN 1 END) AS buildings_with_coordinates
+            MATCH (stop:TourStop)
+            WITH buildings, buildings_with_coordinates, count(stop) AS tour_stops,
+                 count(CASE WHEN stop.latitude IS NOT NULL AND stop.longitude IS NOT NULL THEN 1 END) AS tour_stops_with_coordinates
+            MATCH (floor:Floor)
+            WITH buildings, buildings_with_coordinates, tour_stops, tour_stops_with_coordinates, count(floor) AS floors
+            MATCH (room:Room)
+            WITH buildings, buildings_with_coordinates, tour_stops, tour_stops_with_coordinates, floors, count(room) AS rooms
+            MATCH (store:Store)
+            RETURN buildings, buildings_with_coordinates, tour_stops,
+                   tour_stops_with_coordinates, floors, rooms, count(store) AS stores
+            """
+        ).single()
+
+        dangling_floors = session.run(
+            "MATCH (floor:Floor {source: 'nodes_floor.csv'}) WHERE NOT (:Building)-[:HAS_FLOOR]->(floor) RETURN count(floor) AS count"
+        ).single()["count"]
+        dangling_rooms = session.run(
+            "MATCH (room:Room {source: 'nodes_room.csv'}) WHERE NOT (:Floor)-[:HAS_ROOM]->(room) RETURN count(room) AS count"
+        ).single()["count"]
+
+    result = dict(counts) if counts else {}
+    result.update({"dangling_floors": dangling_floors, "dangling_rooms": dangling_rooms})
+    print(f"Verification: {result}")
+    if result.get("tour_stops") != 12 or result.get("tour_stops_with_coordinates") != 12:
+        raise RuntimeError("All 12 tour stops must have coordinates")
+    if dangling_floors or dangling_rooms:
+        raise RuntimeError("CSV relationships contain dangling nodes")
+
+
+def load_all(driver, reset: bool) -> None:
+    validate_source_data()
+    if reset:
+        print("Resetting the Neo4j database...")
+        run(driver, "MATCH (node) DETACH DELETE node")
+
+    create_indexes(driver)
+    loaders = (
+        ("buildings", load_buildings),
+        ("tour stops", load_tour_stops),
+        ("floors", load_floors),
+        ("rooms", load_rooms),
+        ("stores", load_stores),
+        ("docent spots", load_docent_spots),
+    )
+    for label, loader in loaders:
+        print(f"Loaded {loader(driver)} {label}")
+    verify(driver)
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--reset",
+        action="store_true",
+        help="Delete the existing graph before loading the current CSV files.",
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    print(f"🔌 Neo4j 연결 중... ({NEO4J_URI})")
+    arguments = parse_args()
     driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
-    for attempt in range(5):
-        try:
-            driver.verify_connectivity()
-            print("✅ 연결 성공!\n")
-            break
-        except Exception as e:
-            print(f"  재시도 ({attempt+1}/5): {e}")
-            time.sleep(3)
-    else:
-        print("❌ 연결 실패")
-        exit(1)
-
-    load_all(driver)
-    verify(driver)
-    driver.close()
-    print("\n🎉 모든 작업 완료!")
+    try:
+        for attempt in range(1, 6):
+            try:
+                driver.verify_connectivity()
+                break
+            except Exception:
+                if attempt == 5:
+                    raise
+                time.sleep(3)
+        load_all(driver, reset=arguments.reset)
+    finally:
+        driver.close()

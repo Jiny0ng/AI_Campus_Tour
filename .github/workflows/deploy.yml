@@ -4,10 +4,16 @@ on:
   push:
     branches:
       - main # main 브랜치에 코드가 푸시되면 실행됩니다.
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     
     steps:
       - name: Checkout Code
@@ -20,18 +26,78 @@ jobs:
           username: ${{ secrets.GCP_VM_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
+          command_timeout: 25m
           script: |
+            set -Eeuo pipefail
+
+            deployment_debug_dump() {
+              exit_code=$?
+              echo "::group::Deployment failure diagnostics"
+              docker-compose ps || true
+              docker-compose logs --tail=200 || true
+              df -h || true
+              free -h || true
+              echo "::endgroup::"
+              exit "$exit_code"
+            }
+
+            trap deployment_debug_dump ERR
+
             # 1. 작업 디렉토리로 이동 (디렉토리가 없으면 최초 클론 시 사용하는 폴더 이름에 맞게 수정하세요)
             cd ~/AI_Campus_Tour
+
+            echo "::group::Deployment host"
+            date -u +'%Y-%m-%dT%H:%M:%SZ'
+            uname -a
+            docker --version
+            docker-compose --version
+            df -h
+            free -h
+            echo "::endgroup::"
             
             # 2. 최신 코드 가져오기
             git fetch --all
             git reset --hard origin/main
+            echo "DEPLOY_COMMIT=$(git rev-parse HEAD)"
+            echo "DEPLOY_BRANCH=$(git branch --show-current)"
+            docker-compose config --services
             
-            # 3. 최신 도커 이미지 빌드 및 재시작 (무중단 배포를 원한다면 별도 스크립트가 필요하지만, 우선 가장 확실한 재시작 방식을 사용합니다)
-            docker-compose down
+            # 3. 빌드 성공 후 새 컨테이너로 교체
             docker-compose build
-            docker-compose up -d
+            docker-compose down --remove-orphans
+            docker-compose up -d neo4j
+            docker-compose --profile seed run --rm data-loader python /data/neo4j_loader_v2.py --reset
+            docker-compose up -d --remove-orphans
+            docker-compose ps
+
+            # 4. 백엔드가 준비될 때까지 대기
+            ready=0
+            for attempt in $(seq 1 30); do
+              if docker-compose exec -T backend python -c "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/', timeout=3)"; then
+                ready=1
+                break
+              fi
+              echo "Waiting for backend... ($attempt/30)"
+              sleep 2
+            done
+            test "$ready" -eq 1
+
+            # 5. 비밀값을 노출하지 않는 런타임 진단
+            echo "::group::Backend runtime diagnostics"
+            docker-compose exec -T backend python /app/scripts/runtime_diagnostics.py
+            echo "::endgroup::"
+
+            echo "::group::Frontend runtime diagnostics"
+            docker-compose exec -T frontend node -e "const keys=['API_BASE_URL','NEXT_PUBLIC_NAVER_MAP_CLIENT_ID']; console.log(JSON.stringify({environmentPresence:Object.fromEntries(keys.map(key=>[key,Boolean(process.env[key])]))}))"
+            docker-compose exec -T frontend node -e "fetch('http://127.0.0.1:3000/').then(async response=>{console.log(JSON.stringify({homeStatus:response.status,contentType:response.headers.get('content-type')})); if(!response.ok) process.exit(1)}).catch(error=>{console.error(error.message);process.exit(1)})"
+            echo "::endgroup::"
+
+            echo "::group::Reverse proxy smoke test"
+            curl --fail --silent --show-error --max-time 15 http://127.0.0.1/ > /dev/null
+            echo "nginx_home_status=ok"
+            echo "::endgroup::"
+
+            trap - ERR
             
-            # 4. 안 쓰는 더미 이미지 정리 (디스크 용량 확보)
+            # 6. 안 쓰는 더미 이미지 정리 (디스크 용량 확보)
             docker image prune -f

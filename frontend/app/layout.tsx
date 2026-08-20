@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import { AppSettingsProvider } from "@/contexts/AppSettingsContext";
 import "../styles/globals.css";
 
 export const metadata: Metadata = {
@@ -21,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body><AppSettingsProvider>{children}</AppSettingsProvider></body>
     </html>
   );
 }

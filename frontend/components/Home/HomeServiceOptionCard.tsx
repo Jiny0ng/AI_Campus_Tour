@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Map, MapPin } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { HomeServiceOption } from "@/types";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 type HomeServiceOptionCardProps = {
   option: HomeServiceOption;
@@ -13,6 +16,7 @@ const serviceIcon = {
 };
 
 export function HomeServiceOptionCard({ option }: HomeServiceOptionCardProps) {
+  const { t } = useAppSettings();
   const active = option.id === "tour";
   const Icon = serviceIcon[option.id];
 
@@ -33,9 +37,11 @@ export function HomeServiceOptionCard({ option }: HomeServiceOptionCardProps) {
         <Icon size={21} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-ink">{option.title}</span>
+        <span className="block truncate text-sm font-bold text-ink">
+          {t(`home.${option.id}.title`)}
+        </span>
         <span className="mt-0.5 block truncate text-[11px] font-medium text-muted">
-          {option.description}
+          {t(`home.${option.id}.description`)}
         </span>
       </span>
       <span

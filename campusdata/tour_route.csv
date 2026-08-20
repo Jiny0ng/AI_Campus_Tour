@@ -1,0 +1,13 @@
+order,place_id,name,latitude,longitude
+1,tour_01_new_gate,신정문,35.841469,127.131761
+2,tour_02_international_center,인터내셔널센터,35.844234,127.130495
+3,tour_03_university_headquarters,대학본부,35.844230,127.130943
+4,tour_04_jinsudang,진수당,35.845269,127.131021
+5,tour_05_engineering_entrance,공대입구,35.846326,127.132598
+6,tour_06_central_library,중앙도서관,35.847918,127.132056
+7,tour_07_geonji_plaza,건지광장,35.846791,127.129371
+8,tour_08_stadium_swing,대운동장 흔들그네,35.847422,127.129219
+9,tour_09_basketball_court,농구장,35.846630,127.127405
+10,tour_10_museum,박물관,35.845639,127.126740
+11,tour_11_student_town,학생타운,35.845587,127.128323
+12,tour_12_old_gate,구정문,35.844243,127.127534

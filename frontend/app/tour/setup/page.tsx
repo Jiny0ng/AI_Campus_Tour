@@ -1,11 +1,6 @@
-import { TourSetupForm } from "@/components/Tour";
-import { MobileShell } from "@/components/Layout";
-import { collegeOptions, languageOptions } from "@/dummy";
+import { redirect } from "next/navigation";
+import { APP_ROUTES } from "@/constants/routes";
 
 export default function TourSetupPage() {
-  return (
-    <MobileShell className="bg-surface">
-      <TourSetupForm colleges={collegeOptions} languages={languageOptions} />
-    </MobileShell>
-  );
+  redirect(APP_ROUTES.tour);
 }
