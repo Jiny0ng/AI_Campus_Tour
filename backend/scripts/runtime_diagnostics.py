@@ -28,13 +28,9 @@ CHECKED_ENVIRONMENT_KEYS = (
     "NAVER_MAP_CLIENT_SECRET",
 )
 CHECKED_DATA_FILES = (
-    "tour_route.csv",
+    "campus_places.csv",
+    "campus_interiors.csv",
     "jbnu_walking_path.geojson",
-    "nodes_building.csv",
-    "nodes_docent_spot.csv",
-    "nodes_floor.csv",
-    "nodes_room.csv",
-    "nodes_store.csv",
     "neo4j_loader_v2.py",
 )
 
@@ -73,18 +69,20 @@ def file_diagnostics() -> dict[str, Any]:
 
 
 def read_route_stops() -> list[dict[str, Any]]:
-    route_path = DATA_DIR / "tour_route.csv"
+    route_path = DATA_DIR / "campus_places.csv"
     if not route_path.is_file():
         return []
 
     stops = []
     with route_path.open("r", encoding="utf-8-sig") as file:
         for row in csv.DictReader(file):
+            if row.get("entity_type") != "tour_stop":
+                continue
             try:
                 stops.append(
                     {
-                        "order": int(row["order"]),
-                        "place_id": row["place_id"].strip(),
+                        "order": int(row["tour_order"]),
+                        "place_id": row["id"].strip(),
                         "name": row["name"].strip(),
                         "latitude": float(row["latitude"]),
                         "longitude": float(row["longitude"]),
@@ -96,12 +94,14 @@ def read_route_stops() -> list[dict[str, Any]]:
 
 
 def source_data_diagnostics(route_stops: list[dict[str, Any]]) -> dict[str, Any]:
-    building_path = DATA_DIR / "nodes_building.csv"
+    building_path = DATA_DIR / "campus_places.csv"
     building_rows = 0
     building_rows_with_coordinates = 0
     if building_path.is_file():
         with building_path.open("r", encoding="utf-8-sig") as file:
             for row in csv.DictReader(file):
+                if row.get("entity_type") != "building":
+                    continue
                 building_rows += 1
                 try:
                     float(row["latitude"])
@@ -146,7 +146,9 @@ def neo4j_diagnostics(route_stops: list[dict[str, Any]]) -> dict[str, Any]:
                 """
                 MATCH (stop:TourStop)
                 RETURN count(stop) AS total,
-                       count(CASE WHEN stop.latitude IS NOT NULL AND stop.longitude IS NOT NULL THEN 1 END) AS with_coordinates
+                       count(CASE WHEN coalesce(stop.tour_latitude, stop.latitude) IS NOT NULL
+                                   AND coalesce(stop.tour_longitude, stop.longitude) IS NOT NULL
+                                  THEN 1 END) AS with_coordinates
                 """
             ).single()
             actual_ids = {

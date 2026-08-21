@@ -5,14 +5,12 @@ import { cn } from "@/lib/cn";
 import type { GuidePlace } from "@/types";
 
 type GuideMapViewProps = {
-  currentLocationPoint: { x: number; y: number };
   places: GuidePlace[];
   selectedPlaceId?: string;
   onSelectPlace: (place: GuidePlace) => void;
 };
 
 export function GuideMapView({
-  currentLocationPoint,
   places,
   selectedPlaceId,
   onSelectPlace,

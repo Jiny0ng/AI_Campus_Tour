@@ -16,6 +16,12 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# NEXT_PUBLIC values are compiled into the browser bundle by Next.js.
+# Only the public map client ID belongs here; the Directions API key remains
+# server-only in the backend container.
+ARG NEXT_PUBLIC_NAVER_MAP_CLIENT_ID
+ENV NEXT_PUBLIC_NAVER_MAP_CLIENT_ID=${NEXT_PUBLIC_NAVER_MAP_CLIENT_ID}
+
 # Next.js telemetry is disabled
 ENV NEXT_TELEMETRY_DISABLED=1
 

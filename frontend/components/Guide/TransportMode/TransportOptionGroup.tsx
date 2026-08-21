@@ -1,9 +1,9 @@
 "use client";
 
-import { Bus, Car, Footprints } from "lucide-react";
+import { Bike, Car, Footprints } from "lucide-react";
 import { cn } from "@/lib/cn";
 
-export type TransportMode = "walk" | "car" | "shuttle";
+export type TransportMode = "walk" | "bike" | "car";
 
 export type TransportOption = {
   id: TransportMode;
@@ -20,7 +20,7 @@ type TransportOptionGroupProps = {
 const iconMap = {
   walk: Footprints,
   car: Car,
-  shuttle: Bus,
+  bike: Bike,
 };
 
 export function TransportOptionGroup({

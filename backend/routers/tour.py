@@ -70,30 +70,26 @@ def get_llm():
         max_output_tokens=1024,
     )
 
-def get_tour_stops() -> List[Dict[str, Any]]:
-    csv_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "campusdata", "tour_route.csv"
-    )
-    if not os.path.exists(csv_path):
-        raise HTTPException(status_code=500, detail="투어 경로 CSV가 없습니다.")
-
-    stops = []
-    with open(csv_path, "r", encoding="utf-8-sig") as file:
-        for row in csv.DictReader(file):
-            try:
-                stops.append({
-                    "order": int(row["order"]),
-                    "place_id": row["place_id"].strip(),
-                    "name": row["name"].strip(),
-                    "latitude": float(row["latitude"]),
-                    "longitude": float(row["longitude"]),
-                })
-            except (KeyError, TypeError, ValueError) as error:
-                raise HTTPException(
-                    status_code=500,
-                    detail=f"투어 경로 CSV 형식이 올바르지 않습니다: {error}",
-                ) from error
-    return sorted(stops, key=lambda stop: stop["order"])
+def get_tour_stops(driver) -> List[Dict[str, Any]]:
+    """Read the route and its role-specific coordinates from Neo4j."""
+    with driver.session() as session:
+        rows = session.run(
+            """
+            MATCH (stop:TourStop)
+            WHERE stop.place_id IS NOT NULL AND stop.order IS NOT NULL
+            RETURN stop.order AS order, stop.place_id AS place_id,
+                   stop.name AS name,
+                   coalesce(stop.tour_latitude, stop.latitude) AS latitude,
+                   coalesce(stop.tour_longitude, stop.longitude) AS longitude
+            ORDER BY order
+            """
+        )
+        stops = [dict(row) for row in rows]
+    if len(stops) < 2 or any(
+        stop["latitude"] is None or stop["longitude"] is None for stop in stops
+    ):
+        raise HTTPException(status_code=500, detail="Neo4j 투어 좌표 데이터가 올바르지 않습니다.")
+    return stops
 
 
 LANGUAGE_NAMES = {
@@ -151,7 +147,7 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
         return []
 
     csv_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "campusdata", "nodes_docent_spot.csv"
+        os.path.dirname(__file__), "..", "..", "campusdata", "campus_places.csv"
     )
     if not os.path.exists(csv_path):
         return []
@@ -159,6 +155,8 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
     spots = []
     with open(csv_path, "r", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
+            if row.get("entity_type") != "docent_spot":
+                continue
             try:
                 spot_lat = float(row["latitude"])
                 spot_lng = float(row["longitude"])
@@ -168,9 +166,9 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
             distance = haversine(lat, lng, spot_lat, spot_lng)
             if distance <= radius_meters:
                 spots.append({
-                    "id": row.get("spot_id", ""),
+                    "id": row.get("id", ""),
                     "name": row.get("name", ""),
-                    "category": row.get("spot_type", "도슨트스팟"),
+                    "category": row.get("subcategory", "도슨트스팟"),
                     "description": row.get("description", ""),
                     "docentText": row.get("docent_text", ""),
                     "latitude": spot_lat,
@@ -182,7 +180,7 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
 
 def get_building_coords(driver, name: str):
     with driver.session() as session:
-        node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN b.latitude AS lat, b.longitude AS lng", {"name": name}).single()
+        node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN coalesce(b.tour_latitude, b.latitude) AS lat, coalesce(b.tour_longitude, b.longitude) AS lng", {"name": name}).single()
         if not node or not node["lat"]:
             node = session.run("MATCH (b:Building) WHERE b.name CONTAINS $name RETURN b.latitude AS lat, b.longitude AS lng LIMIT 1", {"name": name}).single()
         if node and node["lat"]:
@@ -205,10 +203,15 @@ async def nearby_docent_spots(req: NearbySpotsRequest):
     }
 
 
-@lru_cache(maxsize=1)
-def build_tour_data() -> Dict[str, Any]:
+_tour_data_cache: Optional[Dict[str, Any]] = None
+
+
+def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
     """Build the fixed route once and reuse it for every tour start."""
-    route_stops = get_tour_stops()
+    global _tour_data_cache
+    if _tour_data_cache is not None and not refresh:
+        return _tour_data_cache
+    route_stops = get_tour_stops(driver)
     if len(route_stops) < 2:
         raise HTTPException(status_code=500, detail="투어 경로에는 두 개 이상의 경유지가 필요합니다.")
 
@@ -251,24 +254,25 @@ def build_tour_data() -> Dict[str, Any]:
             "points": path_segment
         })
 
-    return {
+    _tour_data_cache = {
         "courseTitle": "JBNU Campus Tour",
         "stops": stops_data,
         "routeSegments": route_segments,
     }
+    return _tour_data_cache
 
 
-def warm_tour_cache() -> None:
-    build_tour_data()
+def warm_tour_cache(driver) -> None:
+    build_tour_data(driver, refresh=True)
 
 
 @router.post("/init")
-async def init_tour(req: TourRequest):
+async def init_tour(req: TourRequest, request: Request):
     """Return the single precomputed campus tour route."""
     return {
         "status": "success",
         "message": "단일 캠퍼스 투어 경로 생성 완료",
-        "data": build_tour_data(),
+        "data": build_tour_data(request.app.state.neo4j_driver),
     }
 
 @router.post("/segment")
@@ -286,12 +290,12 @@ def get_tour_segment(req: SegmentRequest, request: Request):
 
     with driver.session() as session:
         if cur_lat is None or cur_lng is None:
-            cur_node = session.run("MATCH (b:Building {name: $name}) RETURN b.latitude AS lat, b.longitude AS lng", {"name": req.current_location}).single()
+            cur_node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN coalesce(b.tour_latitude, b.latitude) AS lat, coalesce(b.tour_longitude, b.longitude) AS lng", {"name": req.current_location}).single()
             if cur_node and cur_node["lat"]:
                 cur_lat, cur_lng = cur_node["lat"], cur_node["lng"]
 
         if nxt_lat is None or nxt_lng is None:
-            nxt_node = session.run("MATCH (b:Building {name: $name}) RETURN b.latitude AS lat, b.longitude AS lng", {"name": req.next_location}).single()
+            nxt_node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN coalesce(b.tour_latitude, b.latitude) AS lat, coalesce(b.tour_longitude, b.longitude) AS lng", {"name": req.next_location}).single()
             if nxt_node and nxt_node["lat"]:
                 nxt_lat, nxt_lng = nxt_node["lat"], nxt_node["lng"]
 

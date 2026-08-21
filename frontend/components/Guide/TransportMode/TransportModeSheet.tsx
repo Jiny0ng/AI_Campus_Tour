@@ -15,7 +15,7 @@ type TransportModeSheetProps = {
 const startButtonLabel = {
   walk: "도보 안내 시작하기",
   car: "차량 안내 시작하기",
-  shuttle: "순환버스 안내 시작하기",
+  bike: "자전거 안내 시작하기",
 };
 
 export function TransportModeSheet({

@@ -20,17 +20,62 @@ NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
 NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
 NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 DATA_DIR = Path(__file__).resolve().parent
+CANONICAL_PLACES = "campus_places.csv"
+CANONICAL_INTERIORS = "campus_interiors.csv"
+
+FACILITY_BUILDING_NAMES = {
+    "박물관", "법학도서관", "무진동실험실", "삼성문화회관",
+    "자연사박물관", "전대학술문화회관", "전북대학교 체육관",
+    "중앙도서관", "창조2관", "풍동실험실", "한승헌도서관",
+}
+FACILITY_ROOM_SUFFIXES = (
+    "학습실", "열람실", "휴게실", "휴게소", "라운지", "전산실", "전산실습실",
+)
 
 
 def read_csv(filename: str) -> list[dict[str, str]]:
-    path = DATA_DIR / filename
-    if not path.is_file():
-        raise FileNotFoundError(f"Required CSV is missing: {path}")
-    with path.open("r", encoding="utf-8-sig", newline="") as file:
-        return [
-            {str(key).strip(): (value or "").strip() for key, value in row.items()}
-            for row in csv.DictReader(file)
-        ]
+    canonical_types = {
+        "nodes_building.csv": "building",
+        "nodes_store.csv": "store",
+        "nodes_docent_spot.csv": "docent_spot",
+        "tour_route.csv": "tour_stop",
+        "nodes_floor.csv": "floor",
+        "nodes_room.csv": "room",
+    }
+    if filename in canonical_types:
+        canonical_filename = (
+            CANONICAL_INTERIORS if filename in {"nodes_floor.csv", "nodes_room.csv"}
+            else CANONICAL_PLACES
+        )
+        canonical_path = DATA_DIR / canonical_filename
+        if canonical_path.is_file():
+            with canonical_path.open("r", encoding="utf-8-sig", newline="") as file:
+                all_rows = [
+                    {str(key).strip(): (value or "").strip() for key, value in row.items()}
+                    for row in csv.DictReader(file, skipinitialspace=True)
+                ]
+            rows = [row for row in all_rows if row.get("entity_type") == canonical_types[filename]]
+            building_names = {
+                row["id"]: row["name"] for row in all_rows
+                if row.get("entity_type") == "building"
+            }
+            converted = []
+            for row in rows:
+                normalized = dict(row)
+                normalized.update({
+                    "code": row.get("building_code", ""),
+                    "no": row.get("legacy_no", ""),
+                    "type": row.get("category", ""),
+                    "spot_id": row.get("id", ""),
+                    "spot_type": row.get("subcategory", ""),
+                    "place_id": row.get("id", ""),
+                    "order": row.get("tour_order", ""),
+                })
+                if row.get("entity_type") == "store":
+                    normalized["building_name"] = building_names.get(row.get("parent_id", ""), "")
+                converted.append(normalized)
+            return converted
+    raise ValueError(f"Unsupported campus CSV view: {filename}")
 
 
 def optional_float(value: str) -> float | None:
@@ -58,10 +103,22 @@ def ensure_unique(values: Iterable[str], label: str) -> None:
 
 def validate_source_data() -> None:
     buildings = read_csv("nodes_building.csv")
+    stores = read_csv("nodes_store.csv")
     route = read_csv("tour_route.csv")
 
     building_names = [row["name"] for row in buildings if row["name"]]
     ensure_unique(building_names, "building names")
+    store_names = [row["name"] for row in stores if row["name"]]
+    ensure_unique(store_names, "store names")
+    missing_store_mappings = sorted(
+        row["name"] for row in stores if row["name"] and not row.get("building_name")
+    )
+    store_targets = {row.get("building_name", "") for row in stores if row["name"]}
+    missing_store_buildings = sorted(store_targets - set(building_names) - {""})
+    if missing_store_mappings:
+        raise ValueError(f"Stores need exact building mappings: {', '.join(missing_store_mappings)}")
+    if missing_store_buildings:
+        raise ValueError(f"Store target buildings are missing: {', '.join(missing_store_buildings)}")
 
     route_ids = [row["place_id"] for row in route]
     route_orders = [row["order"] for row in route]
@@ -84,6 +141,7 @@ def validate_source_data() -> None:
 
 def create_indexes(driver) -> None:
     queries = (
+        "CREATE CONSTRAINT campus_id IF NOT EXISTS FOR (n:Campus) REQUIRE n.campus_id IS UNIQUE",
         "CREATE INDEX building_name IF NOT EXISTS FOR (n:Building) ON (n.name)",
         "CREATE CONSTRAINT tour_stop_id IF NOT EXISTS FOR (n:TourStop) REQUIRE n.place_id IS UNIQUE",
         "CREATE CONSTRAINT docent_spot_id IF NOT EXISTS FOR (n:DocentSpot) REQUIRE n.spot_id IS UNIQUE",
@@ -126,6 +184,7 @@ def load_buildings(driver) -> int:
             "coordinate_source": row["coordinate_source"],
             "source_url": row["source_url"],
             "related_content": row["related_content"],
+            "is_facility": row["name"] in FACILITY_BUILDING_NAMES,
         }
         for row in rows
         if row["name"]
@@ -142,7 +201,11 @@ def load_buildings(driver) -> int:
             building.coordinate_source = row.coordinate_source,
             building.source_url = row.source_url,
             building.related_content = row.related_content,
-            building.source = 'nodes_building.csv'
+            building.source = 'campus_places.csv'
+        FOREACH (_ IN CASE WHEN row.is_facility THEN [1] ELSE [] END |
+            SET building:Facility,
+                building.facility_label_source = 'campus_places.csv'
+        )
         """,
         batch=batch,
     )
@@ -161,19 +224,62 @@ def load_tour_stops(driver) -> int:
         }
         for row in rows
     ]
-    run(
-        driver,
-        """
-        UNWIND $batch AS row
-        MERGE (stop:TourStop:Place {place_id: row.place_id})
-        SET stop.order = row.order,
-            stop.name = row.name,
-            stop.latitude = row.latitude,
-            stop.longitude = row.longitude,
-            stop.source = 'tour_route.csv'
-        """,
-        batch=batch,
-    )
+    # A physical place may also be a tour stop. Reuse an existing Building or
+    # DocentSpot with the same name instead of creating a parallel place node.
+    with driver.session() as session:
+        for row in batch:
+            existing = session.run(
+                "MATCH (stop:TourStop {place_id: $place_id}) RETURN elementId(stop) AS id",
+                place_id=row["place_id"],
+            ).single()
+            target_id = existing["id"] if existing else None
+            if target_id is None:
+                candidate = session.run(
+                    """
+                    MATCH (candidate)
+                    WHERE candidate.name = $name
+                      AND (candidate:Building OR candidate:DocentSpot)
+                      AND NOT candidate:TourStop
+                    RETURN elementId(candidate) AS id
+                    ORDER BY CASE WHEN candidate:Building THEN 0 ELSE 1 END
+                    LIMIT 1
+                    """,
+                    name=row["name"],
+                ).single()
+                target_id = candidate["id"] if candidate else None
+
+            if target_id is None:
+                session.run(
+                    """
+                    CREATE (stop:TourStop:Place)
+                    SET stop.place_id = $place_id,
+                        stop.name = $name,
+                        stop.order = $order,
+                        stop.latitude = $latitude,
+                        stop.longitude = $longitude,
+                        stop.tour_latitude = $latitude,
+                        stop.tour_longitude = $longitude,
+                        stop.tour_source = 'campus_places.csv'
+                    """,
+                    **row,
+                ).consume()
+            else:
+                session.run(
+                    """
+                    MATCH (stop) WHERE elementId(stop) = $target_id
+                    SET stop:TourStop:Place,
+                        stop.place_id = $place_id,
+                        stop.name = $name,
+                        stop.order = $order,
+                        stop.tour_latitude = $latitude,
+                        stop.tour_longitude = $longitude,
+                        stop.tour_source = 'campus_places.csv'
+                    """,
+                    target_id=target_id,
+                    **row,
+                ).consume()
+
+    run(driver, "MATCH (:TourStop)-[route:NEXT_STOP]->(:TourStop) DELETE route")
     run(
         driver,
         """
@@ -202,7 +308,7 @@ def load_floors(driver) -> int:
         UNWIND $batch AS row
         MERGE (floor:Floor {building_name: row.building_name, floor: row.floor})
         SET floor.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
-            floor.source = 'nodes_floor.csv'
+            floor.source = 'campus_interiors.csv'
         WITH row, floor
         MATCH (building:Building {name: row.building_name})
         MERGE (building)-[:HAS_FLOOR]->(floor)
@@ -225,7 +331,17 @@ def load_rooms(driver) -> int:
     for row in source_rows:
         canonical_name = canonical_building_name(row, by_name, by_code)
         if canonical_name and (canonical_name, row["floor"]) in valid_floors:
-            rows.append({**row, "building_name": canonical_name})
+            room_name = row["name"]
+            rows.append({
+                **row,
+                "building_name": canonical_name,
+                "is_facility": (
+                    room_name.endswith(FACILITY_ROOM_SUFFIXES)
+                    and "·" not in room_name
+                    and "~" not in room_name
+                    and "미화원" not in room_name
+                ),
+            })
     skipped = len(source_rows) - len(rows)
     if skipped:
         print(f"Skipped {skipped} rooms without a canonical floor match")
@@ -241,7 +357,11 @@ def load_rooms(driver) -> int:
         })
         SET room.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
             room.type = row.type,
-            room.source = 'nodes_room.csv'
+            room.source = 'campus_interiors.csv'
+        FOREACH (_ IN CASE WHEN row.is_facility THEN [1] ELSE [] END |
+            SET room:Facility,
+                room.facility_label_source = 'campus_interiors.csv'
+        )
         WITH row, room
         MATCH (floor:Floor {building_name: row.building_name, floor: row.floor})
         MERGE (floor)-[:HAS_ROOM]->(room)
@@ -258,6 +378,7 @@ def load_stores(driver) -> int:
             **row,
             "latitude": optional_float(row["latitude"]),
             "longitude": optional_float(row["longitude"]),
+            "building_name": row.get("building_name", ""),
         }
         for row in rows
         if row["name"]
@@ -266,7 +387,7 @@ def load_stores(driver) -> int:
         driver,
         """
         UNWIND $batch AS row
-        MERGE (store:Store {name: row.name})
+        MERGE (store:Store:Facility {name: row.name})
         SET store.no = row.no,
             store.location = row.location,
             store.type = row.type,
@@ -277,10 +398,13 @@ def load_stores(driver) -> int:
             store.latitude = row.latitude,
             store.longitude = row.longitude,
             store.coordinate_source = row.coordinate_source,
-            store.source = 'nodes_store.csv'
+            store.source = 'campus_places.csv',
+            store.facility_label_source = 'campus_places.csv'
         WITH row, store
-        OPTIONAL MATCH (building:Building)
-        WHERE row.location CONTAINS building.name OR building.name CONTAINS row.location
+        OPTIONAL MATCH (:Building)-[old:HAS_STORE]->(store)
+        DELETE old
+        WITH DISTINCT row, store
+        OPTIONAL MATCH (building:Building {name: row.building_name})
         FOREACH (_ IN CASE WHEN building IS NULL THEN [] ELSE [1] END |
             MERGE (building)-[:HAS_STORE]->(store)
         )
@@ -318,11 +442,51 @@ def load_docent_spots(driver) -> int:
             spot.coordinate_source = row.coordinate_source,
             spot.source_url = row.source_url,
             spot.note = row.note,
-            spot.source = 'nodes_docent_spot.csv'
+            spot.source = 'campus_places.csv'
         """,
         batch=batch,
     )
     return len(batch)
+
+
+def load_campus_relations(driver) -> int:
+    run(
+        driver,
+        """
+        MERGE (campus:Campus {campus_id: 'jbnu-jeonju'})
+        SET campus.name = '전북대학교 전주캠퍼스',
+            campus.source = 'neo4j_loader_v2.py'
+        WITH campus
+        MATCH (node)
+        WHERE node:Building OR node:Facility OR node:TourStop OR node:DocentSpot
+        MERGE (node)-[:PART_OF_CAMPUS]->(campus)
+        """,
+    )
+    run(
+        driver,
+        """
+        MATCH (spot:DocentSpot)
+        WHERE spot.latitude IS NOT NULL AND spot.longitude IS NOT NULL
+        CALL {
+            WITH spot
+            MATCH (building:Building {source: 'campus_places.csv'})
+            WHERE building.latitude IS NOT NULL AND building.longitude IS NOT NULL
+            WITH building,
+                 point.distance(
+                    point({latitude: spot.latitude, longitude: spot.longitude}),
+                    point({latitude: building.latitude, longitude: building.longitude})
+                 ) AS distance_m
+            ORDER BY distance_m
+            LIMIT 1
+            RETURN building, distance_m
+        }
+        WITH spot, building, distance_m WHERE distance_m <= 300
+        MERGE (spot)-[near:NEAR]->(building)
+        SET near.distance_m = round(distance_m),
+            near.method = 'nearest_canonical_building'
+        """,
+    )
+    return 1
 
 
 def verify(driver) -> None:
@@ -334,7 +498,7 @@ def verify(driver) -> None:
                  count(CASE WHEN building.latitude IS NOT NULL AND building.longitude IS NOT NULL THEN 1 END) AS buildings_with_coordinates
             MATCH (stop:TourStop)
             WITH buildings, buildings_with_coordinates, count(stop) AS tour_stops,
-                 count(CASE WHEN stop.latitude IS NOT NULL AND stop.longitude IS NOT NULL THEN 1 END) AS tour_stops_with_coordinates
+                 count(CASE WHEN stop.tour_latitude IS NOT NULL AND stop.tour_longitude IS NOT NULL THEN 1 END) AS tour_stops_with_coordinates
             MATCH (floor:Floor)
             WITH buildings, buildings_with_coordinates, tour_stops, tour_stops_with_coordinates, count(floor) AS floors
             MATCH (room:Room)
@@ -346,19 +510,33 @@ def verify(driver) -> None:
         ).single()
 
         dangling_floors = session.run(
-            "MATCH (floor:Floor {source: 'nodes_floor.csv'}) WHERE NOT (:Building)-[:HAS_FLOOR]->(floor) RETURN count(floor) AS count"
+            "MATCH (floor:Floor {source: 'campus_interiors.csv'}) WHERE NOT (:Building)-[:HAS_FLOOR]->(floor) RETURN count(floor) AS count"
         ).single()["count"]
         dangling_rooms = session.run(
-            "MATCH (room:Room {source: 'nodes_room.csv'}) WHERE NOT (:Floor)-[:HAS_ROOM]->(room) RETURN count(room) AS count"
+            "MATCH (room:Room {source: 'campus_interiors.csv'}) WHERE NOT (:Floor)-[:HAS_ROOM]->(room) RETURN count(room) AS count"
+        ).single()["count"]
+        unlinked_stores = session.run(
+            "MATCH (store:Store {source: 'campus_places.csv'}) WHERE NOT (:Building)-[:HAS_STORE]->(store) RETURN count(store) AS count"
+        ).single()["count"]
+        ambiguous_stores = session.run(
+            "MATCH (building:Building)-[:HAS_STORE]->(store:Store {source: 'campus_places.csv'}) "
+            "WITH store, count(DISTINCT building) AS buildings WHERE buildings <> 1 RETURN count(store) AS count"
         ).single()["count"]
 
     result = dict(counts) if counts else {}
-    result.update({"dangling_floors": dangling_floors, "dangling_rooms": dangling_rooms})
+    result.update({
+        "dangling_floors": dangling_floors,
+        "dangling_rooms": dangling_rooms,
+        "unlinked_stores": unlinked_stores,
+        "ambiguous_stores": ambiguous_stores,
+    })
     print(f"Verification: {result}")
     if result.get("tour_stops") != 12 or result.get("tour_stops_with_coordinates") != 12:
         raise RuntimeError("All 12 tour stops must have coordinates")
     if dangling_floors or dangling_rooms:
         raise RuntimeError("CSV relationships contain dangling nodes")
+    if unlinked_stores or ambiguous_stores:
+        raise RuntimeError("Every CSV store must be linked to exactly one building")
 
 
 def load_all(driver, reset: bool) -> None:
@@ -370,11 +548,12 @@ def load_all(driver, reset: bool) -> None:
     create_indexes(driver)
     loaders = (
         ("buildings", load_buildings),
-        ("tour stops", load_tour_stops),
         ("floors", load_floors),
         ("rooms", load_rooms),
         ("stores", load_stores),
         ("docent spots", load_docent_spots),
+        ("tour stops", load_tour_stops),
+        ("campus relation set", load_campus_relations),
     )
     for label, loader in loaders:
         print(f"Loaded {loader(driver)} {label}")

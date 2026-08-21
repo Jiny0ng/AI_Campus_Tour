@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Compass, LocateFixed } from "lucide-react";
 import { FloatingButton, SearchBar } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
-import type { CampusGuideData, GuidePlace, GuidePlaceCategory } from "@/types";
-import { GuideCategoryBar } from "./GuideCategoryBar";
+import { distanceMeters } from "@/lib/drivingNavigation";
+import { destinationToPlace, destinationToSearchParams } from "@/lib/guideDestination";
+import type { CampusCoordinate, CampusGuideData, GuideDestination, GuidePlace } from "@/types";
 import { GuideMapView } from "./GuideMapView";
 import { GuideSearchResults } from "./GuideSearchResults";
 import { NearbyFacilitySheet } from "./NearbyFacilitySheet";
@@ -18,55 +19,89 @@ type CampusGuideScreenProps = {
 export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   const router = useRouter();
   const [keyword, setKeyword] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<GuidePlaceCategory>("parking");
   const [selectedPlace, setSelectedPlace] = useState<GuidePlace | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<CampusCoordinate>(data.currentLocation);
+  const [popularDestinations, setPopularDestinations] = useState<GuideDestination[]>([]);
+  const [matchedDestinations, setMatchedDestinations] = useState<GuideDestination[]>([]);
 
-  const categoryPlaces = useMemo(
-    () => data.places.filter((place) => place.category === selectedCategory),
-    [data.places, selectedCategory],
-  );
+  useEffect(() => {
+    void fetch("/api/guide/popular")
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((payload: { results: GuideDestination[] }) => setPopularDestinations(payload.results))
+      .catch(() => setPopularDestinations([]));
+  }, []);
 
-  const visiblePlaces = useMemo(() => {
-    if (!selectedPlace || categoryPlaces.some((place) => place.id === selectedPlace.id)) {
-      return categoryPlaces;
-    }
-
-    return [...categoryPlaces, selectedPlace];
-  }, [categoryPlaces, selectedPlace]);
-
-  const nearbyPlaces = useMemo(
-    () =>
-      data.places
-        .filter((place) => place.distanceMeters <= 300)
-        .slice()
-        .sort((a, b) => a.distanceMeters - b.distanceMeters)
-        .slice(0, 3),
-    [data.places],
-  );
-
-  const searchResults = useMemo(() => {
-    const query = keyword.trim().toLowerCase();
-
-    if (!query) {
-      return [];
-    }
-
-    return data.places.filter((place) =>
-      [place.name, place.description].some((value) => value.toLowerCase().includes(query)),
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    const watchId = navigator.geolocation.watchPosition(
+      (position) => setCurrentLocation({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      }),
+      () => undefined,
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10_000 },
     );
-  }, [data.places, keyword]);
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  useEffect(() => {
+    const query = keyword.trim();
+    if (!query) {
+      setMatchedDestinations([]);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      void fetch(`/api/guide/destinations?q=${encodeURIComponent(query)}`, {
+        signal: controller.signal,
+      })
+        .then((response) => response.ok ? response.json() : Promise.reject())
+        .then((payload: { results: GuideDestination[] }) => setMatchedDestinations(payload.results))
+        .catch(() => {
+          if (!controller.signal.aborted) setMatchedDestinations([]);
+        });
+    }, 250);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [keyword]);
+
+  const popularPlaces = useMemo(
+    () => popularDestinations.length > 0
+      ? popularDestinations.map((destination) => destinationToPlace(
+          destination,
+          distanceMeters(currentLocation, destination.coordinate),
+        ))
+      : data.places.slice(0, 6).map((place) => ({
+          ...place,
+          distanceMeters: Math.round(distanceMeters(currentLocation, place.coordinate)),
+        })),
+    [currentLocation, data.places, popularDestinations],
+  );
+
+  const searchResults = useMemo(
+    () => matchedDestinations.map((destination) => destinationToPlace(
+      destination,
+      distanceMeters(currentLocation, destination.coordinate),
+    )),
+    [currentLocation, matchedDestinations],
+  );
+
+  const visiblePlaces = selectedPlace
+    ? [selectedPlace, ...popularPlaces.filter((place) => place.id !== selectedPlace.id)]
+    : popularPlaces;
 
   function handleSelectPlace(place: GuidePlace) {
     setSelectedPlace(place);
     setKeyword("");
-    router.push(`/guide/transport?placeId=${place.id}`);
+    router.push(`/guide/transport?${destinationToSearchParams(place)}`);
   }
 
   return (
     <MobileShell className="bg-surface">
       <main className="relative min-h-dvh overflow-hidden bg-map">
         <GuideMapView
-          currentLocationPoint={data.currentLocationPoint}
           places={visiblePlaces}
           selectedPlaceId={selectedPlace?.id}
           onSelectPlace={handleSelectPlace}
@@ -90,16 +125,6 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
             />
           </div>
           <GuideSearchResults places={searchResults} onSelectPlace={handleSelectPlace} />
-          <div className="mt-3">
-            <GuideCategoryBar
-              categories={data.categories}
-              selectedCategory={selectedCategory}
-              onSelectCategory={(category) => {
-                setSelectedCategory(category);
-                setSelectedPlace(null);
-              }}
-            />
-          </div>
         </div>
 
         <div className="pointer-events-auto absolute right-4 top-[181px] z-20 flex flex-col gap-3">
@@ -118,7 +143,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
           </div>
         ) : null}
 
-        <NearbyFacilitySheet places={nearbyPlaces} onSelectPlace={handleSelectPlace} />
+        <NearbyFacilitySheet places={popularPlaces} onSelectPlace={handleSelectPlace} />
       </main>
     </MobileShell>
   );
