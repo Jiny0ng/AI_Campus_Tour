@@ -64,7 +64,11 @@ jobs:
             
             # 3. 빌드 성공 후 새 컨테이너로 교체
             docker-compose build
+            docker-compose --profile seed build data-loader
             docker-compose down --remove-orphans
+            docker-compose up -d neo4j
+            # 기준 CSV를 비파괴 방식으로 반영한다. --reset은 운영 데이터를 삭제하므로 사용하지 않는다.
+            docker-compose --profile seed run --rm data-loader
             docker-compose up -d --remove-orphans
             docker-compose ps
 
