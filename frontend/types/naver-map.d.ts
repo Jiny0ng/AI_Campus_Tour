@@ -9,6 +9,14 @@ declare global {
         Map: typeof naver.maps.Map;
         Marker: typeof naver.maps.Marker;
         Polyline: typeof naver.maps.Polyline;
+        Event: {
+          addListener(
+            target: naver.maps.Map,
+            eventName: string,
+            handler: () => void,
+          ): unknown;
+          removeListener(listener: unknown): void;
+        };
       };
     };
   }
@@ -64,6 +72,8 @@ declare global {
       position: LatLng;
       map?: Map;
       title?: string;
+      clickable?: boolean;
+      zIndex?: number;
       icon?: {
         content: string;
         anchor?: Point;
@@ -96,6 +106,9 @@ export type NaverMapRoute = {
   strokeColor?: string;
   strokeWeight?: number;
   strokeOpacity?: number;
+  showDirectionArrows?: boolean;
+  arrowColor?: string;
+  arrowSpacingMeters?: number;
 };
 
 export type NaverMapGeoJson = {

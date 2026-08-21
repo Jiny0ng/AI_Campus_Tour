@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, ChevronLeft, Lightbulb, MapPin, MessageCirclePlus, ChevronDown, ChevronUp } from "lucide-react";
+import { createPortal } from "react-dom";
+import { ArrowRight, ChevronLeft, Lightbulb, LocateFixed, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/Common";
-import type { CampusTourNearbySpot, CampusTourStop } from "@/types";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
+import type { CampusTourNearbySpot, CampusTourSegmentInfo, CampusTourStop } from "@/types";
 
 type AiTourSheetProps = {
   currentStop?: CampusTourStop;
@@ -17,20 +19,40 @@ type AiTourSheetProps = {
   nearbySpots?: CampusTourNearbySpot[];
   isNearbyLoading?: boolean;
   addingSpotId?: string | null;
-  segmentInfo?: { pois: any[]; tips: any[] } | null;
+  segmentInfo?: CampusTourSegmentInfo | null;
   isSegmentLoading?: boolean;
+  hasArrived?: boolean;
+  remainingDistanceMeters?: number | null;
+  onRecenterMap?: () => void;
+  canRecenter?: boolean;
 };
 
-export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading }: AiTourSheetProps) {
-  const [isExpanded, setIsExpanded] = useState(!isSegmentLoading);
+type TourTip = CampusTourSegmentInfo["tips"][number];
+
+export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
+  const { t } = useAppSettings();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedTip, setSelectedTip] = useState<TourTip | null>(null);
 
   useEffect(() => {
-    if (isSegmentLoading) {
-      setIsExpanded(false);
-    } else {
-      setIsExpanded(true);
-    }
-  }, [isSegmentLoading]);
+    setIsExpanded(false);
+    setSelectedTip(null);
+  }, [currentStop?.id]);
+
+  useEffect(() => {
+    if (!selectedTip) return;
+
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedTip(null);
+    };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [selectedTip]);
 
   if (!currentStop) {
     return (
@@ -52,9 +74,33 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   }
 
   const displayStop = nextStop || currentStop;
+  const destinationTip = segmentInfo?.tips.find(
+    (tipInfo) =>
+      tipInfo.name.includes(displayStop.name)
+      || displayStop.name.includes(tipInfo.name),
+  )?.tip;
+  const destinationDescription = destinationTip || displayStop.description;
+  const formattedDistance = typeof remainingDistanceMeters === "number"
+    ? remainingDistanceMeters >= 1000
+      ? `${(remainingDistanceMeters / 1000).toFixed(1)}km`
+      : `${remainingDistanceMeters}m`
+    : null;
 
   return (
+    <>
     <section className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
+      {onRecenterMap && (
+        <button
+          type="button"
+          aria-label={t("map.recenter")}
+          title={t("map.recenter")}
+          disabled={!canRecenter}
+          onClick={onRecenterMap}
+          className="absolute -top-14 right-4 grid size-11 place-items-center rounded-full bg-surface/95 text-primary shadow-card backdrop-blur-sm transition active:scale-95 disabled:opacity-45"
+        >
+          <LocateFixed size={21} />
+        </button>
+      )}
       <div
         className="mx-auto mb-2 flex h-8 w-full cursor-pointer items-center justify-center"
         onClick={() => setIsExpanded(!isExpanded)}
@@ -68,12 +114,20 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       >
         <div className="flex items-center gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
-            <MessageCirclePlus size={19} />
+            {isExpanded ? <MessageCirclePlus size={19} /> : <MapPin size={19} />}
           </span>
-          <h1 className="text-xl font-extrabold text-ink">{displayStop.name}</h1>
+          <div className="min-w-0 flex-1">
+            {!isExpanded && (
+              <p className="text-[11px] font-extrabold text-primary">
+                {isLastStop ? t("tour.finish") : t("tour.next")}
+              </p>
+            )}
+            <h1 className="truncate text-xl font-extrabold text-ink">{displayStop.name}</h1>
+          </div>
           <button
             type="button"
-            className="ml-auto text-muted hover:text-ink transition-colors"
+            aria-label={isExpanded ? t("settings.close") : t("sheet.tips")}
+            className="text-muted hover:text-ink transition-colors"
             onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
           >
             {isExpanded ? <ChevronDown size={24} /> : <ChevronUp size={24} />}
@@ -81,8 +135,19 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
         </div>
 
         {!isExpanded && (
-          <div className="mt-3 text-sm text-muted line-clamp-1 pl-12">
-            {isSegmentLoading ? "AI 도슨트가 주변 정보와 꿀팁을 탐색 중입니다..." : "눌러서 주변 정보 및 꿀팁 보기"}
+          <div className="mt-3 rounded-card border border-primary/15 bg-primary-soft/70 p-3.5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="line-clamp-2 text-sm font-medium leading-5 text-ink/80">
+                {destinationDescription || (isSegmentLoading ? t("sheet.loading") : t("sheet.noTips"))}
+              </p>
+              <span className="shrink-0 rounded-full bg-surface px-2.5 py-1 text-xs font-extrabold text-primary shadow-sm">
+                {hasArrived
+                  ? t("tour.arrived")
+                  : formattedDistance
+                    ? `${t("tour.remaining")} ${formattedDistance}`
+                    : t("tour.remaining")}
+              </span>
+            </div>
           </div>
         )}
       </div>
@@ -94,12 +159,12 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="overflow-hidden"
+            className="max-h-[62dvh] overflow-y-auto overscroll-contain"
           >
             <div className="mt-5 rounded-card border border-primary/20 bg-primary-soft p-4">
               <div className="flex items-center gap-2 text-sm font-extrabold text-primary mb-3">
                 <Lightbulb size={18} />
-                <span>경로 꿀팁 & 주변 정보</span>
+                <span>{t("sheet.tips")}</span>
               </div>
 
               {isSegmentLoading ? (
@@ -109,26 +174,35 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                 </div>
               ) : segmentInfo && segmentInfo.tips.length > 0 ? (
                 <div className="flex gap-3 overflow-x-auto pb-4 snap-x no-scrollbar">
-                  {segmentInfo.tips.map((tipInfo: any, idx: number) => (
-                    <div key={idx} className="shrink-0 w-[240px] rounded-card border border-primary/20 bg-primary-soft p-4 snap-center flex flex-col shadow-sm bg-white">
+                  {segmentInfo.tips.map((tipInfo, idx) => (
+                    <button
+                      key={`${tipInfo.name}-${idx}`}
+                      type="button"
+                      aria-haspopup="dialog"
+                      onClick={() => setSelectedTip(tipInfo)}
+                      className="flex w-[240px] shrink-0 snap-center flex-col rounded-card border border-primary/20 bg-white p-4 text-left shadow-sm transition active:scale-[0.98]"
+                    >
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-xl">{tipInfo.icon}</span>
                         <span className="font-bold text-ink text-sm truncate">{tipInfo.name}</span>
                       </div>
                       <p className="text-xs text-muted font-medium mb-1">{tipInfo.category}</p>
                       <p className="text-sm text-ink line-clamp-3">{tipInfo.tip}</p>
-                    </div>
+                      <span className="mt-3 text-xs font-bold text-primary">
+                        {t("sheet.tipDetails")} →
+                      </span>
+                    </button>
                   ))}
                 </div>
               ) : (
                 <div className="text-sm text-muted">
-                  이 구간의 특별한 꿀팁이 없습니다.
+                  {t("sheet.noTips")}
                 </div>
               )}
 
               <div className="mb-3 mt-4 flex items-center gap-2 border-t border-primary/15 pt-4">
                 <MapPin size={18} className="text-primary" />
-                <h2 className="text-sm font-extrabold text-ink">주변 가볼만한 곳</h2>
+                <h2 className="text-sm font-extrabold text-ink">{t("sheet.nearby")}</h2>
               </div>
 
               {isNearbyLoading ? (
@@ -160,30 +234,36 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                         disabled={Boolean(addingSpotId)}
                         onClick={() => onAddWaypoint?.(spot)}
                       >
-                        {addingSpotId === spot.id ? "추가 중" : "경유하기"}
+                        {addingSpotId === spot.id ? t("sheet.adding") : t("sheet.detour")}
                       </Button>
                     </article>
                   ))}
                 </div>
               ) : (
                 <p className="py-3 text-center text-xs font-medium text-muted">
-                  현재 위치 100m 이내에 추천 스팟이 없습니다.
+                  {t("sheet.noNearby")}
                 </p>
               )}
             </div>
 
             <div className="mt-6 flex gap-2">
               {hasPrev && onPrev && (
-                <Button variant="secondary" onClick={onPrev} className="h-14 w-14 shrink-0 px-0">
-                  <ChevronLeft size={24} className="text-ink" />
+                <Button
+                  variant="secondary"
+                  onClick={onPrev}
+                  aria-label={t("tour.previous")}
+                  className="h-14 shrink-0 px-3 text-sm"
+                >
+                  <ChevronLeft size={21} />
+                  {t("tour.previous")}
                 </Button>
               )}
               <Button
-                variant={isLastStop ? "secondary" : "primary"}
-                className="h-14 flex-1 text-lg font-bold"
+                variant={isLastStop || !hasArrived ? "secondary" : "primary"}
+                className={`h-14 flex-1 text-lg font-bold ${hasArrived ? "arrival-ready" : ""}`}
                 onClick={onNext}
               >
-                {isLastStop ? "투어 종료" : "다음 목적지"}
+                {isLastStop ? t("tour.finish") : t("tour.next")}
                 {!isLastStop && <ArrowRight size={20} className="ml-2" />}
               </Button>
             </div>
@@ -191,5 +271,58 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
         )}
       </AnimatePresence>
     </section>
+    {typeof document !== "undefined" && createPortal(
+      <AnimatePresence>
+        {selectedTip && (
+          <motion.div
+            className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/45 px-4 pb-[calc(18px+env(safe-area-inset-bottom))] pt-16 backdrop-blur-sm sm:items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedTip(null)}
+          >
+            <motion.article
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="tour-tip-dialog-title"
+              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.96 }}
+              transition={{ duration: 0.2 }}
+              className="max-h-[75dvh] w-full max-w-[390px] overflow-y-auto rounded-[24px] bg-surface p-5 shadow-sheet"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-start gap-3">
+                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary-soft text-2xl">
+                  {selectedTip.icon}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-primary">{t("sheet.tipDetails")}</p>
+                  <h2 id="tour-tip-dialog-title" className="mt-1 text-xl font-extrabold leading-7 text-ink">
+                    {selectedTip.name}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  aria-label={t("sheet.closeDetails")}
+                  className="grid size-9 shrink-0 place-items-center rounded-full bg-line/70 text-ink"
+                  onClick={() => setSelectedTip(null)}
+                >
+                  <X size={19} />
+                </button>
+              </div>
+              <span className="mt-4 inline-flex rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
+                {selectedTip.category}
+              </span>
+              <p className="mt-4 whitespace-pre-wrap text-[15px] font-medium leading-7 text-ink/85">
+                {selectedTip.tip}
+              </p>
+            </motion.article>
+          </motion.div>
+        )}
+      </AnimatePresence>,
+      document.body,
+    )}
+    </>
   );
 }

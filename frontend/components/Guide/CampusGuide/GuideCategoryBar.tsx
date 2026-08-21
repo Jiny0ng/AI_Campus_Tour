@@ -1,6 +1,6 @@
 "use client";
 
-import { CircleParking, Coffee, Store, Utensils } from "lucide-react";
+import { Building2, CircleParking, Coffee, Store, Trees, Utensils } from "lucide-react";
 import { Chip, ChipGroup } from "@/components/Common";
 import type { GuideCategory, GuidePlaceCategory } from "@/types";
 
@@ -11,10 +11,12 @@ type GuideCategoryBarProps = {
 };
 
 const iconMap = {
+  building: Building2,
   parking: CircleParking,
   cafe: Coffee,
   convenience: Store,
   cafeteria: Utensils,
+  rest: Trees,
 };
 
 export function GuideCategoryBar({

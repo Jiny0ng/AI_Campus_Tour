@@ -14,6 +14,20 @@ export type GuideMenuItem = {
 
 export type DrivingRoute = {
   path: CampusCoordinate[];
+  guides: DrivingGuide[];
   distanceMeters: number;
   durationMilliseconds: number;
+  routeStart: CampusCoordinate | null;
+  routeGoal: CampusCoordinate | null;
+  routeOption: string;
+  generatedAt: string | null;
+};
+
+export type DrivingGuide = {
+  pointIndex: number;
+  type: number;
+  instruction: string;
+  distanceMeters: number;
+  durationMilliseconds: number;
+  coordinate: CampusCoordinate | null;
 };

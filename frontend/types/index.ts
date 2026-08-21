@@ -6,5 +6,4 @@ export * from "./campusTour";
 export * from "./chat";
 export * from "./home";
 export * from "./route";
-export * from "./tour";
 export * from "./tourSummary";

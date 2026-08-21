@@ -1,6 +1,12 @@
 import type { CampusCoordinate } from "./campus";
 
-export type GuidePlaceCategory = "parking" | "cafe" | "convenience" | "cafeteria";
+export type GuidePlaceCategory =
+  | "building"
+  | "parking"
+  | "cafe"
+  | "convenience"
+  | "cafeteria"
+  | "rest";
 
 export type GuidePlace = {
   id: string;
@@ -28,4 +34,14 @@ export type CampusGuideData = {
   };
   categories: GuideCategory[];
   places: GuidePlace[];
+};
+
+export type GuideDestination = {
+  id: string;
+  name: string;
+  description: string;
+  category: GuidePlaceCategory;
+  labels: string[];
+  coordinate: CampusCoordinate;
+  distanceMeters?: number;
 };

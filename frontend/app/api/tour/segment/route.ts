@@ -4,7 +4,7 @@ import { apiClient } from "@/lib/apiClient";
 export async function POST(request: NextRequest) {
   try {
     const payload = await request.json();
-    const response = await apiClient.post("/tour/segment", payload);
+    const response = await apiClient.post("/tour/segment", payload, { timeout: 60000 });
     return NextResponse.json(response.data);
   } catch {
     return NextResponse.json(

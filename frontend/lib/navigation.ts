@@ -1,6 +1,6 @@
 import type { GuidePlace } from "@/types";
 
-export type TransportModeValue = "walk" | "car" | "shuttle";
+export type TransportModeValue = "walk" | "bike" | "car";
 
 export function createRoutePath(
   from: { x: number; y: number },
@@ -17,8 +17,8 @@ export function getTransportMinutes(distanceMeters: number, mode: TransportModeV
     return Math.max(3, Math.round(distanceMeters / 120));
   }
 
-  if (mode === "shuttle") {
-    return Math.max(8, Math.round(distanceMeters / 35));
+  if (mode === "bike") {
+    return Math.max(2, Math.round(distanceMeters / 240));
   }
 
   return Math.max(3, Math.round(distanceMeters / 40));
@@ -29,8 +29,8 @@ export function getTransportLabel(mode: TransportModeValue) {
     return "차량";
   }
 
-  if (mode === "shuttle") {
-    return "순환버스";
+  if (mode === "bike") {
+    return "자전거";
   }
 
   return "도보";

@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Literal
 import yaml
 import os
 import csv
 import json
+import re
+from functools import lru_cache
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 import sys
@@ -12,12 +14,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from utils.routing import get_shortest_path, haversine
 
 router = APIRouter(prefix="/tour", tags=["캠퍼스 투어"])
+TOUR_TIPS_MODEL = os.getenv("TOUR_TIPS_MODEL", "gemini-3.5-flash-lite")
 
 class TourRequest(BaseModel):
-    start_location: str
-    theme: Optional[str] = "일반 투어"
-    current_lat: Optional[float] = None
-    current_lng: Optional[float] = None
+    language: Literal["ko", "en", "ja", "zh"] = "ko"
 
 class FeedbackRequest(BaseModel):
     current_location: str
@@ -31,6 +31,7 @@ class SegmentRequest(BaseModel):
     current_lng: Optional[float] = None
     next_lat: Optional[float] = None
     next_lng: Optional[float] = None
+    language: Literal["ko", "en", "ja", "zh"] = "ko"
 
 class WaypointRouteRequest(BaseModel):
     current_lat: float
@@ -42,6 +43,14 @@ class WaypointRouteRequest(BaseModel):
     next_stop_id: str
     next_lat: float
     next_lng: float
+    language: Literal["ko", "en", "ja", "zh"] = "ko"
+
+class StartRouteRequest(BaseModel):
+    current_lat: float
+    current_lng: float
+    first_stop_id: str
+    first_stop_lat: float
+    first_stop_lng: float
 
 class NearbySpotsRequest(BaseModel):
     latitude: float
@@ -56,30 +65,89 @@ def load_prompt(filename: str):
 
 # LLM 초기화 (환경변수에 GOOGLE_API_KEY 필요)
 def get_llm():
-    return ChatGoogleGenerativeAI(model="gemini-3.6-flash", temperature=0.7)
+    return ChatGoogleGenerativeAI(
+        model=TOUR_TIPS_MODEL,
+        max_output_tokens=1024,
+    )
 
-# Helper: load csv
-def get_theme_stops(theme: str) -> List[str]:
-    csv_path = os.path.join(os.path.dirname(__file__), "..", "..", "campusdata", "tour_routes.csv")
-    stops = []
-    if os.path.exists(csv_path):
-        with open(csv_path, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                if row.get("course") == theme:
-                    for i in range(1, 19):
-                        val = row.get(f"stop{i}")
-                        if val and val.strip():
-                            stops.append(val.strip())
-                    break
+def get_tour_stops(driver) -> List[Dict[str, Any]]:
+    """Read the route and its role-specific coordinates from Neo4j."""
+    with driver.session() as session:
+        rows = session.run(
+            """
+            MATCH (stop:TourStop)
+            WHERE stop.place_id IS NOT NULL AND stop.order IS NOT NULL
+            RETURN stop.order AS order, stop.place_id AS place_id,
+                   stop.name AS name,
+                   coalesce(stop.tour_latitude, stop.latitude) AS latitude,
+                   coalesce(stop.tour_longitude, stop.longitude) AS longitude
+            ORDER BY order
+            """
+        )
+        stops = [dict(row) for row in rows]
+    if len(stops) < 2 or any(
+        stop["latitude"] is None or stop["longitude"] is None for stop in stops
+    ):
+        raise HTTPException(status_code=500, detail="Neo4j 투어 좌표 데이터가 올바르지 않습니다.")
     return stops
+
+
+LANGUAGE_NAMES = {
+    "ko": "Korean",
+    "en": "English",
+    "ja": "Japanese",
+    "zh": "Simplified Chinese",
+}
+
+FALLBACK_TIPS = {
+    "ko": "해당 구간의 팁을 불러오지 못했습니다.",
+    "en": "Tips for this section could not be loaded.",
+    "ja": "この区間のヒントを読み込めませんでした。",
+    "zh": "无法加载此路段的提示。",
+}
+
+
+@lru_cache(maxsize=128)
+def generate_segment_tips(
+    current_location: str,
+    next_location: str,
+    language: str,
+    pois_json: str,
+) -> List[Dict[str, Any]]:
+    """Generate a segment summary once per route/language/POI combination."""
+    try:
+        rag_prompt_data = load_prompt("graph_rag_poi.yaml")
+        output_language = LANGUAGE_NAMES[language]
+        prompt_str = (
+            f"{rag_prompt_data['system_prompt']}\n\n"
+            f"현재 구간: {current_location} -> {next_location}\n"
+            f"주변 POI 리스트: {pois_json}\n\n"
+            f"Write every user-visible JSON value in {output_language}. "
+            "Keep Korean proper place names unchanged when translation would make navigation ambiguous. "
+            "Return JSON only."
+        )
+        response = get_llm().invoke(prompt_str)
+        match = re.search(r"\[.*\]", str(response.content), re.DOTALL)
+        if match:
+            parsed = json.loads(match.group(0))
+            if isinstance(parsed, list):
+                return parsed
+    except Exception as error:
+        print(f"LLM Error ({TOUR_TIPS_MODEL}):", error)
+
+    return [{
+        "name": "Info",
+        "icon": "💡",
+        "category": "Info",
+        "tip": FALLBACK_TIPS[language],
+    }]
 
 def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_meters: float = 100.0):
     if lat is None or lng is None:
         return []
 
     csv_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "campusdata", "nodes_docent_spot.csv"
+        os.path.dirname(__file__), "..", "..", "campusdata", "campus_places.csv"
     )
     if not os.path.exists(csv_path):
         return []
@@ -87,6 +155,8 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
     spots = []
     with open(csv_path, "r", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
+            if row.get("entity_type") != "docent_spot":
+                continue
             try:
                 spot_lat = float(row["latitude"])
                 spot_lng = float(row["longitude"])
@@ -96,9 +166,9 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
             distance = haversine(lat, lng, spot_lat, spot_lng)
             if distance <= radius_meters:
                 spots.append({
-                    "id": row.get("spot_id", ""),
+                    "id": row.get("id", ""),
                     "name": row.get("name", ""),
-                    "category": row.get("spot_type", "도슨트스팟"),
+                    "category": row.get("subcategory", "도슨트스팟"),
                     "description": row.get("description", ""),
                     "docentText": row.get("docent_text", ""),
                     "latitude": spot_lat,
@@ -110,7 +180,7 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
 
 def get_building_coords(driver, name: str):
     with driver.session() as session:
-        node = session.run("MATCH (b:Building) WHERE b.name = $name RETURN b.latitude AS lat, b.longitude AS lng", {"name": name}).single()
+        node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN coalesce(b.tour_latitude, b.latitude) AS lat, coalesce(b.tour_longitude, b.longitude) AS lng", {"name": name}).single()
         if not node or not node["lat"]:
             node = session.run("MATCH (b:Building) WHERE b.name CONTAINS $name RETURN b.latitude AS lat, b.longitude AS lng LIMIT 1", {"name": name}).single()
         if node and node["lat"]:
@@ -133,43 +203,33 @@ async def nearby_docent_spots(req: NearbySpotsRequest):
     }
 
 
-@router.post("/init")
-async def init_tour(req: TourRequest, request: Request):
-    """
-    투어 시작 API
-    """
-    driver = request.app.state.neo4j_driver
+_tour_data_cache: Optional[Dict[str, Any]] = None
 
-    theme_stops = get_theme_stops(req.theme)
-    if not theme_stops:
-        theme_stops = [req.start_location, "진수당", "도서관", "건지광장"]
 
-    # GPS가 제공되면 '현위치'를 시작점으로 추가
-    if hasattr(req, 'current_lat') and req.current_lat and req.current_lng:
-        if theme_stops[0] != "현위치":
-            theme_stops.insert(0, "현위치")
+def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
+    """Build the fixed route once and reuse it for every tour start."""
+    global _tour_data_cache
+    if _tour_data_cache is not None and not refresh:
+        return _tour_data_cache
+    route_stops = get_tour_stops(driver)
+    if len(route_stops) < 2:
+        raise HTTPException(status_code=500, detail="투어 경로에는 두 개 이상의 경유지가 필요합니다.")
 
     stops_data = []
-    for i, name in enumerate(theme_stops):
-        if name == "현위치" and hasattr(req, 'current_lat') and req.current_lat:
-            coord = {"x": req.current_lng, "y": req.current_lat}
-        else:
-            coord = get_building_coords(driver, name)
-
-        if not coord:
-            coord = {"x": 127.1294, "y": 35.8468} # default
-
+    for i, route_stop in enumerate(route_stops):
+        name = route_stop["name"]
         stops_data.append({
-            "id": f"stop_{i}",
+            "id": route_stop["place_id"],
             "name": name,
-            "description": f"{name}입니다." if name != "현위치" else "투어를 시작하는 현재 위치입니다.",
+            "description": f"{name}입니다.",
             "tags": [],
             "studentTip": [],
-            "nextStopId": f"stop_{i+1}" if i < len(theme_stops) - 1 else None,
-            "mapPoint": coord
+            "nextStopId": route_stops[i + 1]["place_id"] if i < len(route_stops) - 1 else None,
+            "mapPoint": {
+                "x": route_stop["longitude"],
+                "y": route_stop["latitude"],
+            },
         })
-
-    all_landmarks = get_all_landmarks(driver)
 
     route_segments = []
 
@@ -194,18 +254,29 @@ async def init_tour(req: TourRequest, request: Request):
             "points": path_segment
         })
 
+    _tour_data_cache = {
+        "courseTitle": "JBNU Campus Tour",
+        "stops": stops_data,
+        "routeSegments": route_segments,
+    }
+    return _tour_data_cache
+
+
+def warm_tour_cache(driver) -> None:
+    build_tour_data(driver, refresh=True)
+
+
+@router.post("/init")
+async def init_tour(req: TourRequest, request: Request):
+    """Return the single precomputed campus tour route."""
     return {
         "status": "success",
-        "message": f"'{req.start_location}'에서 시작하는 '{req.theme}' 경로 생성 완료",
-        "data": {
-            "courseTitle": req.theme,
-            "stops": stops_data,
-            "routeSegments": route_segments
-        }
+        "message": "단일 캠퍼스 투어 경로 생성 완료",
+        "data": build_tour_data(request.app.state.neo4j_driver),
     }
 
 @router.post("/segment")
-async def get_tour_segment(req: SegmentRequest, request: Request):
+def get_tour_segment(req: SegmentRequest, request: Request):
     """
     현재 경유지에서 다음 경유지까지의 구간 정보와 주변 POI, Graph RAG 꿀팁을 반환합니다.
     오차 +- 10m 고려하여 대략 50m 반경을 위경도 차이(~0.00045도)로 단순 계산합니다.
@@ -219,12 +290,12 @@ async def get_tour_segment(req: SegmentRequest, request: Request):
 
     with driver.session() as session:
         if cur_lat is None or cur_lng is None:
-            cur_node = session.run("MATCH (b:Building {name: $name}) RETURN b.latitude AS lat, b.longitude AS lng", {"name": req.current_location}).single()
+            cur_node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN coalesce(b.tour_latitude, b.latitude) AS lat, coalesce(b.tour_longitude, b.longitude) AS lng", {"name": req.current_location}).single()
             if cur_node and cur_node["lat"]:
                 cur_lat, cur_lng = cur_node["lat"], cur_node["lng"]
 
         if nxt_lat is None or nxt_lng is None:
-            nxt_node = session.run("MATCH (b:Building {name: $name}) RETURN b.latitude AS lat, b.longitude AS lng", {"name": req.next_location}).single()
+            nxt_node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN coalesce(b.tour_latitude, b.latitude) AS lat, coalesce(b.tour_longitude, b.longitude) AS lng", {"name": req.next_location}).single()
             if nxt_node and nxt_node["lat"]:
                 nxt_lat, nxt_lng = nxt_node["lat"], nxt_node["lng"]
 
@@ -280,26 +351,13 @@ async def get_tour_segment(req: SegmentRequest, request: Request):
             for r in f_rows:
                 pois.append({"name": r["name"], "category": r["category"]})
 
-    # 4. Graph RAG (LLM 호출)
-    try:
-        rag_prompt_data = load_prompt("graph_rag_poi.yaml")
-        system_msg = rag_prompt_data["system_prompt"]
-
-        llm = get_llm()
-        prompt_str = f"{system_msg}\n\n현재 구간: {req.current_location} -> {req.next_location}\n주변 POI 리스트: {pois}\n\n위 지침에 따라 JSON으로 답변해."
-
-        response = llm.invoke(prompt_str)
-        # JSON 형식 응답 텍스트 추출 (마크다운 코드블럭 제거)
-        raw_text = response.content
-        import json, re
-        match = re.search(r'\[.*\]', raw_text, re.DOTALL)
-        if match:
-            tips = json.loads(match.group(0))
-        else:
-            tips = [{"name": "안내", "icon": "💡", "category": "안내", "tip": "주변에 다양한 시설이 있습니다."}]
-    except Exception as e:
-        print("LLM Error:", e)
-        tips = [{"name": "안내", "icon": "💡", "category": "안내", "tip": "해당 구간의 팁을 불러오지 못했습니다."}]
+    # 4. Graph RAG (LLM 호출, 동일 구간/언어 결과 캐시)
+    tips = generate_segment_tips(
+        req.current_location,
+        req.next_location,
+        req.language,
+        json.dumps(pois, ensure_ascii=False, sort_keys=True),
+    )
 
     return {
         "status": "success",
@@ -321,7 +379,12 @@ async def get_waypoint_route(req: WaypointRouteRequest):
         "stop": {
             "id": req.spot_id,
             "name": req.spot_name,
-            "description": "추천 도슨트 스팟입니다.",
+            "description": {
+                "ko": "추천 도슨트 스팟입니다.",
+                "en": "A recommended docent spot.",
+                "ja": "おすすめのドーセントスポットです。",
+                "zh": "推荐的导览景点。",
+            }[req.language],
             "tags": [],
             "studentTip": [],
             "nextStopId": req.next_stop_id,
@@ -339,4 +402,18 @@ async def get_waypoint_route(req: WaypointRouteRequest):
                 "points": get_shortest_path(spot_coord, next_coord),
             },
         ],
+    }
+
+@router.post("/start-route")
+async def get_start_route(req: StartRouteRequest):
+    current_coord = {"x": req.current_lng, "y": req.current_lat}
+    first_stop_coord = {"x": req.first_stop_lng, "y": req.first_stop_lat}
+
+    return {
+        "status": "success",
+        "segment": {
+            "fromStopId": "current_location",
+            "toStopId": req.first_stop_id,
+            "points": get_shortest_path(current_coord, first_stop_coord),
+        },
     }

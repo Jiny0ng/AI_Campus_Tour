@@ -28,7 +28,13 @@ export function NavigationMapView({
 
   return (
     <div className="absolute inset-0 overflow-hidden bg-map">
-      <NaverMap center={destination.coordinate} zoom={16} markers={markers} routes={routes} />
+      <NaverMap
+        center={currentLocation}
+        zoom={17}
+        markers={markers}
+        routes={routes}
+        showUserLocation={false}
+      />
     </div>
   );
 }

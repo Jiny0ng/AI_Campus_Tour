@@ -27,6 +27,8 @@ logs/
 *.tsbuildinfo
 ~$*
 .cleanup-quarantine/
+backend/backups/
+campusdata/backups/
 
 .next
 node_modules

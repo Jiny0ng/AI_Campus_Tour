@@ -6,7 +6,7 @@ from fastapi import FastAPI, Query
 from neo4j import GraphDatabase
 
 from fastapi.middleware.cors import CORSMiddleware
-from routers import directions, tour
+from routers import directions, guide, tour
 from utils.routing import load_graph
 
 # ───────────────────────────────────────────────
@@ -24,6 +24,8 @@ async def lifespan(app: FastAPI):
     )
     print("✅ Neo4j 연결 성공")
     load_graph()
+    tour.warm_tour_cache(app.state.neo4j_driver)
+    print("✅ 단일 투어 경로 캐시 준비 완료")
     yield
     app.state.neo4j_driver.close()
     print("🔌 Neo4j 연결 종료")
@@ -50,6 +52,7 @@ from routers import review
 app.include_router(tour.router)
 app.include_router(review.router)
 app.include_router(directions.router)
+app.include_router(guide.router)
 
 def query_neo4j(query: str, params: dict = None):
     driver = app.state.neo4j_driver

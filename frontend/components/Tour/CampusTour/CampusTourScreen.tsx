@@ -1,34 +1,209 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Volume2, VolumeX } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
 import { MobileShell } from "@/components/Layout";
 import { campusCenter } from "@/constants/campus";
 import { APP_ROUTES } from "@/constants/routes";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { clientDebug, clientDebugError } from "@/lib/clientDebug";
 import type {
   CampusTourData,
   CampusTourNearbySpot,
   CampusTourRouteSegment,
+  CampusTourSegmentInfo,
   CampusTourStop,
 } from "@/types";
 import { AiTourSheet } from "./AiTourSheet";
 import { TourMapBackground } from "./TourMapBackground";
 import { TourStopIndicator } from "./TourStopIndicator";
+import { TourSettingsMenu } from "./TourSettingsMenu";
 
 type CampusTourScreenProps = {
   data: CampusTourData;
 };
 
+const segmentInfoCache = new Map<string, CampusTourSegmentInfo>();
+const segmentRequestCache = new Map<string, Promise<CampusTourSegmentInfo>>();
+const CURRENT_LOCATION_STOP_ID = "current_location";
+const OFF_ROUTE_THRESHOLD_METERS = 15;
+
+function addCurrentLocationStart(data: CampusTourData): CampusTourData {
+  if (data.stops.some((stop) => stop.id === CURRENT_LOCATION_STOP_ID)) return data;
+
+  const firstStop = data.stops[0];
+  if (!firstStop) return data;
+
+  return {
+    ...data,
+    stops: [
+      {
+        id: CURRENT_LOCATION_STOP_ID,
+        name: "현위치",
+        description: "투어를 시작한 위치입니다.",
+        tags: [],
+        studentTip: [],
+        nextStopId: firstStop.id,
+        mapPoint: firstStop.mapPoint,
+      },
+      ...data.stops,
+    ],
+  };
+}
+
+function segmentCacheKey(from: CampusTourStop, to: CampusTourStop, language: string) {
+  return [
+    from.id,
+    from.mapPoint.y.toFixed(6),
+    from.mapPoint.x.toFixed(6),
+    to.id,
+    to.mapPoint.y.toFixed(6),
+    to.mapPoint.x.toFixed(6),
+    language,
+  ].join(":");
+}
+
+function loadSegmentInfo(from: CampusTourStop, to: CampusTourStop, language: string) {
+  const key = segmentCacheKey(from, to, language);
+  const cached = segmentInfoCache.get(key);
+  if (cached) return Promise.resolve(cached);
+
+  const pending = segmentRequestCache.get(key);
+  if (pending) return pending;
+
+  const request = fetch("/api/tour/segment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      current_location: from.name,
+      current_lat: from.mapPoint.y,
+      current_lng: from.mapPoint.x,
+      next_location: to.name,
+      next_lat: to.mapPoint.y,
+      next_lng: to.mapPoint.x,
+      language,
+    }),
+  })
+    .then((response) => {
+      if (!response.ok) throw new Error("Segment information request failed");
+      return response.json() as Promise<CampusTourSegmentInfo>;
+    })
+    .then((result) => {
+      segmentInfoCache.set(key, result);
+      segmentRequestCache.delete(key);
+      return result;
+    })
+    .catch((error) => {
+      segmentRequestCache.delete(key);
+      throw error;
+    });
+
+  segmentRequestCache.set(key, request);
+  return request;
+}
+
+type LatLng = { lat: number; lng: number };
+
+function distanceMeters(first: LatLng, second: LatLng) {
+  const earthRadius = 6371000;
+  const toRadians = (degrees: number) => degrees * Math.PI / 180;
+  const latitudeDelta = toRadians(second.lat - first.lat);
+  const longitudeDelta = toRadians(second.lng - first.lng);
+  const firstLatitude = toRadians(first.lat);
+  const secondLatitude = toRadians(second.lat);
+  const value = Math.sin(latitudeDelta / 2) ** 2
+    + Math.cos(firstLatitude) * Math.cos(secondLatitude)
+    * Math.sin(longitudeDelta / 2) ** 2;
+  return earthRadius * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
+}
+
+function distanceToRouteMeters(location: LatLng, segments: CampusTourRouteSegment[]) {
+  const points = segments.flatMap((segment) =>
+    segment.points.map((point) => ({ lat: point.y, lng: point.x })),
+  );
+  if (points.length < 2) return null;
+
+  const earthRadius = 6371000;
+  const latitudeOrigin = location.lat * Math.PI / 180;
+  const toLocalMeters = (point: LatLng) => ({
+    x: (point.lng - location.lng) * Math.PI / 180 * earthRadius * Math.cos(latitudeOrigin),
+    y: (point.lat - location.lat) * Math.PI / 180 * earthRadius,
+  });
+
+  let nearestDistance = Number.POSITIVE_INFINITY;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const start = toLocalMeters(points[index]);
+    const end = toLocalMeters(points[index + 1]);
+    const deltaX = end.x - start.x;
+    const deltaY = end.y - start.y;
+    const lengthSquared = deltaX ** 2 + deltaY ** 2;
+    const projection = lengthSquared === 0
+      ? 0
+      : Math.max(0, Math.min(1, -(start.x * deltaX + start.y * deltaY) / lengthSquared));
+    const closestX = start.x + projection * deltaX;
+    const closestY = start.y + projection * deltaY;
+    nearestDistance = Math.min(nearestDistance, Math.hypot(closestX, closestY));
+  }
+  return nearestDistance;
+}
+
+function remainingRouteDistance(
+  location: LatLng | null,
+  segments: CampusTourRouteSegment[],
+) {
+  const points = segments.flatMap((segment) =>
+    segment.points.map((point) => ({ lat: point.y, lng: point.x })),
+  );
+  if (points.length < 2) return null;
+
+  let nearestIndex = 0;
+  let approachDistance = 0;
+  if (location) {
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    points.forEach((point, index) => {
+      const distance = distanceMeters(location, point);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    });
+    approachDistance = nearestDistance;
+  }
+
+  let routeDistance = 0;
+  for (let index = nearestIndex; index < points.length - 1; index += 1) {
+    routeDistance += distanceMeters(points[index], points[index + 1]);
+  }
+  return Math.round(approachDistance + routeDistance);
+}
+
 export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const router = useRouter();
-  const [tourData, setTourData] = useState(data);
+  const { locale, t } = useAppSettings();
+  const [tourData, setTourData] = useState(() => addCurrentLocationStart(data));
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [nearbySpots, setNearbySpots] = useState<CampusTourNearbySpot[]>([]);
   const [isNearbyLoading, setIsNearbyLoading] = useState(true);
   const [addingSpotId, setAddingSpotId] = useState<string | null>(null);
+  const [segmentInfo, setSegmentInfo] = useState<CampusTourSegmentInfo | null>(null);
+  const [isSegmentLoading, setIsSegmentLoading] = useState(false);
+  const [arrivedStopId, setArrivedStopId] = useState<string | null>(null);
+  const [recenterUserLocationToken, setRecenterUserLocationToken] = useState(0);
+  const [isOffRouteDialogOpen, setIsOffRouteDialogOpen] = useState(false);
+  const nearbyFetchOriginRef = useRef<LatLng | null>(null);
+  const startLocationInitializedRef = useRef(false);
+  const offRouteWarningArmedRef = useRef(true);
+  const lastRouteDistanceLogRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    clientDebug("tour", "mounted", {
+      stops: data.stops.length,
+      routeSegments: data.routeSegments.length,
+    });
+    return () => clientDebug("tour", "unmounted");
+  }, [data.routeSegments.length, data.stops.length]);
 
   const currentStop = tourData?.stops?.[currentStopIndex];
   const nextStop = currentStop?.nextStopId
@@ -48,6 +223,103 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     ? { lat: currentStop.mapPoint.y, lng: currentStop.mapPoint.x }
     : campusCenter;
 
+  const directDistanceToNext = useMemo(() => {
+    if (!userLocation || !nextStop) return null;
+    return distanceMeters(userLocation, {
+      lat: nextStop.mapPoint.y,
+      lng: nextStop.mapPoint.x,
+    });
+  }, [nextStop, userLocation]);
+
+  const hasArrived = Boolean(nextStop && arrivedStopId === nextStop.id);
+  const canAdvance = isLastStop
+    ? Boolean(currentStop && arrivedStopId === currentStop.id)
+    : hasArrived;
+  const remainingDistance = hasArrived
+    ? 0
+    : remainingRouteDistance(userLocation, currentSegment);
+  const distanceFromRoute = useMemo(() => {
+    if (!userLocation) return null;
+    return distanceToRouteMeters(userLocation, currentSegment);
+  }, [currentSegment, userLocation]);
+
+  useEffect(() => {
+    if (distanceFromRoute === null) return;
+    const roundedDistance = Math.round(distanceFromRoute);
+    if (
+      lastRouteDistanceLogRef.current === null
+      || Math.abs(roundedDistance - lastRouteDistanceLogRef.current) >= 5
+    ) {
+      lastRouteDistanceLogRef.current = roundedDistance;
+      clientDebug("route", "distance-updated", {
+        distanceMeters: roundedDistance,
+        thresholdMeters: OFF_ROUTE_THRESHOLD_METERS,
+        currentStopId: currentStop?.id,
+        nextStopId: nextStop?.id,
+      });
+    }
+    if (distanceFromRoute <= OFF_ROUTE_THRESHOLD_METERS) {
+      offRouteWarningArmedRef.current = true;
+      return;
+    }
+    if (!offRouteWarningArmedRef.current) return;
+    offRouteWarningArmedRef.current = false;
+    clientDebug("route", "off-route-dialog-opened", {
+      distanceMeters: roundedDistance,
+    });
+    setIsOffRouteDialogOpen(true);
+  }, [currentStop?.id, distanceFromRoute, nextStop?.id]);
+
+  useEffect(() => {
+    if (nextStop && directDistanceToNext !== null && directDistanceToNext <= 10) {
+      setArrivedStopId(nextStop.id);
+    }
+  }, [directDistanceToNext, nextStop]);
+
+  useEffect(() => {
+    if (!currentStop || !nextStop) {
+      setSegmentInfo(null);
+      setIsSegmentLoading(false);
+      return;
+    }
+    if (
+      currentStop.id === CURRENT_LOCATION_STOP_ID
+      && !startLocationInitializedRef.current
+    ) {
+      setSegmentInfo(null);
+      setIsSegmentLoading(true);
+      return;
+    }
+
+    let cancelled = false;
+    const cached = segmentInfoCache.get(segmentCacheKey(currentStop, nextStop, locale));
+    setIsSegmentLoading(!cached);
+    setSegmentInfo(cached ?? null);
+
+    loadSegmentInfo(currentStop, nextStop, locale)
+      .then((result) => {
+        if (cancelled) return;
+        setSegmentInfo(result);
+
+        const followingStop = nextStop.nextStopId
+          ? tourData.stops.find((stop) => stop.id === nextStop.nextStopId)
+          : undefined;
+        if (followingStop) {
+          void loadSegmentInfo(nextStop, followingStop, locale).catch(() => undefined);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setSegmentInfo(null);
+      })
+      .finally(() => {
+        if (!cancelled) setIsSegmentLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [currentStop, locale, nextStop, tourData.stops]);
+
   useEffect(() => {
     if (!navigator.geolocation) {
       setIsNearbyLoading(false);
@@ -56,20 +328,105 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        setUserLocation({
+        const nextLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
+        };
+        setUserLocation(nextLocation);
+        clientDebug("geolocation", "position", {
+          ...nextLocation,
+          accuracyMeters: Math.round(position.coords.accuracy),
+          heading: position.coords.heading,
         });
+
+        if (startLocationInitializedRef.current) return;
+        startLocationInitializedRef.current = true;
+
+        const firstStop = data.stops[0];
+        if (!firstStop) return;
+
+        setTourData((previous) => ({
+          ...previous,
+          stops: previous.stops.map((stop) =>
+            stop.id === CURRENT_LOCATION_STOP_ID
+              ? {
+                  ...stop,
+                  mapPoint: { x: nextLocation.lng, y: nextLocation.lat },
+                }
+              : stop,
+          ),
+        }));
+
+        void fetch("/api/tour/start-route", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            current_lat: nextLocation.lat,
+            current_lng: nextLocation.lng,
+            first_stop_id: firstStop.id,
+            first_stop_lat: firstStop.mapPoint.y,
+            first_stop_lng: firstStop.mapPoint.x,
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) throw new Error("Start route request failed");
+            return response.json() as Promise<{ segment: CampusTourRouteSegment }>;
+          })
+          .then(({ segment }) => {
+            clientDebug("route", "start-route-loaded", {
+              pointCount: segment.points.length,
+              fromStopId: segment.fromStopId,
+              toStopId: segment.toStopId,
+            });
+            setTourData((previous) => ({
+              ...previous,
+              routeSegments: [
+                segment,
+                ...previous.routeSegments.filter(
+                  (routeSegment) => routeSegment.fromStopId !== CURRENT_LOCATION_STOP_ID,
+                ),
+              ],
+            }));
+          })
+          .catch((error) => {
+            clientDebugError("route", "start-route-fallback", error);
+            setTourData((previous) => ({
+              ...previous,
+              routeSegments: [
+                {
+                  fromStopId: CURRENT_LOCATION_STOP_ID,
+                  toStopId: firstStop.id,
+                  points: [
+                    { x: nextLocation.lng, y: nextLocation.lat },
+                    firstStop.mapPoint,
+                  ],
+                },
+                ...previous.routeSegments.filter(
+                  (routeSegment) => routeSegment.fromStopId !== CURRENT_LOCATION_STOP_ID,
+                ),
+              ],
+            }));
+          });
       },
-      () => setIsNearbyLoading(false),
+      (error) => {
+        clientDebugError("geolocation", "watch-error", new Error(error.message));
+        setIsNearbyLoading(false);
+      },
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [data]);
 
   useEffect(() => {
     if (!userLocation) return;
+    if (
+      nearbyFetchOriginRef.current
+      && distanceMeters(nearbyFetchOriginRef.current, userLocation) < 10
+    ) {
+      return;
+    }
+    nearbyFetchOriginRef.current = userLocation;
 
     const controller = new AbortController();
     setIsNearbyLoading(true);
@@ -116,6 +473,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           next_stop_id: nextStop.id,
           next_lat: nextStop.mapPoint.y,
           next_lng: nextStop.mapPoint.x,
+          language: locale,
         }),
       });
       if (!response.ok) throw new Error("Waypoint route request failed");
@@ -164,6 +522,10 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     }
   }
 
+  function handlePrev() {
+    setCurrentStopIndex((index) => Math.max(index - 1, 0));
+  }
+
   return (
     <MobileShell className="bg-surface">
       <main className="relative min-h-dvh overflow-hidden bg-map">
@@ -172,34 +534,29 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           currentStop={currentStop}
           nextStop={nextStop}
           remainingSegments={currentSegment}
+          recenterUserLocationToken={recenterUserLocationToken}
         />
         <div className="absolute inset-x-4 top-[57px] z-20">
-          <div className="flex items-start gap-2">
+          <div className="flex items-start gap-2.5">
             <button
               type="button"
-              aria-label="뒤로가기"
-              className="grid size-[38px] shrink-0 place-items-center rounded-full bg-surface/95 text-ink shadow-card backdrop-blur-sm"
+              aria-label={t("tour.back")}
+              className="grid size-11 shrink-0 place-items-center rounded-full bg-surface/95 text-ink shadow-card backdrop-blur-sm"
               onClick={() => router.back()}
             >
-              <ChevronLeft size={22} />
+              <ChevronLeft size={25} />
             </button>
             <div className="min-w-0 flex-1">
               <TourStopIndicator
                 currentStop={currentStop}
                 nextStop={nextStop}
+                remainingDistanceMeters={remainingDistance}
+                hasArrived={canAdvance}
               />
             </div>
           </div>
           <div className="mt-2 flex justify-end">
-            <button
-              type="button"
-              aria-label={isMuted ? "음소거 해제" : "음소거"}
-              aria-pressed={isMuted}
-              className="grid size-[38px] place-items-center rounded-full bg-surface/95 text-ink shadow-card backdrop-blur-sm"
-              onClick={() => setIsMuted((muted) => !muted)}
-            >
-              {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-            </button>
+            <TourSettingsMenu />
           </div>
         </div>
         <AiTourSheet
@@ -207,13 +564,50 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           nextStop={nextStop}
           isLastStop={isLastStop}
           onNext={handleNext}
+          onPrev={handlePrev}
+          hasPrev={currentStopIndex > 0}
           nearbySpots={nearbySpots.filter(
             (spot) => !tourData.stops.some((stop) => stop.id === spot.id),
           )}
           isNearbyLoading={isNearbyLoading}
           addingSpotId={addingSpotId}
           onAddWaypoint={handleAddWaypoint}
+          segmentInfo={segmentInfo}
+          isSegmentLoading={isSegmentLoading}
+          hasArrived={canAdvance}
+          remainingDistanceMeters={remainingDistance}
+          onRecenterMap={() => setRecenterUserLocationToken((token) => token + 1)}
+          canRecenter={Boolean(userLocation)}
         />
+        {isOffRouteDialogOpen && (
+          <div
+            className="absolute inset-0 z-50 grid place-items-center bg-black/45 px-6"
+            role="presentation"
+          >
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="off-route-dialog-title"
+              aria-describedby="off-route-dialog-description"
+              className="w-full max-w-sm rounded-3xl bg-surface p-6 shadow-card"
+            >
+              <h2 id="off-route-dialog-title" className="text-xl font-extrabold text-ink">
+                경로를 벗어났습니다
+              </h2>
+              <p id="off-route-dialog-description" className="mt-3 text-sm leading-6 text-muted-foreground">
+                안내 경로에서 15m 이상 벗어났습니다. 지도에서 경로를 확인해 주세요.
+              </p>
+              <button
+                type="button"
+                autoFocus
+                className="mt-6 h-12 w-full rounded-2xl bg-primary font-bold text-white"
+                onClick={() => setIsOffRouteDialogOpen(false)}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </MobileShell>
   );
