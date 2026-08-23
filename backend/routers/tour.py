@@ -206,6 +206,21 @@ async def nearby_docent_spots(req: NearbySpotsRequest):
 _tour_data_cache: Optional[Dict[str, Any]] = None
 
 
+@lru_cache(maxsize=1)
+def tour_stop_docent_texts() -> Dict[str, str]:
+    csv_path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "campusdata", "campus_places.csv"
+    )
+    if not os.path.exists(csv_path):
+        return {}
+    with open(csv_path, "r", encoding="utf-8-sig") as file:
+        return {
+            row.get("id", ""): row.get("docent_text", "").strip()
+            for row in csv.DictReader(file)
+            if row.get("entity_type") == "tour_stop" and row.get("docent_text", "").strip()
+        }
+
+
 def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
     """Build the fixed route once and reuse it for every tour start."""
     global _tour_data_cache
@@ -216,12 +231,14 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail="투어 경로에는 두 개 이상의 경유지가 필요합니다.")
 
     stops_data = []
+    reviewed_docents = tour_stop_docent_texts()
     for i, route_stop in enumerate(route_stops):
         name = route_stop["name"]
         stops_data.append({
             "id": route_stop["place_id"],
             "name": name,
             "description": f"{name}입니다.",
+            "docentText": reviewed_docents.get(route_stop["place_id"], ""),
             "tags": [],
             "studentTip": [],
             "nextStopId": route_stops[i + 1]["place_id"] if i < len(route_stops) - 1 else None,

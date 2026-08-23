@@ -5,12 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { SearchBar } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import { APP_ROUTES } from "@/constants/routes";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import {
   distanceMeters,
   formatNavigationDistance,
   getDrivingProgress,
 } from "@/lib/drivingNavigation";
+import { navigationSpeech } from "@/lib/audioGuide/navigationText";
 import { destinationFromSearchParams } from "@/lib/guideDestination";
+import { trackedFetch } from "@/lib/networkFetch";
 import {
   getArrivalTime,
   getRouteSummary,
@@ -44,6 +48,8 @@ function normalizeMode(value: string | null): TransportModeValue {
 export function NavigationScreen({ data }: NavigationScreenProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { locale, isMuted } = useAppSettings();
+  const { speak, prefetch, clearCategory } = useAudioGuide();
   const mode = normalizeMode(searchParams.get("mode"));
   const destination = destinationFromSearchParams(searchParams, data.places[0]);
   const fallbackSummary = getRouteSummary(destination, mode);
@@ -69,7 +75,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
     setRouteLoading(true);
 
     const routeUrl = mode === "car" ? "/api/directions/driving" : "/api/guide/route";
-    fetch(routeUrl, {
+    trackedFetch(routeUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -89,7 +95,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
       })
       .catch((error: Error) => {
         if (error.name !== "AbortError") {
-          setRouteError("자동차 경로를 불러오지 못했습니다.");
+          setRouteError(`${getTransportLabel(mode)} 경로를 불러오지 못했습니다.`);
         }
       })
       .finally(() => {
@@ -150,6 +156,25 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   );
 
   useEffect(() => {
+    if (!drivingRoute || isMuted) return;
+    const nextIndex = drivingProgress?.nextGuide
+      ? drivingRoute.guides.findIndex((guide) => guide.pointIndex === drivingProgress.nextGuide?.pointIndex)
+      : 0;
+    drivingRoute.guides.slice(Math.max(0, nextIndex), Math.max(0, nextIndex) + 3).forEach((guide) => {
+      const speech = navigationSpeech(guide, guide.distanceMeters, locale);
+      void prefetch({
+        id: `prefetch:${drivingRoute.generatedAt ?? "route"}:${guide.pointIndex}:${locale}`,
+        text: speech.text,
+        locale,
+        category: speech.maneuver === "arrive" ? "arrival" : "navigation",
+        priority: speech.maneuver === "arrive" ? 90 : 100,
+        source: { kind: "asset", assetId: speech.assetId },
+        interruptible: false,
+      });
+    });
+  }, [drivingProgress?.nextGuide, drivingRoute, isMuted, locale, prefetch]);
+
+  useEffect(() => {
     if (!drivingProgress || !drivingRoute) return;
     if (locationAccuracy !== null && locationAccuracy > 50) return;
     if (distanceMeters(currentLocation, destination.coordinate) <= 25) return;
@@ -176,46 +201,52 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   ]);
 
   useEffect(() => {
-    if (mode !== "car" || !drivingProgress?.nextGuide || typeof window === "undefined") return;
-    if (!("speechSynthesis" in window)) return;
-    if (drivingProgress.distanceToNextGuideMeters > 180) return;
+    if (!drivingProgress?.nextGuide || isMuted) return;
+    const triggerDistance = mode === "car" ? 180 : 40;
+    if (drivingProgress.distanceToNextGuideMeters > triggerDistance) return;
 
     const guide = drivingProgress.nextGuide;
     const guideKey = `${drivingRoute?.generatedAt ?? "route"}:${guide.pointIndex}`;
     if (spokenGuideRef.current === guideKey) return;
     spokenGuideRef.current = guideKey;
 
-    const distance = formatNavigationDistance(drivingProgress.distanceToNextGuideMeters);
-    const utterance = new SpeechSynthesisUtterance(
-      guide.type === 88 ? "목적지에 도착했습니다." : `${distance} 앞, ${guide.instruction}`,
-    );
-    utterance.lang = "ko-KR";
-    utterance.rate = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-  }, [drivingProgress, drivingRoute?.generatedAt, mode]);
+    const speech = navigationSpeech(guide, drivingProgress.distanceToNextGuideMeters, locale);
+    void speak({
+      id: `navigation:${guideKey}:${locale}`,
+      text: speech.text,
+      locale,
+      category: speech.maneuver === "arrive" ? "arrival" : "navigation",
+      priority: speech.maneuver === "arrive" ? 90 : 100,
+      source: { kind: "asset", assetId: speech.assetId },
+      interruptible: false,
+      expiresAt: Date.now() + (mode === "car" ? 45_000 : 30_000),
+    });
+  }, [drivingProgress, drivingRoute?.generatedAt, isMuted, locale, mode, speak]);
 
   useEffect(() => {
-    if (!drivingRoute || destinationSpokenRef.current === destination.id) return;
+    if (!drivingRoute || isMuted || destinationSpokenRef.current === destination.id) return;
     destinationSpokenRef.current = destination.id;
     const message = `${destination.name}. ${destination.description}`;
     setDocentMessage(message);
     lastDocentAtRef.current = Date.now();
 
     const timer = window.setTimeout(() => {
-      if (!("speechSynthesis" in window)) return;
       if (
-        mode === "car"
-        && drivingRoute.guides[0]
-        && drivingRoute.guides[0].distanceMeters <= 180
+        drivingRoute.guides[0]
+        && drivingRoute.guides[0].distanceMeters <= (mode === "car" ? 180 : 40)
       ) return;
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.lang = "ko-KR";
-      utterance.rate = 1;
-      window.speechSynthesis.speak(utterance);
+      void speak({
+        id: `guide-destination:${destination.id}:${locale}`,
+        text: message,
+        locale: /[가-힣]/.test(message) ? "ko" : locale,
+        category: "location-docent",
+        priority: 30,
+        source: { kind: "tts" },
+        interruptible: true,
+      });
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [destination.description, destination.id, destination.name, drivingRoute, mode]);
+  }, [destination.description, destination.id, destination.name, drivingRoute, isMuted, locale, mode, speak]);
 
   useEffect(() => {
     if (!drivingRoute) return;
@@ -227,7 +258,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
     lastNearbyOriginRef.current = currentLocation;
 
     const controller = new AbortController();
-    void fetch("/api/guide/nearby", {
+    void trackedFetch("/api/guide/nearby", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -247,26 +278,33 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
         const message = `주변 ${facility.distanceMeters}미터 이내에 ${facility.name}이 있습니다. ${facility.description}`;
         setDocentMessage(message);
 
-        const canSpeak = Date.now() - lastDocentAtRef.current >= 45_000
+        const canSpeak = mode !== "car"
+          && !isMuted && Date.now() - lastDocentAtRef.current >= 60_000
           && (!drivingProgress?.nextGuide || drivingProgress.distanceToNextGuideMeters > 220);
-        if (canSpeak && "speechSynthesis" in window) {
+        if (canSpeak) {
           lastDocentAtRef.current = Date.now();
-          const utterance = new SpeechSynthesisUtterance(message);
-          utterance.lang = "ko-KR";
-          utterance.rate = 1;
-          window.speechSynthesis.speak(utterance);
+          void speak({
+            id: `guide-nearby:${facility.id}:${locale}`,
+            text: message,
+            locale: /[가-힣]/.test(message) ? "ko" : locale,
+            category: "location-docent",
+            priority: 30,
+            source: { kind: "tts" },
+            interruptible: true,
+          });
         }
       })
       .catch(() => undefined);
 
     return () => controller.abort();
-  }, [currentLocation, destination.id, drivingProgress, drivingRoute]);
+  }, [currentLocation, destination.id, drivingProgress, drivingRoute, isMuted, locale, mode, speak]);
 
   useEffect(() => () => {
-    if (typeof window !== "undefined" && "speechSynthesis" in window) {
-      window.speechSynthesis.cancel();
-    }
-  }, []);
+    clearCategory("navigation");
+    clearCategory("arrival");
+    clearCategory("core-docent");
+    clearCategory("location-docent");
+  }, [clearCategory]);
 
   const remainingDuration = drivingProgress?.remainingDurationMilliseconds
     ?? drivingRoute?.durationMilliseconds;

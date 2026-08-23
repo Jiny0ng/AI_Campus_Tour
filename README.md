@@ -17,8 +17,8 @@
    - 예: *"우측 전방에 보이는 큰 건물이 도서관입니다. 바로 1층에 24시간 편의점이 있으니 참고하세요!"*
 3. **유저 피드백 기반 동적 경로 수정**
    - 투어 중 "도서관은 안 갈래"와 같은 유저의 피드백을 실시간으로 반영하여 즉각적으로 남은 경로와 도슨트를 재생성합니다.
-4. **모바일 네이티브 저전력 TTS 및 방향 인식**
-   - 외부 무거운 AI 모델 대신 브라우저 표준 `Web Speech API`를 사용하여 끊김 없고 서버 비용이 발생하지 않는 음성 안내를 지원합니다.
+4. **공용 클라우드 TTS 및 방향 인식**
+   - 안내와 투어가 하나의 Google Cloud TTS 재생 큐를 공유하며, 길 안내가 도슨트 음성을 선점합니다. 음성 장애 시에는 화면 텍스트 안내를 유지합니다.
 
 ---
 
@@ -27,7 +27,7 @@
 ### Frontend (PWA)
 *   **Framework**: Next.js (App Router), React
 *   **Styling**: Tailwind CSS
-*   **API**: Web Speech API (TTS), DeviceOrientation API (방위각)
+*   **API**: HTML Audio API, DeviceOrientation API (방위각)
 
 ### Backend (GraphRAG API)
 *   **Framework**: FastAPI, Uvicorn (`Python 3.12`)
@@ -101,4 +101,26 @@ npm run dev
 ---
 
 ## ⚠️ 로컬 테스트 주의사항 (HTTPS)
-본 프로젝트의 핵심인 `DeviceOrientation` (나침반 방향 탐색) 기능과 `Web Speech API` (음성 재생) 기능은 모바일 기기로 로컬 망에서 접속 시 브라우저 보안 정책상 반드시 **HTTPS** 환경이 요구됩니다. 모바일 기기로 접속 테스트를 하시려면 `ngrok`과 같은 터널링 툴이나 Vite/Next.js의 자체 HTTPS 인증서 플러그인을 활용해 주시기 바랍니다.
+본 프로젝트의 핵심인 `DeviceOrientation` (나침반 방향 탐색), GPS, 오디오 자동 재생 기능은 모바일 기기로 로컬 망에서 접속 시 브라우저 보안 정책상 HTTPS와 사용자 상호작용이 필요합니다. 모바일 기기로 접속 테스트를 하시려면 HTTPS 터널링 또는 개발 인증서를 활용해 주시기 바랍니다.
+
+> 음성 안내는 현재 공용 Google Cloud TTS 재생 계층을 사용한다. GCP가 설정되지 않았거나 네트워크가 불안정한 경우 지도와 화면 텍스트 안내는 계속 제공된다. 운영 설정과 사전 음성 생성 방법은 [`docs/gcp-tts-setup.md`](docs/gcp-tts-setup.md)를 참고한다.
+
+## GCP VM HTTPS 배포
+
+운영 배포에서는 Caddy가 TLS 인증서 발급·갱신과 HTTP→HTTPS 리다이렉트를 담당합니다.
+`GCP_VM_HOST`가 IPv4 주소이면 배포 워크플로가 자동으로
+`https://<대시로 구분한 IP>.sslip.io` 주소를 사용하고, 도메인이면 해당 도메인을 그대로 사용합니다.
+
+배포 전에 다음 외부 설정이 필요합니다.
+
+1. Compute Engine VM에 고정 외부 IP를 사용합니다.
+2. GCP 방화벽에서 TCP 80과 TCP 443 인바운드를 허용합니다.
+3. Naver Cloud Platform Maps의 Web 서비스 URL에 최종 HTTPS 주소를 추가합니다.
+
+예를 들어 VM 주소가 `203.0.113.10`이면 등록할 주소는 다음과 같습니다.
+
+```text
+https://203-0-113-10.sslip.io
+```
+
+인증서와 Caddy 상태는 Docker named volume에 보존되므로 일반 재배포 시 다시 초기화되지 않습니다.

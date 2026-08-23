@@ -26,12 +26,19 @@ CHECKED_ENVIRONMENT_KEYS = (
     "GOOGLE_API_KEY",
     "NAVER_MAP_CLIENT_ID",
     "NAVER_MAP_CLIENT_SECRET",
+    "GCP_PROJECT_ID",
+    "TTS_BUCKET_NAME",
+    "TTS_MODEL",
+    "TTS_VOICE_NAME",
+    "TTS_PROMPT_VERSION",
+    "TTS_REALTIME_ENABLED",
 )
 CHECKED_DATA_FILES = (
     "campus_places.csv",
     "campus_interiors.csv",
     "jbnu_walking_path.geojson",
     "neo4j_loader_v2.py",
+    "audio_content/audio_manifest.json",
 )
 
 
@@ -247,6 +254,55 @@ def route_diagnostics(expected_stops: list[dict[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def audio_diagnostics() -> dict[str, Any]:
+    bucket_name = os.getenv("TTS_BUCKET_NAME", "")
+    manifest_path = DATA_DIR / "audio_content" / "audio_manifest.json"
+    if not bucket_name:
+        return {
+            "configured": False,
+            "manifest_exists": manifest_path.is_file(),
+            "message": "TTS_BUCKET_NAME is not configured",
+        }
+    try:
+        from google.auth import default
+        from google.auth.transport.requests import Request as GoogleAuthRequest
+        from google.cloud import storage
+
+        credentials, project = default(
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+        credentials.refresh(GoogleAuthRequest())
+        client = storage.Client(project=os.getenv("GCP_PROJECT_ID") or project, credentials=credentials)
+        bucket = client.bucket(bucket_name)
+        bucket.reload(timeout=5)
+
+        sample_asset = None
+        sample_readable = None
+        if manifest_path.is_file():
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            assets = manifest.get("assets", {})
+            if assets:
+                sample_asset = next(iter(assets.values())).get("objectName")
+                if sample_asset:
+                    sample_readable = bucket.blob(sample_asset).exists(timeout=5)
+        return {
+            "configured": True,
+            "adc_valid": True,
+            "project_resolved": bool(project or os.getenv("GCP_PROJECT_ID")),
+            "bucket_metadata_readable": True,
+            "manifest_exists": manifest_path.is_file(),
+            "sample_asset_configured": bool(sample_asset),
+            "sample_asset_readable": sample_readable,
+        }
+    except Exception as error:
+        return {
+            "configured": True,
+            "adc_valid": False,
+            "error_type": type(error).__name__,
+            "error": str(error),
+        }
+
+
 def main() -> None:
     route_stops = read_route_stops()
     emit(
@@ -267,6 +323,7 @@ def main() -> None:
     emit("source_data", source_data_diagnostics(route_stops))
     emit("neo4j", neo4j_diagnostics(route_stops))
     emit("tour_route", route_diagnostics(route_stops))
+    emit("audio", audio_diagnostics())
 
 
 if __name__ == "__main__":

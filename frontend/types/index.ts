@@ -1,4 +1,5 @@
 export * from "./api";
+export * from "./audioGuide";
 export * from "./campus";
 export * from "./campusSearch";
 export * from "./campusGuide";

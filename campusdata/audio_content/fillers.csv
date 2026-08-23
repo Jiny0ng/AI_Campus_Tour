@@ -1,0 +1,5 @@
+id,locale,text,tone,enabled,weight,content_version,style
+filler:ko:1,ko-KR,잠시만 기다려 주세요.,friendly,true,1,v1,filler
+filler:en:1,en-US,Please wait a moment.,friendly,true,1,v1,filler
+filler:ja:1,ja-JP,少々お待ちください。,friendly,true,1,v1,filler
+filler:zh:1,cmn-CN,请稍等片刻。,friendly,true,1,v1,filler

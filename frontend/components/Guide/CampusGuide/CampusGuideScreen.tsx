@@ -7,6 +7,7 @@ import { FloatingButton, SearchBar } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import { distanceMeters } from "@/lib/drivingNavigation";
 import { destinationToPlace, destinationToSearchParams } from "@/lib/guideDestination";
+import { trackedFetch } from "@/lib/networkFetch";
 import type { CampusCoordinate, CampusGuideData, GuideDestination, GuidePlace } from "@/types";
 import { GuideMapView } from "./GuideMapView";
 import { GuideSearchResults } from "./GuideSearchResults";
@@ -25,7 +26,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   const [matchedDestinations, setMatchedDestinations] = useState<GuideDestination[]>([]);
 
   useEffect(() => {
-    void fetch("/api/guide/popular")
+    void trackedFetch("/api/guide/popular")
       .then((response) => response.ok ? response.json() : Promise.reject())
       .then((payload: { results: GuideDestination[] }) => setPopularDestinations(payload.results))
       .catch(() => setPopularDestinations([]));
@@ -52,7 +53,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
     }
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      void fetch(`/api/guide/destinations?q=${encodeURIComponent(query)}`, {
+      void trackedFetch(`/api/guide/destinations?q=${encodeURIComponent(query)}`, {
         signal: controller.signal,
       })
         .then((response) => response.ok ? response.json() : Promise.reject())

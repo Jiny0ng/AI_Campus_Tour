@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { ArrowRight, ChevronLeft, Lightbulb, LocateFixed, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, Lightbulb, LocateFixed, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, Pause, Play, Volume2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/Common";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import type { CampusTourNearbySpot, CampusTourSegmentInfo, CampusTourStop } from "@/types";
 
 type AiTourSheetProps = {
@@ -22,15 +23,20 @@ type AiTourSheetProps = {
   segmentInfo?: CampusTourSegmentInfo | null;
   isSegmentLoading?: boolean;
   hasArrived?: boolean;
+  needsArrivalConfirmation?: boolean;
   remainingDistanceMeters?: number | null;
   onRecenterMap?: () => void;
   canRecenter?: boolean;
+  onListenTip?: (tip: TourTip) => void;
+  onOpenTip?: (tip: TourTip) => void;
+  onListenNearby?: (spot: CampusTourNearbySpot) => void;
 };
 
 type TourTip = CampusTourSegmentInfo["tips"][number];
 
-export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
+export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenTip, onOpenTip, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t } = useAppSettings();
+  const { status: audioStatus, pause, resume } = useAudioGuide();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedTip, setSelectedTip] = useState<TourTip | null>(null);
 
@@ -119,7 +125,9 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
           <div className="min-w-0 flex-1">
             {!isExpanded && (
               <p className="text-[11px] font-extrabold text-primary">
-                {isLastStop ? t("tour.finish") : t("tour.next")}
+                {needsArrivalConfirmation
+                  ? t("tour.confirmArrival")
+                  : isLastStop ? t("tour.finish") : t("tour.next")}
               </p>
             )}
             <h1 className="truncate text-xl font-extrabold text-ink">{displayStop.name}</h1>
@@ -179,7 +187,10 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                       key={`${tipInfo.name}-${idx}`}
                       type="button"
                       aria-haspopup="dialog"
-                      onClick={() => setSelectedTip(tipInfo)}
+                      onClick={() => {
+                        setSelectedTip(tipInfo);
+                        onOpenTip?.(tipInfo);
+                      }}
                       className="flex w-[240px] shrink-0 snap-center flex-col rounded-card border border-primary/20 bg-white p-4 text-left shadow-sm transition active:scale-[0.98]"
                     >
                       <div className="flex items-center gap-2 mb-2">
@@ -236,6 +247,14 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                       >
                         {addingSpotId === spot.id ? t("sheet.adding") : t("sheet.detour")}
                       </Button>
+                      <button
+                        type="button"
+                        aria-label={`${spot.name} ${t("audio.listen")}`}
+                        className="grid size-9 shrink-0 place-items-center rounded-full border border-primary/20 bg-primary-soft text-primary"
+                        onClick={() => onListenNearby?.(spot)}
+                      >
+                        <Volume2 size={16} />
+                      </button>
                     </article>
                   ))}
                 </div>
@@ -317,6 +336,26 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
               <p className="mt-4 whitespace-pre-wrap text-[15px] font-medium leading-7 text-ink/85">
                 {selectedTip.tip}
               </p>
+              <Button
+                type="button"
+                className="mt-5 h-12 w-full"
+                onClick={() => {
+                  const isCurrentTip = audioStatus.request?.id.startsWith("tour-tip:")
+                    && audioStatus.request.text === selectedTip.tip;
+                  if (isCurrentTip && audioStatus.playback === "playing") pause();
+                  else if (isCurrentTip && audioStatus.playback === "paused") resume();
+                  else onListenTip?.(selectedTip);
+                }}
+              >
+                {audioStatus.request?.text === selectedTip.tip && audioStatus.playback === "playing"
+                  ? <Pause size={18} />
+                  : <Play size={18} />}
+                {audioStatus.request?.text === selectedTip.tip && audioStatus.playback === "playing"
+                  ? t("audio.pause")
+                  : audioStatus.request?.text === selectedTip.tip && audioStatus.playback === "paused"
+                    ? t("audio.resume")
+                    : t("audio.listen")}
+              </Button>
             </motion.article>
           </motion.div>
         )}

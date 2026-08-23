@@ -1,0 +1,9 @@
+id,locale,text,enabled,content_version,style
+system:network-unavailable:ko,ko-KR,인터넷 연결이 불안정합니다. 화면의 안내를 확인해 주세요.,true,v1,system
+system:audio-unavailable:ko,ko-KR,음성 안내를 준비하지 못했습니다. 화면의 안내를 확인해 주세요.,true,v1,system
+system:network-unavailable:en,en-US,The internet connection is unstable. Please follow the instructions on screen.,true,v1,system
+system:audio-unavailable:en,en-US,Audio guidance is unavailable. Please follow the instructions on screen.,true,v1,system
+system:network-unavailable:ja,ja-JP,インターネット接続が不安定です。画面の案内をご確認ください。,true,v1,system
+system:audio-unavailable:ja,ja-JP,音声案内を準備できません。画面の案内をご確認ください。,true,v1,system
+system:network-unavailable:zh,cmn-CN,网络连接不稳定，请查看屏幕上的指引。,true,v1,system
+system:audio-unavailable:zh,cmn-CN,无法提供语音指引，请查看屏幕上的指引。,true,v1,system

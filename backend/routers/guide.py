@@ -4,6 +4,7 @@ from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field
 
 from utils.bicycle_routing import get_bicycle_path, path_distance
+from utils.navigation_guides import local_guides
 from utils.routing import get_shortest_path, haversine
 
 
@@ -129,7 +130,7 @@ def local_route(payload: LocalRouteRequest):
 
     return {
         "path": path,
-        "guides": [],
+        "guides": local_guides(path),
         "distanceMeters": distance,
         "durationMilliseconds": round(distance / speed_meters_per_second * 1000),
         "routeStart": start,

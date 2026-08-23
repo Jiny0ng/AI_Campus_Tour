@@ -1,0 +1,11 @@
+{$CAMPUS_SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Permissions-Policy "geolocation=(self)"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Content-Type-Options "nosniff"
+	}
+
+	reverse_proxy {$FRONTEND_UPSTREAM:frontend:3000}
+}

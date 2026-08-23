@@ -7,7 +7,10 @@ import { MobileShell } from "@/components/Layout";
 import { campusCenter } from "@/constants/campus";
 import { APP_ROUTES } from "@/constants/routes";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import { clientDebug, clientDebugError } from "@/lib/clientDebug";
+import { trackedFetch } from "@/lib/networkFetch";
+import { recordTipViewed, recordVisitedPlace } from "@/lib/audioGuide/sessionReport";
 import type {
   CampusTourData,
   CampusTourNearbySpot,
@@ -72,7 +75,7 @@ function loadSegmentInfo(from: CampusTourStop, to: CampusTourStop, language: str
   const pending = segmentRequestCache.get(key);
   if (pending) return pending;
 
-  const request = fetch("/api/tour/segment", {
+  const request = trackedFetch("/api/tour/segment", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -180,10 +183,12 @@ function remainingRouteDistance(
 
 export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const router = useRouter();
-  const { locale, t } = useAppSettings();
+  const { locale, isMuted, t } = useAppSettings();
+  const { speak, prefetch, clearCategory } = useAudioGuide();
   const [tourData, setTourData] = useState(() => addCurrentLocationStart(data));
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [nearbySpots, setNearbySpots] = useState<CampusTourNearbySpot[]>([]);
   const [isNearbyLoading, setIsNearbyLoading] = useState(true);
   const [addingSpotId, setAddingSpotId] = useState<string | null>(null);
@@ -196,6 +201,8 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const startLocationInitializedRef = useRef(false);
   const offRouteWarningArmedRef = useRef(true);
   const lastRouteDistanceLogRef = useRef<number | null>(null);
+  const narratedStopIdsRef = useRef(new Set<string>());
+  const confirmedArrivalStopIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     clientDebug("tour", "mounted", {
@@ -232,6 +239,14 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   }, [nextStop, userLocation]);
 
   const hasArrived = Boolean(nextStop && arrivedStopId === nextStop.id);
+  const needsArrivalConfirmation = Boolean(
+    nextStop
+    && directDistanceToNext !== null
+    && directDistanceToNext <= 10
+    && locationAccuracy !== null
+    && locationAccuracy > 30
+    && !hasArrived,
+  );
   const canAdvance = isLastStop
     ? Boolean(currentStop && arrivedStopId === currentStop.id)
     : hasArrived;
@@ -242,6 +257,55 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     if (!userLocation) return null;
     return distanceToRouteMeters(userLocation, currentSegment);
   }, [currentSegment, userLocation]);
+  const narrationStop = nextStop ?? currentStop;
+  const narrationText = useMemo(() => {
+    if (!narrationStop) return "";
+    return (locale === "ko" ? narrationStop.docentText : "")
+      || segmentInfo?.tips.find((tipInfo) => (
+        tipInfo.name.includes(narrationStop.name)
+        || narrationStop.name.includes(tipInfo.name)
+      ))?.tip
+      || narrationStop.description;
+  }, [locale, narrationStop, segmentInfo?.tips]);
+  const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.docentText);
+
+  useEffect(() => {
+    if (!narrationStop || !narrationText) return;
+    void prefetch({
+      id: `prefetch:tour-stop:${narrationStop.id}:${locale}`,
+      text: narrationText,
+      locale,
+      category: hasReviewedNarration ? "core-docent" : "location-docent",
+      priority: hasReviewedNarration ? 50 : 30,
+      source: hasReviewedNarration
+        ? { kind: "asset", assetId: `core-docent:${narrationStop.id}:${locale}` }
+        : { kind: "tts" },
+      interruptible: true,
+      report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
+    });
+  }, [hasReviewedNarration, isMuted, locale, narrationStop, narrationText, prefetch]);
+
+  useEffect(() => {
+    if (!narrationStop || !narrationText) return;
+    const arrived = nextStop ? hasArrived : canAdvance;
+    const manuallyConfirmed = confirmedArrivalStopIdsRef.current.has(narrationStop.id);
+    if (!arrived || (locationAccuracy !== null && locationAccuracy > 30 && !manuallyConfirmed)) return;
+    const narrationId = `${narrationStop.id}:${locale}`;
+    if (narratedStopIdsRef.current.has(narrationId)) return;
+    if (!isMuted) narratedStopIdsRef.current.add(narrationId);
+    void speak({
+      id: `tour-stop:${narrationId}`,
+      text: narrationText,
+      locale,
+      category: hasReviewedNarration ? "core-docent" : "location-docent",
+      priority: hasReviewedNarration ? 50 : 30,
+      source: hasReviewedNarration
+        ? { kind: "asset", assetId: `core-docent:${narrationStop.id}:${locale}` }
+        : { kind: "tts" },
+      interruptible: true,
+      report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
+    });
+  }, [canAdvance, hasArrived, hasReviewedNarration, isMuted, locale, locationAccuracy, narrationStop, narrationText, nextStop, speak]);
 
   useEffect(() => {
     if (distanceFromRoute === null) return;
@@ -271,10 +335,16 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   }, [currentStop?.id, distanceFromRoute, nextStop?.id]);
 
   useEffect(() => {
-    if (nextStop && directDistanceToNext !== null && directDistanceToNext <= 10) {
+    if (
+      nextStop
+      && directDistanceToNext !== null
+      && directDistanceToNext <= 10
+      && (locationAccuracy === null || locationAccuracy <= 30)
+    ) {
       setArrivedStopId(nextStop.id);
+      recordVisitedPlace(nextStop.id, nextStop.name);
     }
-  }, [directDistanceToNext, nextStop]);
+  }, [directDistanceToNext, locationAccuracy, nextStop]);
 
   useEffect(() => {
     if (!currentStop || !nextStop) {
@@ -333,6 +403,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           lng: position.coords.longitude,
         };
         setUserLocation(nextLocation);
+        setLocationAccuracy(position.coords.accuracy);
         clientDebug("geolocation", "position", {
           ...nextLocation,
           accuracyMeters: Math.round(position.coords.accuracy),
@@ -357,7 +428,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           ),
         }));
 
-        void fetch("/api/tour/start-route", {
+        void trackedFetch("/api/tour/start-route", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -431,7 +502,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     const controller = new AbortController();
     setIsNearbyLoading(true);
 
-    fetch("/api/tour/nearby-spots", {
+    trackedFetch("/api/tour/nearby-spots", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -460,7 +531,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
 
     setAddingSpotId(spot.id);
     try {
-      const response = await fetch("/api/tour/waypoint-route", {
+      const response = await trackedFetch("/api/tour/waypoint-route", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -488,7 +559,11 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
 
         const stops = [...previous.stops];
         stops[currentStopIndex] = { ...currentStop, nextStopId: spot.id };
-        stops.splice(currentStopIndex + 1, 0, result.stop);
+        stops.splice(currentStopIndex + 1, 0, {
+          ...result.stop,
+          description: spot.docentText || spot.description || result.stop.description,
+          docentText: spot.docentText,
+        });
 
         const segmentIndex = previous.routeSegments.findIndex(
           (segment) =>
@@ -513,6 +588,12 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   }
 
   function handleNext() {
+    if (needsArrivalConfirmation && nextStop) {
+      confirmedArrivalStopIdsRef.current.add(nextStop.id);
+      setArrivedStopId(nextStop.id);
+      recordVisitedPlace(nextStop.id, nextStop.name);
+      return;
+    }
     if (isLastStop) {
       router.push(APP_ROUTES.tourSummary);
       return;
@@ -525,6 +606,52 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   function handlePrev() {
     setCurrentStopIndex((index) => Math.max(index - 1, 0));
   }
+
+  function handleListenTip(tip: CampusTourSegmentInfo["tips"][number]) {
+    if (!narrationStop) return;
+    void speak({
+      id: `tour-tip:${narrationStop.id}:${tip.name}:${locale}:${Date.now()}`,
+      text: tip.tip,
+      locale,
+      category: "core-docent",
+      priority: 65,
+      source: { kind: "tts" },
+      interruptible: true,
+      report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
+    });
+  }
+
+  function handleOpenTip(tip: CampusTourSegmentInfo["tips"][number]) {
+    recordTipViewed(
+      `${narrationStop?.id ?? "unknown"}:${tip.name}:${locale}`,
+      tip.tip,
+      narrationStop?.id,
+      narrationStop?.name,
+    );
+  }
+
+  function handleListenNearby(spot: CampusTourNearbySpot) {
+    const text = spot.docentText || spot.description;
+    if (!text) return;
+    const hasReviewedKoreanDocent = Boolean(spot.docentText) && /[가-힣]/.test(text);
+    void speak({
+      id: `tour-nearby:${spot.id}:${locale}:${Date.now()}`,
+      text,
+      locale: hasReviewedKoreanDocent ? "ko" : locale,
+      category: hasReviewedKoreanDocent ? "core-docent" : "location-docent",
+      priority: 65,
+      source: hasReviewedKoreanDocent
+        ? { kind: "asset", assetId: `core-docent:${spot.id}:ko` }
+        : { kind: "tts" },
+      interruptible: true,
+      report: { placeId: spot.id, placeName: spot.name, include: true },
+    });
+  }
+
+  useEffect(() => () => {
+    clearCategory("core-docent");
+    clearCategory("location-docent");
+  }, [clearCategory]);
 
   return (
     <MobileShell className="bg-surface">
@@ -572,9 +699,13 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           isNearbyLoading={isNearbyLoading}
           addingSpotId={addingSpotId}
           onAddWaypoint={handleAddWaypoint}
+          onListenTip={handleListenTip}
+          onOpenTip={handleOpenTip}
+          onListenNearby={handleListenNearby}
           segmentInfo={segmentInfo}
           isSegmentLoading={isSegmentLoading}
           hasArrived={canAdvance}
+          needsArrivalConfirmation={needsArrivalConfirmation}
           remainingDistanceMeters={remainingDistance}
           onRecenterMap={() => setRecenterUserLocationToken((token) => token + 1)}
           canRecenter={Boolean(userLocation)}

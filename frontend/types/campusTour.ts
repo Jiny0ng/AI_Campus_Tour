@@ -12,6 +12,7 @@ export type CampusTourStop = {
   id: string;
   name: string;
   description: string;
+  docentText?: string;
   tags: CampusTourTag[];
   studentTip: string[];
   nextStopId?: string;

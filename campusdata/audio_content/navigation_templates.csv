@@ -1,0 +1,37 @@
+id,locale,text,near_text,enabled,content_version,style
+navigation:straight:ko,ko-KR,계속 직진하세요.,,true,v1,navigation
+navigation:slight-left:ko,ko-KR,{distance}미터 앞에서 왼쪽 방향으로 진행하세요.,잠시 후 왼쪽 방향으로 진행하세요.,true,v1,navigation
+navigation:left:ko,ko-KR,{distance}미터 앞에서 좌회전하세요.,잠시 후 좌회전하세요.,true,v1,navigation
+navigation:sharp-left:ko,ko-KR,{distance}미터 앞에서 크게 좌회전하세요.,잠시 후 크게 좌회전하세요.,true,v1,navigation
+navigation:slight-right:ko,ko-KR,{distance}미터 앞에서 오른쪽 방향으로 진행하세요.,잠시 후 오른쪽 방향으로 진행하세요.,true,v1,navigation
+navigation:right:ko,ko-KR,{distance}미터 앞에서 우회전하세요.,잠시 후 우회전하세요.,true,v1,navigation
+navigation:sharp-right:ko,ko-KR,{distance}미터 앞에서 크게 우회전하세요.,잠시 후 크게 우회전하세요.,true,v1,navigation
+navigation:uturn:ko,ko-KR,{distance}미터 앞에서 유턴하세요.,잠시 후 유턴하세요.,true,v1,navigation
+navigation:arrive:ko,ko-KR,목적지에 도착했습니다.,,true,v1,arrival
+navigation:straight:en,en-US,Continue straight.,,true,v1,navigation
+navigation:slight-left:en,en-US,Keep slightly left in {distance} meters.,Keep slightly left shortly.,true,v1,navigation
+navigation:left:en,en-US,Turn left in {distance} meters.,Turn left shortly.,true,v1,navigation
+navigation:sharp-left:en,en-US,Make a sharp left in {distance} meters.,Make a sharp left shortly.,true,v1,navigation
+navigation:slight-right:en,en-US,Keep slightly right in {distance} meters.,Keep slightly right shortly.,true,v1,navigation
+navigation:right:en,en-US,Turn right in {distance} meters.,Turn right shortly.,true,v1,navigation
+navigation:sharp-right:en,en-US,Make a sharp right in {distance} meters.,Make a sharp right shortly.,true,v1,navigation
+navigation:uturn:en,en-US,Make a U-turn in {distance} meters.,Make a U-turn shortly.,true,v1,navigation
+navigation:arrive:en,en-US,You have arrived at your destination.,,true,v1,arrival
+navigation:straight:ja,ja-JP,そのまま直進してください。,,true,v1,navigation
+navigation:slight-left:ja,ja-JP,{distance}メートル先を左方向へ進んでください。,まもなく左方向へ進んでください。,true,v1,navigation
+navigation:left:ja,ja-JP,{distance}メートル先を左折してください。,まもなく左折してください。,true,v1,navigation
+navigation:sharp-left:ja,ja-JP,{distance}メートル先を大きく左折してください。,まもなく大きく左折してください。,true,v1,navigation
+navigation:slight-right:ja,ja-JP,{distance}メートル先を右方向へ進んでください。,まもなく右方向へ進んでください。,true,v1,navigation
+navigation:right:ja,ja-JP,{distance}メートル先を右折してください。,まもなく右折してください。,true,v1,navigation
+navigation:sharp-right:ja,ja-JP,{distance}メートル先を大きく右折してください。,まもなく大きく右折してください。,true,v1,navigation
+navigation:uturn:ja,ja-JP,{distance}メートル先でUターンしてください。,まもなくUターンしてください。,true,v1,navigation
+navigation:arrive:ja,ja-JP,目的地に到着しました。,,true,v1,arrival
+navigation:straight:zh,cmn-CN,请继续直行。,,true,v1,navigation
+navigation:slight-left:zh,cmn-CN,请在{distance}米后向左前方行驶。,即将向左前方行驶。,true,v1,navigation
+navigation:left:zh,cmn-CN,请在{distance}米后左转。,即将左转。,true,v1,navigation
+navigation:sharp-left:zh,cmn-CN,请在{distance}米后大幅左转。,即将大幅左转。,true,v1,navigation
+navigation:slight-right:zh,cmn-CN,请在{distance}米后向右前方行驶。,即将向右前方行驶。,true,v1,navigation
+navigation:right:zh,cmn-CN,请在{distance}米后右转。,即将右转。,true,v1,navigation
+navigation:sharp-right:zh,cmn-CN,请在{distance}米后大幅右转。,即将大幅右转。,true,v1,navigation
+navigation:uturn:zh,cmn-CN,请在{distance}米后掉头。,即将掉头。,true,v1,navigation
+navigation:arrive:zh,cmn-CN,您已到达目的地。,,true,v1,arrival

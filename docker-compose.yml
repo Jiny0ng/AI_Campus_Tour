@@ -1,14 +1,20 @@
 services:
   # -----------------------------------------------
-  # 1. Nginx 역방향 프록시 (포트 80 노출)
+  # 1. Caddy 역방향 프록시 (운영 HTTPS 자동 발급·갱신)
   # -----------------------------------------------
-  nginx:
-    image: nginx:latest
-    container_name: campustour-nginx
+  caddy:
+    image: caddy:2.10.2-alpine
+    container_name: campustour-caddy
     ports:
-      - "80:80"                # 외부에서는 80 포트로만 접근 가능
+      - "80:80"
+      - "443:443"
+    environment:
+      # 로컬에서는 HTTP를 유지하고, 배포 워크플로가 공개 도메인을 주입하면 HTTPS를 자동 활성화한다.
+      - CAMPUS_SITE_ADDRESS=${CAMPUS_SITE_ADDRESS:-http://localhost}
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     depends_on:
       - frontend
     restart: unless-stopped
@@ -36,7 +42,7 @@ services:
     build: ./backend
     container_name: campustour-backend
     ports:
-      - "8001:8000"
+      - "127.0.0.1:8001:8000"
     volumes:
       - ./backend:/app
       - ./campusdata:/campusdata:ro
@@ -47,6 +53,15 @@ services:
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - NAVER_MAP_CLIENT_ID=${NEXT_PUBLIC_NAVER_MAP_CLIENT_ID}
       - NAVER_MAP_CLIENT_SECRET=${NAVER_MAP_CLIENT_SECRET}
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-}
+      - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID:-}
+      - GOOGLE_CLOUD_REGION=${GOOGLE_CLOUD_REGION:-global}
+      - TTS_BUCKET_NAME=${TTS_BUCKET_NAME:-}
+      - TTS_MODEL=${TTS_MODEL:-gemini-2.5-flash-tts}
+      - TTS_VOICE_NAME=${TTS_VOICE_NAME:-Kore}
+      - TTS_PROMPT_VERSION=${TTS_PROMPT_VERSION:-v1}
+      - TTS_REALTIME_ENABLED=${TTS_REALTIME_ENABLED:-true}
+      - TTS_ALLOWED_ORIGINS=${TTS_ALLOWED_ORIGINS:-}
     depends_on:
       neo4j:
         condition: service_healthy
@@ -95,3 +110,5 @@ services:
 
 volumes:
   neo4j_data:
+  caddy_data:
+  caddy_config:

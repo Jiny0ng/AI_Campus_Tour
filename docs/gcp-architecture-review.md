@@ -2,6 +2,8 @@
 
 작성일: 2026-08-21
 
+> 2026-08-23 구현 상태: 공용 AudioGuide 재생 계층과 GCP TTS/GCS API 코드는 적용되었다. 아래 문서에서 Web Speech API를 “현재 구현”으로 설명하는 부분은 검토 당시 상태이며, 실제 GCP 음성 활성화에는 [`gcp-tts-setup.md`](gcp-tts-setup.md)의 버킷·IAM·사전 asset 생성 작업이 추가로 필요하다.
+
 ## 1. 결론
 
 현재 CampusTour는 **Cloud Run이 아니라 Compute Engine VM**에 배포하도록 구성되어 있다. GitHub Actions가 VM에 SSH로 접속한 뒤, VM 내부에서 Nginx·Next.js·FastAPI·Neo4j를 Docker Compose로 빌드하고 실행한다.

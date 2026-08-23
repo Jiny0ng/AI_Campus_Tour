@@ -6,7 +6,7 @@ from fastapi import FastAPI, Query
 from neo4j import GraphDatabase
 
 from fastapi.middleware.cors import CORSMiddleware
-from routers import directions, guide, tour
+from routers import directions, guide, tour, tts
 from utils.routing import load_graph
 
 # ───────────────────────────────────────────────
@@ -53,6 +53,7 @@ app.include_router(tour.router)
 app.include_router(review.router)
 app.include_router(directions.router)
 app.include_router(guide.router)
+app.include_router(tts.router)
 
 def query_neo4j(query: str, params: dict = None):
     driver = app.state.neo4j_driver

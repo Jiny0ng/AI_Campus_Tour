@@ -21,12 +21,15 @@ jobs:
 
       - name: Deploy to GCP VM via SSH
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GCP_DEPLOY_HOST: ${{ secrets.GCP_VM_HOST }}
         with:
           host: ${{ secrets.GCP_VM_HOST }}
           username: ${{ secrets.GCP_VM_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
           command_timeout: 25m
+          envs: GCP_DEPLOY_HOST
           script: |
             set -Eeuo pipefail
 
@@ -60,6 +63,16 @@ jobs:
             git reset --hard origin/main
             echo "DEPLOY_COMMIT=$(git rev-parse HEAD)"
             echo "DEPLOY_BRANCH=$(git branch --show-current)"
+
+            # SSH 호스트가 IP이면 구매한 도메인 없이도 해당 IP로 해석되는 sslip.io 주소를 사용한다.
+            # 도메인이면 그 값을 그대로 사용한다. Caddy가 공개 인증서를 자동 발급·갱신한다.
+            if [[ "$GCP_DEPLOY_HOST" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+              CAMPUS_DOMAIN="${GCP_DEPLOY_HOST//./-}.sslip.io"
+            else
+              CAMPUS_DOMAIN="$GCP_DEPLOY_HOST"
+            fi
+            export CAMPUS_SITE_ADDRESS="$CAMPUS_DOMAIN"
+            echo "DEPLOY_URL=https://$CAMPUS_DOMAIN"
             docker-compose config --services
             
             # 3. 빌드 성공 후 새 컨테이너로 교체
@@ -87,6 +100,7 @@ jobs:
             # 5. 비밀값을 노출하지 않는 런타임 진단
             echo "::group::Backend runtime diagnostics"
             docker-compose exec -T backend python /app/scripts/runtime_diagnostics.py
+            docker-compose exec -T backend python -c "from urllib.request import urlopen; import json; payload=json.load(urlopen('http://127.0.0.1:8000/health/network', timeout=3)); assert payload['status']=='ok'; print('network_health=ok')"
             echo "::endgroup::"
 
             echo "::group::Frontend runtime diagnostics"
@@ -94,12 +108,54 @@ jobs:
             docker-compose exec -T frontend node -e "fetch('http://127.0.0.1:3000/').then(async response=>{console.log(JSON.stringify({homeStatus:response.status,contentType:response.headers.get('content-type')})); if(!response.ok) process.exit(1)}).catch(error=>{console.error(error.message);process.exit(1)})"
             echo "::endgroup::"
 
-            echo "::group::Reverse proxy smoke test"
-            curl --fail --silent --show-error --max-time 15 http://127.0.0.1/ > /dev/null
-            echo "nginx_home_status=ok"
+            echo "::group::HTTPS reverse proxy smoke test"
+            https_ready=0
+            for attempt in $(seq 1 30); do
+              if curl --fail --silent --show-error --max-time 15 \
+                --resolve "$CAMPUS_DOMAIN:443:127.0.0.1" \
+                "https://$CAMPUS_DOMAIN/" > /dev/null; then
+                https_ready=1
+                break
+              fi
+              echo "Waiting for HTTPS certificate... ($attempt/30)"
+              sleep 5
+            done
+            test "$https_ready" -eq 1
+
+            redirect_status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              -H "Host: $CAMPUS_DOMAIN" http://127.0.0.1/)"
+            test "$redirect_status" = "308"
+            echo "https_home_status=ok"
+            echo "http_redirect_status=$redirect_status"
             echo "::endgroup::"
 
             trap - ERR
             
             # 6. 안 쓰는 더미 이미지 정리 (디스크 용량 확보)
             docker image prune -f
+
+      - name: Verify public HTTPS endpoint
+        env:
+          GCP_DEPLOY_HOST: ${{ secrets.GCP_VM_HOST }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$GCP_DEPLOY_HOST" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+            campus_domain="${GCP_DEPLOY_HOST//./-}.sslip.io"
+          else
+            campus_domain="$GCP_DEPLOY_HOST"
+          fi
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error --max-time 15 "https://$campus_domain/" > /dev/null; then
+              if curl --fail --silent --show-error --max-time 15 "https://$campus_domain/api/health/network" > /dev/null; then
+                echo "Public HTTPS endpoint is ready: https://$campus_domain"
+                exit 0
+              fi
+            fi
+            echo "Waiting for public HTTPS endpoint... ($attempt/30)"
+            sleep 5
+          done
+
+          echo "Public HTTPS verification failed. Confirm that GCP allows inbound TCP port 443."
+          exit 1
