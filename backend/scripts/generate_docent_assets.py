@@ -65,7 +65,9 @@ def synthesize_with_retry(text: str) -> bytes:
 def make_llm(model: str):
     from langchain_google_genai import ChatGoogleGenerativeAI
 
-    return ChatGoogleGenerativeAI(model=model, max_output_tokens=1024)
+    # Gemini 3.x uses part of this budget for reasoning. A 1,024-token cap can
+    # truncate even short structured responses before the JSON object closes.
+    return ChatGoogleGenerativeAI(model=model, max_output_tokens=4096)
 
 
 def main() -> int:
