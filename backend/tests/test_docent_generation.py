@@ -12,6 +12,7 @@ from services.docent_generation import (  # noqa: E402
     DocentSpec,
     deterministic_errors,
     generate_and_validate,
+    review_prompt,
 )
 
 
@@ -56,6 +57,12 @@ def sample_spec() -> DocentSpec:
 
 
 class DocentGenerationTests(unittest.TestCase):
+    def test_review_prompt_allows_supplied_editorial_insights(self):
+        prompt = review_prompt(sample_spec(), "야경을 감상하기 좋습니다.")
+
+        self.assertIn("verified=false", prompt)
+        self.assertIn("제공된 사실 목록에 있다면 허용", prompt)
+
     def test_deterministic_validation_rejects_changed_opening_and_number(self):
         errors = deterministic_errors(
             sample_spec(),

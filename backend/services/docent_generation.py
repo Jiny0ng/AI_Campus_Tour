@@ -137,6 +137,9 @@ def generation_prompt(spec: DocentSpec) -> str:
 def review_prompt(spec: DocentSpec, script: str) -> str:
     return f"""다음 캠퍼스 도슨트 대본을 제공된 사실만으로 엄격히 검수하세요.
 단순한 연결 표현은 허용하지만 제공되지 않은 구체적인 사실·수치·인물·시설은 허용하지 않습니다.
+`verified=false`는 학생 경험·추천·감상처럼 외부 출처 검증 대상이 아닌 편집
+인사이트라는 뜻입니다. 제공된 사실 목록에 있다면 허용하며, 이 값만을 이유로
+unsupported claim으로 판정하지 마세요.
 
 장소: {spec.label}
 대본: {script}
