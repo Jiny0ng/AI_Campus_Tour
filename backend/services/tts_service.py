@@ -83,7 +83,12 @@ def _tts_client():
     )
 
 
-def _synthesize_with_google(text: str, locale: str, style: str) -> bytes:
+def _synthesize_with_google(
+    text: str,
+    locale: str,
+    style: str,
+    timeout_seconds: float = 12.0,
+) -> bytes:
     try:
         from google.cloud import texttospeech
     except ImportError as error:
@@ -101,7 +106,7 @@ def _synthesize_with_google(text: str, locale: str, style: str) -> bytes:
             audio_config=texttospeech.AudioConfig(
                 audio_encoding=texttospeech.AudioEncoding.MP3,
             ),
-            timeout=12.0,
+            timeout=timeout_seconds,
         )
     except Exception as error:
         raise TtsUnavailable("Google Cloud TTS synthesis failed") from error
@@ -158,4 +163,3 @@ def synthesize(text: str, locale: str, style: str, content_version: str) -> Synt
             cache_status = "BYPASS"
 
     return SynthesisResult(content, audio_id, cache_status, synthesis_ms, storage_read_ms)
-

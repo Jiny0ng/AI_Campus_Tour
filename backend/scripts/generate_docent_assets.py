@@ -18,6 +18,7 @@ REPOSITORY_DIR = BACKEND_DIR.parent
 DATA_DIR = REPOSITORY_DIR / "campusdata"
 CONTENT_DIR = DATA_DIR / "audio_content"
 REGISTRY_PATH = CONTENT_DIR / "generated_docents.json"
+PENDING_REGISTRY_PATH = CONTENT_DIR / "generated_docents.pending.json"
 MANIFEST_PATH = CONTENT_DIR / "audio_manifest.json"
 sys.path.insert(0, str(BACKEND_DIR))
 
@@ -54,7 +55,12 @@ def synthesize_with_retry(text: str) -> bytes:
     delays = (2, 5)
     for attempt in range(len(delays) + 1):
         try:
-            return _synthesize_with_google(text, "ko-KR", "core-docent")
+            return _synthesize_with_google(
+                text,
+                "ko-KR",
+                "core-docent",
+                timeout_seconds=60.0,
+            )
         except TtsUnavailable:
             if attempt >= len(delays):
                 raise
@@ -83,14 +89,17 @@ def main() -> int:
     prompt_version = os.getenv("DOCENT_SCRIPT_PROMPT_VERSION", "v1")
     specs = load_docent_specs(DATA_DIR)
     registry = load_json(REGISTRY_PATH, {"version": 1, "scripts": {}})
+    pending_registry = load_json(PENDING_REGISTRY_PATH, {"version": 1, "scripts": {}})
     manifest = load_json(MANIFEST_PATH, {"version": 1, "assets": {}})
     existing_scripts = registry.setdefault("scripts", {})
+    pending_scripts = pending_registry.get("scripts", {})
 
     stale_specs = []
     reusable = {}
     for spec in specs:
         fingerprint = content_fingerprint(spec, model, prompt_version)
         existing = existing_scripts.get(spec.entity_id)
+        pending = pending_scripts.get(spec.entity_id)
         if (
             isinstance(existing, dict)
             and existing.get("status") == "active"
@@ -98,6 +107,12 @@ def main() -> int:
             and isinstance(existing.get("text"), str)
         ):
             reusable[spec.entity_id] = existing
+        elif (
+            isinstance(pending, dict)
+            and pending.get("contentFingerprint") == fingerprint
+            and isinstance(pending.get("text"), str)
+        ):
+            reusable[spec.entity_id] = {**pending, "status": "active"}
         else:
             stale_specs.append((spec, fingerprint))
 
@@ -154,6 +169,11 @@ def main() -> int:
                 "usedFacts": len(used_fact_ids),
             }, ensure_ascii=False), flush=True)
 
+    # Persist validated scripts before the slower TTS phase. This file is not
+    # served by the application; it only lets a failed batch resume without
+    # paying for and varying the same Gemini generations again.
+    atomic_save(PENDING_REGISTRY_PATH, {"version": 1, "scripts": candidates})
+
     next_manifest = copy.deepcopy(manifest)
     next_registry = {"version": 1, "scripts": copy.deepcopy(existing_scripts)}
     next_registry["scripts"].update(candidates)
@@ -196,6 +216,7 @@ def main() -> int:
     # object is confirmed present in storage.
     atomic_save(REGISTRY_PATH, next_registry)
     atomic_save(MANIFEST_PATH, next_manifest)
+    PENDING_REGISTRY_PATH.unlink(missing_ok=True)
     print(json.dumps({
         "activatedDocents": len(specs),
         "uploadedAudio": uploaded,
