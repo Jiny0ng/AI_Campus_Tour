@@ -85,7 +85,7 @@ services:
       - TTS_MODEL=${TTS_MODEL:-gemini-2.5-flash-tts}
       - TTS_VOICE_NAME=${TTS_VOICE_NAME:-Kore}
       - TTS_PROMPT_VERSION=${TTS_PROMPT_VERSION:-v1}
-      - DOCENT_SCRIPT_MODEL=${DOCENT_SCRIPT_MODEL:-gemini-2.5-flash}
+      - DOCENT_SCRIPT_MODEL=${DOCENT_SCRIPT_MODEL:-gemini-3.6-flash}
       - DOCENT_SCRIPT_PROMPT_VERSION=${DOCENT_SCRIPT_PROMPT_VERSION:-v1}
       - AUDIO_SYSTEM_PUBLIC_DIR=/frontend/audio/system
     profiles: ["audio"]
