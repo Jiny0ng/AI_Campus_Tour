@@ -51,20 +51,75 @@ def atomic_save(path: Path, payload: dict) -> None:
     temporary_path.replace(path)
 
 
-def synthesize_with_retry(text: str) -> bytes:
+def exception_details(error: BaseException) -> str:
+    details = []
+    current: BaseException | None = error
+    while current is not None:
+        message = str(current).strip()
+        details.append(
+            f"{type(current).__name__}: {message}"
+            if message
+            else type(current).__name__
+        )
+        current = current.__cause__
+    return " <- ".join(details)
+
+
+def synthesize_with_retry(
+    text: str,
+    *,
+    entity_id: str,
+    position: int,
+    total: int,
+) -> bytes:
     delays = (2, 5)
+    timeout_seconds = float(os.getenv("TTS_BATCH_TIMEOUT_SECONDS", "60"))
     for attempt in range(len(delays) + 1):
+        attempt_started = time.monotonic()
+        print(json.dumps({
+            "ttsStarted": entity_id,
+            "progress": f"{position}/{total}",
+            "attempt": attempt + 1,
+            "maxAttempts": len(delays) + 1,
+            "timeoutSeconds": timeout_seconds,
+            "characters": len(text),
+        }, ensure_ascii=False), flush=True)
         try:
-            return _synthesize_with_google(
+            content = _synthesize_with_google(
                 text,
                 "ko-KR",
                 "core-docent",
-                timeout_seconds=60.0,
+                timeout_seconds=timeout_seconds,
             )
-        except TtsUnavailable:
+            print(json.dumps({
+                "ttsSynthesized": entity_id,
+                "progress": f"{position}/{total}",
+                "attempt": attempt + 1,
+                "elapsedSeconds": round(time.monotonic() - attempt_started, 2),
+                "audioBytes": len(content),
+            }, ensure_ascii=False), flush=True)
+            return content
+        except TtsUnavailable as error:
+            elapsed = round(time.monotonic() - attempt_started, 2)
             if attempt >= len(delays):
+                print(json.dumps({
+                    "ttsFailed": entity_id,
+                    "progress": f"{position}/{total}",
+                    "attempt": attempt + 1,
+                    "elapsedSeconds": elapsed,
+                    "error": exception_details(error),
+                }, ensure_ascii=False), file=sys.stderr, flush=True)
                 raise
-            time.sleep(delays[attempt])
+            delay = delays[attempt]
+            print(json.dumps({
+                "ttsRetrying": entity_id,
+                "progress": f"{position}/{total}",
+                "attempt": attempt + 1,
+                "elapsedSeconds": elapsed,
+                "retryInSeconds": delay,
+                "error": exception_details(error),
+            }, ensure_ascii=False), file=sys.stderr, flush=True)
+            time.sleep(delay)
     raise AssertionError("unreachable")
 
 
@@ -179,15 +234,29 @@ def main() -> int:
     next_registry["scripts"].update(candidates)
     uploaded = 0
     reused_audio = 0
-    for spec in specs:
+    total_specs = len(specs)
+    for position, spec in enumerate(specs, start=1):
         script = candidates[spec.entity_id]
         text = script["text"]
         content_version = script["contentVersion"]
         audio_id = audio_id_for(text, "ko-KR", "core-docent", content_version)
         object_name = object_name_for(audio_id, "ko-KR", "core-docent")
+        print(json.dumps({
+            "ttsCheckingStorage": spec.entity_id,
+            "progress": f"{position}/{total_specs}",
+            "objectName": object_name,
+        }, ensure_ascii=False), flush=True)
         stored = read_object(object_name)
         if stored is None:
-            content = synthesize_with_retry(text)
+            try:
+                content = synthesize_with_retry(
+                    text,
+                    entity_id=spec.entity_id,
+                    position=position,
+                    total=total_specs,
+                )
+            except TtsUnavailable:
+                return 1
             write_object(
                 object_name,
                 content,
@@ -202,8 +271,19 @@ def main() -> int:
                 },
             )
             uploaded += 1
+            print(json.dumps({
+                "ttsUploaded": spec.entity_id,
+                "progress": f"{position}/{total_specs}",
+                "objectName": object_name,
+                "audioBytes": len(content),
+            }, ensure_ascii=False), flush=True)
         else:
             reused_audio += 1
+            print(json.dumps({
+                "ttsReused": spec.entity_id,
+                "progress": f"{position}/{total_specs}",
+                "objectName": object_name,
+            }, ensure_ascii=False), flush=True)
         next_manifest["assets"][f"core-docent:{spec.entity_id}:ko"] = {
             "audioId": audio_id,
             "objectName": object_name,
