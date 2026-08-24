@@ -41,10 +41,11 @@ def read_csv(filename: str) -> list[dict[str, str]]:
         "tour_route.csv": "tour_stop",
         "nodes_floor.csv": "floor",
         "nodes_room.csv": "room",
+        "nodes_facility.csv": "facility",
     }
     if filename in canonical_types:
         canonical_filename = (
-            CANONICAL_INTERIORS if filename in {"nodes_floor.csv", "nodes_room.csv"}
+            CANONICAL_INTERIORS if filename in {"nodes_floor.csv", "nodes_room.csv", "nodes_facility.csv"}
             else CANONICAL_PLACES
         )
         canonical_path = DATA_DIR / canonical_filename
@@ -148,6 +149,7 @@ def create_indexes(driver) -> None:
         "CREATE INDEX store_name IF NOT EXISTS FOR (n:Store) ON (n.name)",
         "CREATE INDEX floor_building IF NOT EXISTS FOR (n:Floor) ON (n.building_name)",
         "CREATE INDEX room_building IF NOT EXISTS FOR (n:Room) ON (n.building_name)",
+        "CREATE CONSTRAINT interior_facility_id IF NOT EXISTS FOR (n:Facility) REQUIRE n.facility_id IS UNIQUE",
     )
     for query in queries:
         run(driver, query)
@@ -371,6 +373,86 @@ def load_rooms(driver) -> int:
     return len(rows)
 
 
+def load_facilities(driver) -> int:
+    rows = read_csv("nodes_facility.csv")
+    floor_rows = read_csv("nodes_floor.csv")
+    by_name, by_code = building_name_lookup()
+    valid_floors = {
+        (canonical_name, row["floor"])
+        for row in floor_rows
+        if (canonical_name := canonical_building_name(row, by_name, by_code))
+    }
+    batch = []
+    for row in rows:
+        canonical_name = canonical_building_name(row, by_name, by_code)
+        if canonical_name and (canonical_name, row["floor"]) in valid_floors:
+            batch.append({
+                "facility_id": row["id"],
+                "building_name": canonical_name,
+                "building_code": row.get("building_code", "") or None,
+                "floor": row["floor"],
+                "name": row["name"],
+                "type": row.get("category", ""),
+                "features": row.get("features", ""),
+                "note": row.get("note", ""),
+            })
+    if len(batch) != len(rows):
+        raise ValueError(
+            f"Facilities need canonical building/floor mappings: {len(rows) - len(batch)} missing"
+        )
+    run(
+        driver,
+        """
+        MATCH (facility:Facility {source: 'integrated_facilities.csv'})
+        WHERE NOT facility.facility_id IN $facility_ids
+        DETACH DELETE facility
+        """,
+        facility_ids=[row["facility_id"] for row in batch],
+    )
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (facility:Facility {facility_id: row.facility_id})
+        SET facility.name = row.name,
+            facility.type = row.type,
+            facility.features = row.features,
+            facility.note = row.note,
+            facility.building_name = row.building_name,
+            facility.building_code = row.building_code,
+            facility.floor = row.floor,
+            facility.source = 'integrated_facilities.csv'
+        WITH row, facility
+        MATCH (floor:Floor {building_name: row.building_name, floor: row.floor})
+        MERGE (floor)-[:HAS_FACILITY]->(facility)
+        WITH row, facility
+        MATCH (building:Building {name: row.building_name})
+        MERGE (facility)-[:LOCATED_IN]->(building)
+        """,
+        batch=batch,
+    )
+    run(
+        driver,
+        """
+        MATCH (building:Building)
+        OPTIONAL MATCH (building)<-[:LOCATED_IN]-(facility:Facility {source: 'integrated_facilities.csv'})
+        WITH building, count(facility) AS facility_count,
+             [value IN collect(DISTINCT facility.name) WHERE value IS NOT NULL] AS facility_names,
+             [value IN collect(DISTINCT facility.type) WHERE value IS NOT NULL] AS facility_types,
+             [value IN collect(DISTINCT facility.floor) WHERE value IS NOT NULL] AS facility_floors
+        SET building.facility_count = facility_count,
+            building.facility_names = facility_names,
+            building.facility_types = facility_types,
+            building.facility_floors = facility_floors,
+            building.facility_data_source = CASE
+                WHEN facility_count > 0 THEN 'integrated_facilities.csv'
+                ELSE null
+            END
+        """,
+    )
+    return len(batch)
+
+
 def load_stores(driver) -> int:
     rows = read_csv("nodes_store.csv")
     batch = [
@@ -515,6 +597,12 @@ def verify(driver) -> None:
         dangling_rooms = session.run(
             "MATCH (room:Room {source: 'campus_interiors.csv'}) WHERE NOT (:Floor)-[:HAS_ROOM]->(room) RETURN count(room) AS count"
         ).single()["count"]
+        dangling_facilities = session.run(
+            "MATCH (facility:Facility {source: 'integrated_facilities.csv'}) "
+            "WHERE NOT (:Floor)-[:HAS_FACILITY]->(facility) "
+            "OR NOT (facility)-[:LOCATED_IN]->(:Building) "
+            "RETURN count(facility) AS count"
+        ).single()["count"]
         unlinked_stores = session.run(
             "MATCH (store:Store {source: 'campus_places.csv'}) WHERE NOT (:Building)-[:HAS_STORE]->(store) RETURN count(store) AS count"
         ).single()["count"]
@@ -527,13 +615,14 @@ def verify(driver) -> None:
     result.update({
         "dangling_floors": dangling_floors,
         "dangling_rooms": dangling_rooms,
+        "dangling_facilities": dangling_facilities,
         "unlinked_stores": unlinked_stores,
         "ambiguous_stores": ambiguous_stores,
     })
     print(f"Verification: {result}")
     if result.get("tour_stops") != 12 or result.get("tour_stops_with_coordinates") != 12:
         raise RuntimeError("All 12 tour stops must have coordinates")
-    if dangling_floors or dangling_rooms:
+    if dangling_floors or dangling_rooms or dangling_facilities:
         raise RuntimeError("CSV relationships contain dangling nodes")
     if unlinked_stores or ambiguous_stores:
         raise RuntimeError("Every CSV store must be linked to exactly one building")
@@ -550,6 +639,7 @@ def load_all(driver, reset: bool) -> None:
         ("buildings", load_buildings),
         ("floors", load_floors),
         ("rooms", load_rooms),
+        ("facilities", load_facilities),
         ("stores", load_stores),
         ("docent spots", load_docent_spots),
         ("tour stops", load_tour_stops),

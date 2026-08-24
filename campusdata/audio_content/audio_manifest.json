@@ -1,4 +1,1609 @@
 {
   "version": 1,
-  "assets": {}
+  "assets": {
+    "filler:ko:1": {
+      "audioId": "3c9f355fc02782c6547fa3a9db82371954739469558b8a389aa8a37c160baffa",
+      "objectName": "assets/filler/ko-KR/Kore/3c9f355fc02782c6547fa3a9db82371954739469558b8a389aa8a37c160baffa.mp3",
+      "locale": "ko-KR",
+      "style": "filler",
+      "contentVersion": "v1"
+    },
+    "filler:en:1": {
+      "audioId": "3623743c8a229c432c3109cb0105aca4091969f47c5dd64a8ca970cb4ec43e9c",
+      "objectName": "assets/filler/en-US/Kore/3623743c8a229c432c3109cb0105aca4091969f47c5dd64a8ca970cb4ec43e9c.mp3",
+      "locale": "en-US",
+      "style": "filler",
+      "contentVersion": "v1"
+    },
+    "filler:ja:1": {
+      "audioId": "42bccc7e01b9d6b463cd4333c21997f676af2a4d865f24ed2e3c623f6bbf2e2b",
+      "objectName": "assets/filler/ja-JP/Kore/42bccc7e01b9d6b463cd4333c21997f676af2a4d865f24ed2e3c623f6bbf2e2b.mp3",
+      "locale": "ja-JP",
+      "style": "filler",
+      "contentVersion": "v1"
+    },
+    "filler:zh:1": {
+      "audioId": "83695f5f551b706a0bf8d20dd2eb21e137144ac7bd937e835048782976316b97",
+      "objectName": "assets/filler/cmn-CN/Kore/83695f5f551b706a0bf8d20dd2eb21e137144ac7bd937e835048782976316b97.mp3",
+      "locale": "cmn-CN",
+      "style": "filler",
+      "contentVersion": "v1"
+    },
+    "system:network-unavailable:ko": {
+      "audioId": "e4b3f2fb2eecc136a52160d945b90c7d5e40357068108f3135dfbf4ee9a5746a",
+      "objectName": "assets/system/ko-KR/Kore/e4b3f2fb2eecc136a52160d945b90c7d5e40357068108f3135dfbf4ee9a5746a.mp3",
+      "locale": "ko-KR",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/network-unavailable-ko.mp3"
+    },
+    "system:audio-unavailable:ko": {
+      "audioId": "9d38f3db9fd454efdba59dc8aa2c9fe6280aa6a53dcf5a36dd9baa4771bfdb86",
+      "objectName": "assets/system/ko-KR/Kore/9d38f3db9fd454efdba59dc8aa2c9fe6280aa6a53dcf5a36dd9baa4771bfdb86.mp3",
+      "locale": "ko-KR",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/audio-unavailable-ko.mp3"
+    },
+    "system:network-unavailable:en": {
+      "audioId": "897b810e32ea01883d104a62e52d0f07b72b8bb4401d1253b2af96f70c90661d",
+      "objectName": "assets/system/en-US/Kore/897b810e32ea01883d104a62e52d0f07b72b8bb4401d1253b2af96f70c90661d.mp3",
+      "locale": "en-US",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/network-unavailable-en.mp3"
+    },
+    "system:audio-unavailable:en": {
+      "audioId": "50afc9d456214e66e0cc54e2031c1075a4db72a198c2c5ff3fe9bf9941223c1d",
+      "objectName": "assets/system/en-US/Kore/50afc9d456214e66e0cc54e2031c1075a4db72a198c2c5ff3fe9bf9941223c1d.mp3",
+      "locale": "en-US",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/audio-unavailable-en.mp3"
+    },
+    "system:network-unavailable:ja": {
+      "audioId": "8e2c97f4a839d95ce62aac4064c2b67cb3b1ea0a870ae2afce94a47a32fd71f7",
+      "objectName": "assets/system/ja-JP/Kore/8e2c97f4a839d95ce62aac4064c2b67cb3b1ea0a870ae2afce94a47a32fd71f7.mp3",
+      "locale": "ja-JP",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/network-unavailable-ja.mp3"
+    },
+    "system:audio-unavailable:ja": {
+      "audioId": "a15a24b2113d0d85d7474551497262f6f8cb4f386bcd77be5d6059fd85a1ad81",
+      "objectName": "assets/system/ja-JP/Kore/a15a24b2113d0d85d7474551497262f6f8cb4f386bcd77be5d6059fd85a1ad81.mp3",
+      "locale": "ja-JP",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/audio-unavailable-ja.mp3"
+    },
+    "system:network-unavailable:zh": {
+      "audioId": "212f06a66b7c97ee25a4049802d04492f74b1422a3090034604d4e23da4f451f",
+      "objectName": "assets/system/cmn-CN/Kore/212f06a66b7c97ee25a4049802d04492f74b1422a3090034604d4e23da4f451f.mp3",
+      "locale": "cmn-CN",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/network-unavailable-zh.mp3"
+    },
+    "system:audio-unavailable:zh": {
+      "audioId": "bb3b2e91c05209304857645ecfcc73474426844bcb593168ec2a1c3cf3c5012a",
+      "objectName": "assets/system/cmn-CN/Kore/bb3b2e91c05209304857645ecfcc73474426844bcb593168ec2a1c3cf3c5012a.mp3",
+      "locale": "cmn-CN",
+      "style": "system",
+      "contentVersion": "v1",
+      "localPath": "audio/system/audio-unavailable-zh.mp3"
+    },
+    "navigation:straight:ko": {
+      "audioId": "4faef43198572eb8999f1b5e64e639e2bae018ccb076e3102f7bfdf7941ba7b8",
+      "objectName": "assets/navigation/ko-KR/Kore/4faef43198572eb8999f1b5e64e639e2bae018ccb076e3102f7bfdf7941ba7b8.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ko:30": {
+      "audioId": "69248dfa63ebe61a844b69367db9bf7d25599012f243627c4eee2a94dd908ab2",
+      "objectName": "assets/navigation/ko-KR/Kore/69248dfa63ebe61a844b69367db9bf7d25599012f243627c4eee2a94dd908ab2.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ko:50": {
+      "audioId": "da89b93abf815742044ace7011b7cf3b6d2215379a8b06780dd56a319b405a64",
+      "objectName": "assets/navigation/ko-KR/Kore/da89b93abf815742044ace7011b7cf3b6d2215379a8b06780dd56a319b405a64.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ko:100": {
+      "audioId": "f1add114484ce91eaaed66707dc878f08874be92f611b478f70b29cc8b784856",
+      "objectName": "assets/navigation/ko-KR/Kore/f1add114484ce91eaaed66707dc878f08874be92f611b478f70b29cc8b784856.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ko:200": {
+      "audioId": "1e15baba0a608a20b9577837bef2219b1ad3bcd1fd0de810f72554ef00d6b434",
+      "objectName": "assets/navigation/ko-KR/Kore/1e15baba0a608a20b9577837bef2219b1ad3bcd1fd0de810f72554ef00d6b434.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ko:300": {
+      "audioId": "e5ad2e8a8dce4c99fd2dc469ab72d7c841172e37c5d6e66150c56a5e5af032fe",
+      "objectName": "assets/navigation/ko-KR/Kore/e5ad2e8a8dce4c99fd2dc469ab72d7c841172e37c5d6e66150c56a5e5af032fe.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ko:500": {
+      "audioId": "367bc6dd16a90c9e9111a26fbea8920411ce56cf4b73c6039754767da3ef65de",
+      "objectName": "assets/navigation/ko-KR/Kore/367bc6dd16a90c9e9111a26fbea8920411ce56cf4b73c6039754767da3ef65de.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ko": {
+      "audioId": "859e157213e9159cb8266c730b701d62d955896918f8ad096f1b6af8019ee244",
+      "objectName": "assets/navigation/ko-KR/Kore/859e157213e9159cb8266c730b701d62d955896918f8ad096f1b6af8019ee244.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ko:30": {
+      "audioId": "f42e8d29c1a75a6264a20ef6b38e113ce127ca3021fa51f3234aaadc656d0b9e",
+      "objectName": "assets/navigation/ko-KR/Kore/f42e8d29c1a75a6264a20ef6b38e113ce127ca3021fa51f3234aaadc656d0b9e.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ko:50": {
+      "audioId": "1d46e04ed47caf1412f8d1b5ef7dc1b8442f4ae19c8a5a5f127efad43c09a1bb",
+      "objectName": "assets/navigation/ko-KR/Kore/1d46e04ed47caf1412f8d1b5ef7dc1b8442f4ae19c8a5a5f127efad43c09a1bb.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ko:100": {
+      "audioId": "b2d8917a80caecdcf42105dd2953830790372ab201603fd627bbb36a579101d9",
+      "objectName": "assets/navigation/ko-KR/Kore/b2d8917a80caecdcf42105dd2953830790372ab201603fd627bbb36a579101d9.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ko:200": {
+      "audioId": "36b44bf7af883b1ebf159bf834cde93b10d4b411110d72e9d37348052268d9f8",
+      "objectName": "assets/navigation/ko-KR/Kore/36b44bf7af883b1ebf159bf834cde93b10d4b411110d72e9d37348052268d9f8.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ko:300": {
+      "audioId": "4b207d4d92c3b853d9f903cc2842c694c4629577250e4fef2a8ade2ee3782497",
+      "objectName": "assets/navigation/ko-KR/Kore/4b207d4d92c3b853d9f903cc2842c694c4629577250e4fef2a8ade2ee3782497.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ko:500": {
+      "audioId": "a402a40d049819fad21e1cc54ff04e31d712aa79b6f27b783f7dfb12543241d7",
+      "objectName": "assets/navigation/ko-KR/Kore/a402a40d049819fad21e1cc54ff04e31d712aa79b6f27b783f7dfb12543241d7.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ko": {
+      "audioId": "2f5987c84a3c4a94845c7df689f6d772932ff623640629f8dbfb863f15c2f811",
+      "objectName": "assets/navigation/ko-KR/Kore/2f5987c84a3c4a94845c7df689f6d772932ff623640629f8dbfb863f15c2f811.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ko:30": {
+      "audioId": "2f50d26f64664c5aa9120a0458e47c1b4e82300b7b0bfbc1d915c78473a78fb1",
+      "objectName": "assets/navigation/ko-KR/Kore/2f50d26f64664c5aa9120a0458e47c1b4e82300b7b0bfbc1d915c78473a78fb1.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ko:50": {
+      "audioId": "27e358487ce4fd480c83f036ddc57634a4e8fece4bd00e5efd7b754253879695",
+      "objectName": "assets/navigation/ko-KR/Kore/27e358487ce4fd480c83f036ddc57634a4e8fece4bd00e5efd7b754253879695.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ko:100": {
+      "audioId": "d65e209f436e13235f85d5302fbfe320df8092bca12665db3265455302f3aed7",
+      "objectName": "assets/navigation/ko-KR/Kore/d65e209f436e13235f85d5302fbfe320df8092bca12665db3265455302f3aed7.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ko:200": {
+      "audioId": "c3c675272767f04628c4dd180f2838cb185bef0187c5de0ed2ab5f6b0767f7c0",
+      "objectName": "assets/navigation/ko-KR/Kore/c3c675272767f04628c4dd180f2838cb185bef0187c5de0ed2ab5f6b0767f7c0.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ko:300": {
+      "audioId": "001801d8374e82c9517ba6f9d17e430792947c5ce484ee0e008dbc981dc9d476",
+      "objectName": "assets/navigation/ko-KR/Kore/001801d8374e82c9517ba6f9d17e430792947c5ce484ee0e008dbc981dc9d476.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ko:500": {
+      "audioId": "d87e567ddc25c15a61648c9b92648102e2266aa33719cbc66914c444c0e4812f",
+      "objectName": "assets/navigation/ko-KR/Kore/d87e567ddc25c15a61648c9b92648102e2266aa33719cbc66914c444c0e4812f.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ko": {
+      "audioId": "e9c9fbd8a29517df0369e4a9103dd7d1e9278a274194f030105c616e8582ccd9",
+      "objectName": "assets/navigation/ko-KR/Kore/e9c9fbd8a29517df0369e4a9103dd7d1e9278a274194f030105c616e8582ccd9.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ko:30": {
+      "audioId": "f0888568b62102a75a4c39c5e4259f912634edb07c90562ce60fe1e4a1b51cfc",
+      "objectName": "assets/navigation/ko-KR/Kore/f0888568b62102a75a4c39c5e4259f912634edb07c90562ce60fe1e4a1b51cfc.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ko:50": {
+      "audioId": "febcba1530817563b3d0757c93bdbf6bb69b5bba42c847dde375873fe5d01cba",
+      "objectName": "assets/navigation/ko-KR/Kore/febcba1530817563b3d0757c93bdbf6bb69b5bba42c847dde375873fe5d01cba.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ko:100": {
+      "audioId": "06c72e8814ec54a8cd481f5fc7ed7dfe3667754da680362de9cb93763c8decb6",
+      "objectName": "assets/navigation/ko-KR/Kore/06c72e8814ec54a8cd481f5fc7ed7dfe3667754da680362de9cb93763c8decb6.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ko:200": {
+      "audioId": "b05d27acdaec81a2154dd10a608ff2bf62071645f1f9e69edb1fdf5f2e4f93c3",
+      "objectName": "assets/navigation/ko-KR/Kore/b05d27acdaec81a2154dd10a608ff2bf62071645f1f9e69edb1fdf5f2e4f93c3.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ko:300": {
+      "audioId": "60513b2d3452c2f1cc87c25cf2d68650bc1c7d61ff2e40b11a31932b2b5c2b77",
+      "objectName": "assets/navigation/ko-KR/Kore/60513b2d3452c2f1cc87c25cf2d68650bc1c7d61ff2e40b11a31932b2b5c2b77.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ko:500": {
+      "audioId": "c37de13e4957f76b0432d9e5f7579d958861b7dae5020fc02b33628ef03d0a4a",
+      "objectName": "assets/navigation/ko-KR/Kore/c37de13e4957f76b0432d9e5f7579d958861b7dae5020fc02b33628ef03d0a4a.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ko": {
+      "audioId": "6dbb8fd914839a4811abfd43cb4162d2d430f9485d0e2a44014af688da780893",
+      "objectName": "assets/navigation/ko-KR/Kore/6dbb8fd914839a4811abfd43cb4162d2d430f9485d0e2a44014af688da780893.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ko:30": {
+      "audioId": "a1aed12a1b066b36d5044b6f30707e873d6e30cfe76d87a8374c8efbbd76cfdc",
+      "objectName": "assets/navigation/ko-KR/Kore/a1aed12a1b066b36d5044b6f30707e873d6e30cfe76d87a8374c8efbbd76cfdc.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ko:50": {
+      "audioId": "7a9c252a4d9d374c8f1cf133ae70c16ff89578d099ede6bb37841d1a08ed9d92",
+      "objectName": "assets/navigation/ko-KR/Kore/7a9c252a4d9d374c8f1cf133ae70c16ff89578d099ede6bb37841d1a08ed9d92.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ko:100": {
+      "audioId": "c90b484fe7ee4d0acb6e71acb19aeb7106b70f778cd21f6f1431efecd80b3f9a",
+      "objectName": "assets/navigation/ko-KR/Kore/c90b484fe7ee4d0acb6e71acb19aeb7106b70f778cd21f6f1431efecd80b3f9a.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ko:200": {
+      "audioId": "c6097abde52b98d8587e4d95e55801222a66a026576e67d27dc437b18dac18e6",
+      "objectName": "assets/navigation/ko-KR/Kore/c6097abde52b98d8587e4d95e55801222a66a026576e67d27dc437b18dac18e6.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ko:300": {
+      "audioId": "b50efd676d482a1c5940a018b175e8dbfdcfc4f11b624f9310b0c4750f8fe895",
+      "objectName": "assets/navigation/ko-KR/Kore/b50efd676d482a1c5940a018b175e8dbfdcfc4f11b624f9310b0c4750f8fe895.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ko:500": {
+      "audioId": "5e859ec43e52bea13eacb545cff834c74b45d3e033d2775551afac13211c00ff",
+      "objectName": "assets/navigation/ko-KR/Kore/5e859ec43e52bea13eacb545cff834c74b45d3e033d2775551afac13211c00ff.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ko": {
+      "audioId": "310cce3f5bb753ed7d44999173047a3b492a5fe0ec992c7d5172aa9a8f69422f",
+      "objectName": "assets/navigation/ko-KR/Kore/310cce3f5bb753ed7d44999173047a3b492a5fe0ec992c7d5172aa9a8f69422f.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ko:30": {
+      "audioId": "b4fb9c8784002bb653f3dc9088055c3be27da2095abe937d3258e6434d256fbb",
+      "objectName": "assets/navigation/ko-KR/Kore/b4fb9c8784002bb653f3dc9088055c3be27da2095abe937d3258e6434d256fbb.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ko:50": {
+      "audioId": "e6004dbbd1d36c25f07025dc462b7f559814575ea0344e497026b5a2435b924b",
+      "objectName": "assets/navigation/ko-KR/Kore/e6004dbbd1d36c25f07025dc462b7f559814575ea0344e497026b5a2435b924b.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ko:100": {
+      "audioId": "4327a27a5a4e52d7d7db7fe8879844b48091a80ad39c82aa9666434c20ef8d41",
+      "objectName": "assets/navigation/ko-KR/Kore/4327a27a5a4e52d7d7db7fe8879844b48091a80ad39c82aa9666434c20ef8d41.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ko:200": {
+      "audioId": "af6df19677e73c00410e94bb7c2c0f0515ed7acd5c06c3f2258ff5bf3a719f82",
+      "objectName": "assets/navigation/ko-KR/Kore/af6df19677e73c00410e94bb7c2c0f0515ed7acd5c06c3f2258ff5bf3a719f82.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ko:300": {
+      "audioId": "6d016b5abaa714d87bf782c93cbb0c126da88f130482b9bc8688260237022140",
+      "objectName": "assets/navigation/ko-KR/Kore/6d016b5abaa714d87bf782c93cbb0c126da88f130482b9bc8688260237022140.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ko:500": {
+      "audioId": "8eca44a0fe8552b21effc6f258cd46484ae7123fa6a7a6e59cf18c2e98d02572",
+      "objectName": "assets/navigation/ko-KR/Kore/8eca44a0fe8552b21effc6f258cd46484ae7123fa6a7a6e59cf18c2e98d02572.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ko": {
+      "audioId": "3abd7c4dca0e7ae609979c574f557d97ae459db388e0f8e5f7d77f05b8865b4b",
+      "objectName": "assets/navigation/ko-KR/Kore/3abd7c4dca0e7ae609979c574f557d97ae459db388e0f8e5f7d77f05b8865b4b.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ko:30": {
+      "audioId": "85f3e7c99d049219dce9a990c65dcfa1e441fbd19106a0461b4f72a2948eaa63",
+      "objectName": "assets/navigation/ko-KR/Kore/85f3e7c99d049219dce9a990c65dcfa1e441fbd19106a0461b4f72a2948eaa63.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ko:50": {
+      "audioId": "bb42489d2f0fa91e3b234bc86aff53a5e76c3f9b7e52ef17700d21ad24fbabf3",
+      "objectName": "assets/navigation/ko-KR/Kore/bb42489d2f0fa91e3b234bc86aff53a5e76c3f9b7e52ef17700d21ad24fbabf3.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ko:100": {
+      "audioId": "0357a18def1efdd3959d13078d3c45b23361271e7048332c4491e41968efabb1",
+      "objectName": "assets/navigation/ko-KR/Kore/0357a18def1efdd3959d13078d3c45b23361271e7048332c4491e41968efabb1.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ko:200": {
+      "audioId": "3b2025532731a2de29fc3bc68c8bf05e8b283598257c912fdd18f056e7742eeb",
+      "objectName": "assets/navigation/ko-KR/Kore/3b2025532731a2de29fc3bc68c8bf05e8b283598257c912fdd18f056e7742eeb.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ko:300": {
+      "audioId": "1d7c52baab7fb72bc3336c2b648caeba4eed367743640696df97d35f3dbce05d",
+      "objectName": "assets/navigation/ko-KR/Kore/1d7c52baab7fb72bc3336c2b648caeba4eed367743640696df97d35f3dbce05d.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ko:500": {
+      "audioId": "a14b9268e9269a993e47b07772074a5affbfa0a1e0ad671e20de3da1afc117de",
+      "objectName": "assets/navigation/ko-KR/Kore/a14b9268e9269a993e47b07772074a5affbfa0a1e0ad671e20de3da1afc117de.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ko": {
+      "audioId": "f81fa4e6953aa75eae7451500b87ad43f93de71e4891665e476366200ad05362",
+      "objectName": "assets/navigation/ko-KR/Kore/f81fa4e6953aa75eae7451500b87ad43f93de71e4891665e476366200ad05362.mp3",
+      "locale": "ko-KR",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:arrive:ko": {
+      "audioId": "18f75ee042461284b34913c4c97b1dbb5e9debfddf25e98b6138e14bd4d4a12c",
+      "objectName": "assets/arrival/ko-KR/Kore/18f75ee042461284b34913c4c97b1dbb5e9debfddf25e98b6138e14bd4d4a12c.mp3",
+      "locale": "ko-KR",
+      "style": "arrival",
+      "contentVersion": "v1"
+    },
+    "navigation:straight:en": {
+      "audioId": "2dbbeef1b7dc2d19ca9275825e3878b1c902189676ddf427c3b64eedd7d09433",
+      "objectName": "assets/navigation/en-US/Kore/2dbbeef1b7dc2d19ca9275825e3878b1c902189676ddf427c3b64eedd7d09433.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:en:30": {
+      "audioId": "bb29b9cdd6fd9ea5dfdc28a4db99add1abd7fd7159af728c3c7eef49612c0088",
+      "objectName": "assets/navigation/en-US/Kore/bb29b9cdd6fd9ea5dfdc28a4db99add1abd7fd7159af728c3c7eef49612c0088.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:en:50": {
+      "audioId": "88f06e94694a2baea7d9d367310560c6c3fcf08f3bc959bf3fbd8c16fa0714e7",
+      "objectName": "assets/navigation/en-US/Kore/88f06e94694a2baea7d9d367310560c6c3fcf08f3bc959bf3fbd8c16fa0714e7.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:en:100": {
+      "audioId": "737cda3db392d14b5dfd81e1500f91d0d5d45834ad85d8afa4045449107a6e7e",
+      "objectName": "assets/navigation/en-US/Kore/737cda3db392d14b5dfd81e1500f91d0d5d45834ad85d8afa4045449107a6e7e.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:en:200": {
+      "audioId": "3a2f971a2d4c0cbd2337869c7853e02e43bdb35d9ad0db4ae6c1354b950804b6",
+      "objectName": "assets/navigation/en-US/Kore/3a2f971a2d4c0cbd2337869c7853e02e43bdb35d9ad0db4ae6c1354b950804b6.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:en:300": {
+      "audioId": "6ed5a54bd492ce11ea5b40a035ba893f4c3fa1b2130592df0b7199699f1b58f5",
+      "objectName": "assets/navigation/en-US/Kore/6ed5a54bd492ce11ea5b40a035ba893f4c3fa1b2130592df0b7199699f1b58f5.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:en:500": {
+      "audioId": "c5f4afbf80cf9350c5d57a82aabc1dea2490104c30f1cfb6bca52a9e9a4fd5f0",
+      "objectName": "assets/navigation/en-US/Kore/c5f4afbf80cf9350c5d57a82aabc1dea2490104c30f1cfb6bca52a9e9a4fd5f0.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:en": {
+      "audioId": "fa5a01fd4bea153430bbf71ca0172fbdb347c950cfe5c84e14950a08d0304717",
+      "objectName": "assets/navigation/en-US/Kore/fa5a01fd4bea153430bbf71ca0172fbdb347c950cfe5c84e14950a08d0304717.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:en:30": {
+      "audioId": "985c623a931fa7b927e3a73a03849638ab0e876ba08a548048ebcfe3eae2d8ad",
+      "objectName": "assets/navigation/en-US/Kore/985c623a931fa7b927e3a73a03849638ab0e876ba08a548048ebcfe3eae2d8ad.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:en:50": {
+      "audioId": "9d167cd355e34c76b1e1344502c5b12dbc0566a47104870b6811e7d8d57e2f8a",
+      "objectName": "assets/navigation/en-US/Kore/9d167cd355e34c76b1e1344502c5b12dbc0566a47104870b6811e7d8d57e2f8a.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:en:100": {
+      "audioId": "60294a5fae17479cc95f882a8f8f84ff1ecf5a190714a17f3e6fe6eac15b4e92",
+      "objectName": "assets/navigation/en-US/Kore/60294a5fae17479cc95f882a8f8f84ff1ecf5a190714a17f3e6fe6eac15b4e92.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:en:200": {
+      "audioId": "b7d3da2dca9a120b317af10a6e1b42a8fb7a12338726ab7424946593c082e1bb",
+      "objectName": "assets/navigation/en-US/Kore/b7d3da2dca9a120b317af10a6e1b42a8fb7a12338726ab7424946593c082e1bb.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:en:300": {
+      "audioId": "476240114249144b84e6c75c2568d93165dc16b7087d189a75ac6184c346f600",
+      "objectName": "assets/navigation/en-US/Kore/476240114249144b84e6c75c2568d93165dc16b7087d189a75ac6184c346f600.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:en:500": {
+      "audioId": "2e810707e205c364aa603ba1ab1ffc070e3d99ad819fd726d18ed32367e64d88",
+      "objectName": "assets/navigation/en-US/Kore/2e810707e205c364aa603ba1ab1ffc070e3d99ad819fd726d18ed32367e64d88.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:en": {
+      "audioId": "114c56b13ffcdae7123786833e1d36ccc9cd03628bb20ffa5a919f31a066c39f",
+      "objectName": "assets/navigation/en-US/Kore/114c56b13ffcdae7123786833e1d36ccc9cd03628bb20ffa5a919f31a066c39f.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:en:30": {
+      "audioId": "6e9752d2904649c947c2d45f663a1fa1b52298170d40fe7d29d5147d46310dd9",
+      "objectName": "assets/navigation/en-US/Kore/6e9752d2904649c947c2d45f663a1fa1b52298170d40fe7d29d5147d46310dd9.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:en:50": {
+      "audioId": "a5bbdee96620040cf0d341afdfe3f25a4e9381945da600060a4ea9588bc318ee",
+      "objectName": "assets/navigation/en-US/Kore/a5bbdee96620040cf0d341afdfe3f25a4e9381945da600060a4ea9588bc318ee.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:en:100": {
+      "audioId": "8801de6cbb3aef976024d234019c03021ef7fd767f138edb17302027aec8cd56",
+      "objectName": "assets/navigation/en-US/Kore/8801de6cbb3aef976024d234019c03021ef7fd767f138edb17302027aec8cd56.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:en:200": {
+      "audioId": "350a91e55352ce14dd0308650fa9319451f70d1be44ce14a1475d02350981e5e",
+      "objectName": "assets/navigation/en-US/Kore/350a91e55352ce14dd0308650fa9319451f70d1be44ce14a1475d02350981e5e.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:en:300": {
+      "audioId": "21b84b72dc1b6bfcd337be955abfb169357f4908797ffd526b1a2e4e31445889",
+      "objectName": "assets/navigation/en-US/Kore/21b84b72dc1b6bfcd337be955abfb169357f4908797ffd526b1a2e4e31445889.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:en:500": {
+      "audioId": "bf6271b2785761f2c72dbf8bea62e2e7ae702824810146d6dce738d518ac533d",
+      "objectName": "assets/navigation/en-US/Kore/bf6271b2785761f2c72dbf8bea62e2e7ae702824810146d6dce738d518ac533d.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:en": {
+      "audioId": "ee087ada04d8b229621024cbc0990882960dda7d8e1e6f983b4b11e0f20052fd",
+      "objectName": "assets/navigation/en-US/Kore/ee087ada04d8b229621024cbc0990882960dda7d8e1e6f983b4b11e0f20052fd.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:en:30": {
+      "audioId": "62beef1097305828a73e59fdae0059444d8eab8e753c4797ba71b225b8f27ef6",
+      "objectName": "assets/navigation/en-US/Kore/62beef1097305828a73e59fdae0059444d8eab8e753c4797ba71b225b8f27ef6.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:en:50": {
+      "audioId": "be8337c3bd3ae160db12e44f8a29f2a25aae36c8e545081a1bf3d1fbd1c3d736",
+      "objectName": "assets/navigation/en-US/Kore/be8337c3bd3ae160db12e44f8a29f2a25aae36c8e545081a1bf3d1fbd1c3d736.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:en:100": {
+      "audioId": "ef26461c405a5e93f5935b4125e931f52122c4311e08db08bb3ffff6e292f34b",
+      "objectName": "assets/navigation/en-US/Kore/ef26461c405a5e93f5935b4125e931f52122c4311e08db08bb3ffff6e292f34b.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:en:200": {
+      "audioId": "14e080842d41d83b676f009de97fef37d1b5bcda62e9711d9f7119fed1eba524",
+      "objectName": "assets/navigation/en-US/Kore/14e080842d41d83b676f009de97fef37d1b5bcda62e9711d9f7119fed1eba524.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:en:300": {
+      "audioId": "657f5580fe987694cc536c127ab5505e0cdaa4c86c50724987d355a76222be76",
+      "objectName": "assets/navigation/en-US/Kore/657f5580fe987694cc536c127ab5505e0cdaa4c86c50724987d355a76222be76.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:en:500": {
+      "audioId": "1399564f5e7f2ba19f040f1ec7ce815f4859dc9dc9e8ec6e8c53e90c4e192194",
+      "objectName": "assets/navigation/en-US/Kore/1399564f5e7f2ba19f040f1ec7ce815f4859dc9dc9e8ec6e8c53e90c4e192194.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:en": {
+      "audioId": "3b030749cf6e3de91374b7f6ccd6453007a78d90da1485e059d608add8dde043",
+      "objectName": "assets/navigation/en-US/Kore/3b030749cf6e3de91374b7f6ccd6453007a78d90da1485e059d608add8dde043.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:en:30": {
+      "audioId": "1441bfd24f57236538db67cb03e1498911deeeebab8225bb276b17821a2ad6ff",
+      "objectName": "assets/navigation/en-US/Kore/1441bfd24f57236538db67cb03e1498911deeeebab8225bb276b17821a2ad6ff.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:en:50": {
+      "audioId": "ec147310aca227a3cf1b8fedbd882459cde0fd6ee6e9828a25f60db1b6c7a90e",
+      "objectName": "assets/navigation/en-US/Kore/ec147310aca227a3cf1b8fedbd882459cde0fd6ee6e9828a25f60db1b6c7a90e.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:en:100": {
+      "audioId": "7725f355cc7d3ba63922798676cfbe193503157be713d3c72ddd7af45b17b98f",
+      "objectName": "assets/navigation/en-US/Kore/7725f355cc7d3ba63922798676cfbe193503157be713d3c72ddd7af45b17b98f.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:en:200": {
+      "audioId": "e67e3b5ca9a3f73fc3cd70fa8aeafdadcfbc6700efd7f7de4d0dff47eb6aa796",
+      "objectName": "assets/navigation/en-US/Kore/e67e3b5ca9a3f73fc3cd70fa8aeafdadcfbc6700efd7f7de4d0dff47eb6aa796.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:en:300": {
+      "audioId": "daa4890fcfe41dc023675e724568361bde8db79fc179008344ebbd238215abc2",
+      "objectName": "assets/navigation/en-US/Kore/daa4890fcfe41dc023675e724568361bde8db79fc179008344ebbd238215abc2.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:en:500": {
+      "audioId": "5c20d04b50761a6db0bde256c725077684100ac94db7c9e4367a845728763179",
+      "objectName": "assets/navigation/en-US/Kore/5c20d04b50761a6db0bde256c725077684100ac94db7c9e4367a845728763179.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:en": {
+      "audioId": "49fbd18f7306be56b37996fce5dd1ed1ddfa2287f6cd5224e663f8b2d83d864a",
+      "objectName": "assets/navigation/en-US/Kore/49fbd18f7306be56b37996fce5dd1ed1ddfa2287f6cd5224e663f8b2d83d864a.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:en:30": {
+      "audioId": "e5a865f10fa8490831d52579251073b839c7113e4f853e76699ade46ce06fe0d",
+      "objectName": "assets/navigation/en-US/Kore/e5a865f10fa8490831d52579251073b839c7113e4f853e76699ade46ce06fe0d.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:en:50": {
+      "audioId": "9a6ea214596a6351c84e98ab6dfc51105d07c52a1675708682d6043087f1c23e",
+      "objectName": "assets/navigation/en-US/Kore/9a6ea214596a6351c84e98ab6dfc51105d07c52a1675708682d6043087f1c23e.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:en:100": {
+      "audioId": "1204eab3ee922f76840e86079a5ea157a3f51d624e0e9b1b89963ded9a57fb60",
+      "objectName": "assets/navigation/en-US/Kore/1204eab3ee922f76840e86079a5ea157a3f51d624e0e9b1b89963ded9a57fb60.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:en:200": {
+      "audioId": "420f6610fd8dd062adada4490ff73f9130a4f7194dd89a667df0e17b9f71518d",
+      "objectName": "assets/navigation/en-US/Kore/420f6610fd8dd062adada4490ff73f9130a4f7194dd89a667df0e17b9f71518d.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:en:300": {
+      "audioId": "aacdd09a73c5b59169dfed8516352bb23d26146ed122997db17ed3ffd8e65a44",
+      "objectName": "assets/navigation/en-US/Kore/aacdd09a73c5b59169dfed8516352bb23d26146ed122997db17ed3ffd8e65a44.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:en:500": {
+      "audioId": "e5833c7cb7a70fc158c9f015c7f58e5f187672c1cde0fe51e342a8744bba9acc",
+      "objectName": "assets/navigation/en-US/Kore/e5833c7cb7a70fc158c9f015c7f58e5f187672c1cde0fe51e342a8744bba9acc.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:en": {
+      "audioId": "b3ea2ecedba9555a9e2e324976c9bc09ab1e10f0446587fceff529f628dec486",
+      "objectName": "assets/navigation/en-US/Kore/b3ea2ecedba9555a9e2e324976c9bc09ab1e10f0446587fceff529f628dec486.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:en:30": {
+      "audioId": "047653cf91536510f3e79032305a571aa9463baad4d990eed2f4e5cff3ae7a8d",
+      "objectName": "assets/navigation/en-US/Kore/047653cf91536510f3e79032305a571aa9463baad4d990eed2f4e5cff3ae7a8d.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:en:50": {
+      "audioId": "5f719eef2bc44b5d8e26b48f18630405d4ecf5689d0822541c4f36019b31b992",
+      "objectName": "assets/navigation/en-US/Kore/5f719eef2bc44b5d8e26b48f18630405d4ecf5689d0822541c4f36019b31b992.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:en:100": {
+      "audioId": "a0a408e7472ba4537990e6c5145da65c3ee95fe65d82f08b86e98f8a6f630811",
+      "objectName": "assets/navigation/en-US/Kore/a0a408e7472ba4537990e6c5145da65c3ee95fe65d82f08b86e98f8a6f630811.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:en:200": {
+      "audioId": "ff60ca44c56378290c9d95f272d543ca4b75b9919dee2cd40f503755da4a4f65",
+      "objectName": "assets/navigation/en-US/Kore/ff60ca44c56378290c9d95f272d543ca4b75b9919dee2cd40f503755da4a4f65.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:en:300": {
+      "audioId": "244065b25e6b51e72de5e031abea6fa93b1b61fe532e7d817cdb633ac0e0d981",
+      "objectName": "assets/navigation/en-US/Kore/244065b25e6b51e72de5e031abea6fa93b1b61fe532e7d817cdb633ac0e0d981.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:en:500": {
+      "audioId": "eed201de9673c40726e2ee2f8178d8c26b7651c5e556e658cc6ddf593dd47919",
+      "objectName": "assets/navigation/en-US/Kore/eed201de9673c40726e2ee2f8178d8c26b7651c5e556e658cc6ddf593dd47919.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:en": {
+      "audioId": "8b530531cbe0c726cb657d4e4ebbff14136e51b3284168e01334e3c7e31074aa",
+      "objectName": "assets/navigation/en-US/Kore/8b530531cbe0c726cb657d4e4ebbff14136e51b3284168e01334e3c7e31074aa.mp3",
+      "locale": "en-US",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:arrive:en": {
+      "audioId": "d98475bd2d9b7f3db240b50aeae86267ff717931f991122af16f60236f8916a9",
+      "objectName": "assets/arrival/en-US/Kore/d98475bd2d9b7f3db240b50aeae86267ff717931f991122af16f60236f8916a9.mp3",
+      "locale": "en-US",
+      "style": "arrival",
+      "contentVersion": "v1"
+    },
+    "navigation:straight:ja": {
+      "audioId": "12364e8df65d8449af6cb2aa487f018b574a9fb2ed5f24ffc9825024d1b4569a",
+      "objectName": "assets/navigation/ja-JP/Kore/12364e8df65d8449af6cb2aa487f018b574a9fb2ed5f24ffc9825024d1b4569a.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ja:30": {
+      "audioId": "31a9ab4f9da98edbac24545b8164f012ddebd0b5af7f0a87886e21877642359f",
+      "objectName": "assets/navigation/ja-JP/Kore/31a9ab4f9da98edbac24545b8164f012ddebd0b5af7f0a87886e21877642359f.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ja:50": {
+      "audioId": "ea1d7a7f4573bdb6bf17ca62c0166dff4ed6f3ecf21e6996293b01f19f65e7c0",
+      "objectName": "assets/navigation/ja-JP/Kore/ea1d7a7f4573bdb6bf17ca62c0166dff4ed6f3ecf21e6996293b01f19f65e7c0.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ja:100": {
+      "audioId": "a1c4b199cde20daef3438e8c4e803e9179075984c0594a87609fd13e14d8fd30",
+      "objectName": "assets/navigation/ja-JP/Kore/a1c4b199cde20daef3438e8c4e803e9179075984c0594a87609fd13e14d8fd30.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ja:200": {
+      "audioId": "49c6cccf0959739916155efb34430d58cfc423894bcf4df55b8af26963dee8a5",
+      "objectName": "assets/navigation/ja-JP/Kore/49c6cccf0959739916155efb34430d58cfc423894bcf4df55b8af26963dee8a5.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ja:300": {
+      "audioId": "0bf106faf3e6db4f7936e5b9efa4f7829c6f6e218a0bd9331036bdfe3994adf6",
+      "objectName": "assets/navigation/ja-JP/Kore/0bf106faf3e6db4f7936e5b9efa4f7829c6f6e218a0bd9331036bdfe3994adf6.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ja:500": {
+      "audioId": "b7b4a3dcce6c90eabecf5c0f69ab5f24e627d8f3307143fbc59abcbcbbb9061e",
+      "objectName": "assets/navigation/ja-JP/Kore/b7b4a3dcce6c90eabecf5c0f69ab5f24e627d8f3307143fbc59abcbcbbb9061e.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:ja": {
+      "audioId": "32d12fd44922a36542e96ce03f8f4aa51a9ed6b48cbecab663cdab46dd52669e",
+      "objectName": "assets/navigation/ja-JP/Kore/32d12fd44922a36542e96ce03f8f4aa51a9ed6b48cbecab663cdab46dd52669e.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ja:30": {
+      "audioId": "f2e7c452b1e245658fd96670bcf5bae05dcb2120471f8515d5256463089339cb",
+      "objectName": "assets/navigation/ja-JP/Kore/f2e7c452b1e245658fd96670bcf5bae05dcb2120471f8515d5256463089339cb.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ja:50": {
+      "audioId": "f43add826618ac646353d4a75137964d37dca4a582d052f881ea4eee23e0f2b4",
+      "objectName": "assets/navigation/ja-JP/Kore/f43add826618ac646353d4a75137964d37dca4a582d052f881ea4eee23e0f2b4.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ja:100": {
+      "audioId": "57e70de954920dbae6b9c6b7ba4d63abfcaf56b740aac21210c33bee34122e70",
+      "objectName": "assets/navigation/ja-JP/Kore/57e70de954920dbae6b9c6b7ba4d63abfcaf56b740aac21210c33bee34122e70.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ja:200": {
+      "audioId": "4e80d0b25caa02d4b9c018ca5bf61165181646402e2640314fc01b69a1ddb688",
+      "objectName": "assets/navigation/ja-JP/Kore/4e80d0b25caa02d4b9c018ca5bf61165181646402e2640314fc01b69a1ddb688.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ja:300": {
+      "audioId": "c98c1576c47570fa6808a1949f28910b3fc334afb85a903c676af548a7dc1e27",
+      "objectName": "assets/navigation/ja-JP/Kore/c98c1576c47570fa6808a1949f28910b3fc334afb85a903c676af548a7dc1e27.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ja:500": {
+      "audioId": "676d55ebe6fbbdf7ab2381065bac41a17f3524196181dc7c00397922e70ac473",
+      "objectName": "assets/navigation/ja-JP/Kore/676d55ebe6fbbdf7ab2381065bac41a17f3524196181dc7c00397922e70ac473.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:ja": {
+      "audioId": "15d5112480951b2c0a9886507dd50af5c8400a8d83c756162ccc6065b5bae263",
+      "objectName": "assets/navigation/ja-JP/Kore/15d5112480951b2c0a9886507dd50af5c8400a8d83c756162ccc6065b5bae263.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ja:30": {
+      "audioId": "278a5891fd02e03411ecdf07115b6e15db4ced6eb97646f8dce6fe2e481e5367",
+      "objectName": "assets/navigation/ja-JP/Kore/278a5891fd02e03411ecdf07115b6e15db4ced6eb97646f8dce6fe2e481e5367.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ja:50": {
+      "audioId": "97ec4caf380a726d194f9839ae35e238e7a236d0cc69ae6c8308dc81d24bbc37",
+      "objectName": "assets/navigation/ja-JP/Kore/97ec4caf380a726d194f9839ae35e238e7a236d0cc69ae6c8308dc81d24bbc37.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ja:100": {
+      "audioId": "398f217f858843f9122bee5594575dbb15144e7b22d139f7007697678ecdf7b1",
+      "objectName": "assets/navigation/ja-JP/Kore/398f217f858843f9122bee5594575dbb15144e7b22d139f7007697678ecdf7b1.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ja:200": {
+      "audioId": "50fd3f7961cad2980f9eea0e21cc1aa287c746a11c13dd9af8a6ea9372f09fd5",
+      "objectName": "assets/navigation/ja-JP/Kore/50fd3f7961cad2980f9eea0e21cc1aa287c746a11c13dd9af8a6ea9372f09fd5.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ja:300": {
+      "audioId": "c64d16de7f0a72071ed071fde29223e2a42afc372dc31faf31ad8c4b1404cc1b",
+      "objectName": "assets/navigation/ja-JP/Kore/c64d16de7f0a72071ed071fde29223e2a42afc372dc31faf31ad8c4b1404cc1b.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ja:500": {
+      "audioId": "3237d6a1aa038eb6f730f48f781f946ff17b799228ce5d213367b6f581195b9c",
+      "objectName": "assets/navigation/ja-JP/Kore/3237d6a1aa038eb6f730f48f781f946ff17b799228ce5d213367b6f581195b9c.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:ja": {
+      "audioId": "e27f61b8822096d06fc9f9d471e55f4c913d8e25b5af3c0f1fe1b49e1948c89e",
+      "objectName": "assets/navigation/ja-JP/Kore/e27f61b8822096d06fc9f9d471e55f4c913d8e25b5af3c0f1fe1b49e1948c89e.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ja:30": {
+      "audioId": "003bd248ee6fb6948fd214b05ccb80a0b286b0edee5905525fc2b3a29cfb3cd5",
+      "objectName": "assets/navigation/ja-JP/Kore/003bd248ee6fb6948fd214b05ccb80a0b286b0edee5905525fc2b3a29cfb3cd5.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ja:50": {
+      "audioId": "7a810f9258feecb53829758e1fc109bb89cd1c7dc51e2849b51425ac1e68ff48",
+      "objectName": "assets/navigation/ja-JP/Kore/7a810f9258feecb53829758e1fc109bb89cd1c7dc51e2849b51425ac1e68ff48.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ja:100": {
+      "audioId": "82bdbc27da4c3055a5ce03822015ad3fdef823c9201532c510837c7d1e454d53",
+      "objectName": "assets/navigation/ja-JP/Kore/82bdbc27da4c3055a5ce03822015ad3fdef823c9201532c510837c7d1e454d53.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ja:200": {
+      "audioId": "709547bc1d2ba97998e85747b4e3b6df1ec2cf24320e0331b99393ffc8937095",
+      "objectName": "assets/navigation/ja-JP/Kore/709547bc1d2ba97998e85747b4e3b6df1ec2cf24320e0331b99393ffc8937095.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ja:300": {
+      "audioId": "ccd472524dd8808febbca30845a938b50a35164d17d987324994d444731bedcd",
+      "objectName": "assets/navigation/ja-JP/Kore/ccd472524dd8808febbca30845a938b50a35164d17d987324994d444731bedcd.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ja:500": {
+      "audioId": "0aa83174a89f9537673f96200b7b34ee62a672dfeebb43d0a768d3483e73ed73",
+      "objectName": "assets/navigation/ja-JP/Kore/0aa83174a89f9537673f96200b7b34ee62a672dfeebb43d0a768d3483e73ed73.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:ja": {
+      "audioId": "ae9fd13df42bf96f1d0c6c7217f436cf01a7a31142cce4a3adc9e09c7e7fa65c",
+      "objectName": "assets/navigation/ja-JP/Kore/ae9fd13df42bf96f1d0c6c7217f436cf01a7a31142cce4a3adc9e09c7e7fa65c.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ja:30": {
+      "audioId": "0e9e04bd8896650d56c0ce3d29daa8116a37c7ae6d5e62709c70c96c076486f6",
+      "objectName": "assets/navigation/ja-JP/Kore/0e9e04bd8896650d56c0ce3d29daa8116a37c7ae6d5e62709c70c96c076486f6.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ja:50": {
+      "audioId": "5b0a53787de8a189329bf79c685106078b1aee681ccfbee2838fe17148392d00",
+      "objectName": "assets/navigation/ja-JP/Kore/5b0a53787de8a189329bf79c685106078b1aee681ccfbee2838fe17148392d00.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ja:100": {
+      "audioId": "168f361f31f4dc536969bd31d3e6af3bb738de7ab7536f23401c7e68e6ff8141",
+      "objectName": "assets/navigation/ja-JP/Kore/168f361f31f4dc536969bd31d3e6af3bb738de7ab7536f23401c7e68e6ff8141.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ja:200": {
+      "audioId": "790dae5c141a103578dbc75c44e88de961f0f6b6723da345661dde38dfa141b7",
+      "objectName": "assets/navigation/ja-JP/Kore/790dae5c141a103578dbc75c44e88de961f0f6b6723da345661dde38dfa141b7.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ja:300": {
+      "audioId": "c46a9e60236f2c68fe9c30077124096b20641d58fc760bfd77e4e6702524b4c7",
+      "objectName": "assets/navigation/ja-JP/Kore/c46a9e60236f2c68fe9c30077124096b20641d58fc760bfd77e4e6702524b4c7.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ja:500": {
+      "audioId": "cc5012c6729942b94cf05af5116d12bc61630d542b770e28f65f21a84ed12b04",
+      "objectName": "assets/navigation/ja-JP/Kore/cc5012c6729942b94cf05af5116d12bc61630d542b770e28f65f21a84ed12b04.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:ja": {
+      "audioId": "7041ab434290b382fbb7066ce0add246a511354438e748e11a8759f0b246c215",
+      "objectName": "assets/navigation/ja-JP/Kore/7041ab434290b382fbb7066ce0add246a511354438e748e11a8759f0b246c215.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ja:30": {
+      "audioId": "3fd7aba8992e65c3e416a8e31cf28ff4818c0459c992674471cd6eb134b73e33",
+      "objectName": "assets/navigation/ja-JP/Kore/3fd7aba8992e65c3e416a8e31cf28ff4818c0459c992674471cd6eb134b73e33.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ja:50": {
+      "audioId": "212865dd277c7cc549c622e2ab046cf009e7e9f55ef24aa95119279e3ac029e1",
+      "objectName": "assets/navigation/ja-JP/Kore/212865dd277c7cc549c622e2ab046cf009e7e9f55ef24aa95119279e3ac029e1.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ja:100": {
+      "audioId": "56672204fbaa1502995355c21a9ec9a70370b0b6f6924e62224a95d1fb561609",
+      "objectName": "assets/navigation/ja-JP/Kore/56672204fbaa1502995355c21a9ec9a70370b0b6f6924e62224a95d1fb561609.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ja:200": {
+      "audioId": "574047c0df58c458ca488b806c5b694779b540927ce73f20d852441e83a68fd0",
+      "objectName": "assets/navigation/ja-JP/Kore/574047c0df58c458ca488b806c5b694779b540927ce73f20d852441e83a68fd0.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ja:300": {
+      "audioId": "8b4718ce9c64ada087a83df8ec229b1b9a300945bc1b85aff7fbdaf111836d09",
+      "objectName": "assets/navigation/ja-JP/Kore/8b4718ce9c64ada087a83df8ec229b1b9a300945bc1b85aff7fbdaf111836d09.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ja:500": {
+      "audioId": "4b6ede3dc6b1386dfba3f792dc32a3dca2a4de6879225475987daeb36947fe6a",
+      "objectName": "assets/navigation/ja-JP/Kore/4b6ede3dc6b1386dfba3f792dc32a3dca2a4de6879225475987daeb36947fe6a.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:ja": {
+      "audioId": "8e89d05346a1d8b1e1d433418b02aeb125ce8d151288eb37e6d99a0360caa10d",
+      "objectName": "assets/navigation/ja-JP/Kore/8e89d05346a1d8b1e1d433418b02aeb125ce8d151288eb37e6d99a0360caa10d.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ja:30": {
+      "audioId": "f285327e292230c3278805d9f09f5ce0e23dd9a04241c675e2587e5023ca09a7",
+      "objectName": "assets/navigation/ja-JP/Kore/f285327e292230c3278805d9f09f5ce0e23dd9a04241c675e2587e5023ca09a7.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ja:50": {
+      "audioId": "6c07eefca8d4f1ad6db8a2ed699ff6789e43542dafdac168cd579375964828dc",
+      "objectName": "assets/navigation/ja-JP/Kore/6c07eefca8d4f1ad6db8a2ed699ff6789e43542dafdac168cd579375964828dc.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ja:100": {
+      "audioId": "c0c890dd08d6f024f32cce90381b99142b735af7603951fb645ae3b32ac51d3a",
+      "objectName": "assets/navigation/ja-JP/Kore/c0c890dd08d6f024f32cce90381b99142b735af7603951fb645ae3b32ac51d3a.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ja:200": {
+      "audioId": "aaed90cba64a0368e8c5d44d9b58c0c15d607f53c7919cfbaa7354a685d6f4ea",
+      "objectName": "assets/navigation/ja-JP/Kore/aaed90cba64a0368e8c5d44d9b58c0c15d607f53c7919cfbaa7354a685d6f4ea.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ja:300": {
+      "audioId": "f07c412350095981ecd8c3458c5475cfa0b10cad234b13acb579350a00b7eed9",
+      "objectName": "assets/navigation/ja-JP/Kore/f07c412350095981ecd8c3458c5475cfa0b10cad234b13acb579350a00b7eed9.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ja:500": {
+      "audioId": "99640d0ff1758470a418ad83bcbcc5cfb25a9f29eb623c31a50f015dcdff892e",
+      "objectName": "assets/navigation/ja-JP/Kore/99640d0ff1758470a418ad83bcbcc5cfb25a9f29eb623c31a50f015dcdff892e.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:ja": {
+      "audioId": "9ebc00ed9960ada167e7e244675b838caea0e1312d19084a9075c9d2309edc96",
+      "objectName": "assets/navigation/ja-JP/Kore/9ebc00ed9960ada167e7e244675b838caea0e1312d19084a9075c9d2309edc96.mp3",
+      "locale": "ja-JP",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:arrive:ja": {
+      "audioId": "889b5611606977ce03b19ff29d580eb43f10a41f59c5fa8a2bb897627a331196",
+      "objectName": "assets/arrival/ja-JP/Kore/889b5611606977ce03b19ff29d580eb43f10a41f59c5fa8a2bb897627a331196.mp3",
+      "locale": "ja-JP",
+      "style": "arrival",
+      "contentVersion": "v1"
+    },
+    "navigation:straight:zh": {
+      "audioId": "9d4cc80fbf54d26f07c4569aab1591fcfbc23c356f8d85a9dbdd66dc7d410604",
+      "objectName": "assets/navigation/cmn-CN/Kore/9d4cc80fbf54d26f07c4569aab1591fcfbc23c356f8d85a9dbdd66dc7d410604.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:zh:30": {
+      "audioId": "105dda81c2fdbc0fcf1d5b8050adc28f5984d417cb272f5a772ec1882051d732",
+      "objectName": "assets/navigation/cmn-CN/Kore/105dda81c2fdbc0fcf1d5b8050adc28f5984d417cb272f5a772ec1882051d732.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:zh:50": {
+      "audioId": "ada77b10ee0133ce7dafe27374d7bbdccfc9bd19b828cf8f9d975cc048cd9cdc",
+      "objectName": "assets/navigation/cmn-CN/Kore/ada77b10ee0133ce7dafe27374d7bbdccfc9bd19b828cf8f9d975cc048cd9cdc.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:zh:100": {
+      "audioId": "37d0dd71241175042a0c9fa325fbe864832af3d9405af7ab0d6ec17332b9e420",
+      "objectName": "assets/navigation/cmn-CN/Kore/37d0dd71241175042a0c9fa325fbe864832af3d9405af7ab0d6ec17332b9e420.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:zh:200": {
+      "audioId": "867fdf41f201322146dad52c2a8f998337d1dc36d3cba790a7a739cb0da11329",
+      "objectName": "assets/navigation/cmn-CN/Kore/867fdf41f201322146dad52c2a8f998337d1dc36d3cba790a7a739cb0da11329.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:zh:300": {
+      "audioId": "e0bb726cb341ba645e0c96d918162f746a910221e409b50b40bf7e46e7a8e798",
+      "objectName": "assets/navigation/cmn-CN/Kore/e0bb726cb341ba645e0c96d918162f746a910221e409b50b40bf7e46e7a8e798.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:zh:500": {
+      "audioId": "1adb629e91341db74920492229afadabd701ed89a5aaaee12149599b7c484851",
+      "objectName": "assets/navigation/cmn-CN/Kore/1adb629e91341db74920492229afadabd701ed89a5aaaee12149599b7c484851.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-left:zh": {
+      "audioId": "f127abe5411ce2f27f5406a806d609ade4305ae537bd48a2312f40691baeeca1",
+      "objectName": "assets/navigation/cmn-CN/Kore/f127abe5411ce2f27f5406a806d609ade4305ae537bd48a2312f40691baeeca1.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:zh:30": {
+      "audioId": "b4397d53e62fd20b9ca29ac2a34fa1adcb4999b4e84f52fe1b69595cf06f0b35",
+      "objectName": "assets/navigation/cmn-CN/Kore/b4397d53e62fd20b9ca29ac2a34fa1adcb4999b4e84f52fe1b69595cf06f0b35.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:zh:50": {
+      "audioId": "4e67482ec01b6e79af4a4339aaf9272fc1116dbecfe130746e575a34755619a8",
+      "objectName": "assets/navigation/cmn-CN/Kore/4e67482ec01b6e79af4a4339aaf9272fc1116dbecfe130746e575a34755619a8.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:zh:100": {
+      "audioId": "abccdf72a0a947214d3d9e42579b6547b4e295e2b30aae860da6ebfdb66bd59c",
+      "objectName": "assets/navigation/cmn-CN/Kore/abccdf72a0a947214d3d9e42579b6547b4e295e2b30aae860da6ebfdb66bd59c.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:zh:200": {
+      "audioId": "d7bf81f4ed219bb5e242b94d1dddaf53a55f826f690fbd0d99bf37f7687ccde6",
+      "objectName": "assets/navigation/cmn-CN/Kore/d7bf81f4ed219bb5e242b94d1dddaf53a55f826f690fbd0d99bf37f7687ccde6.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:zh:300": {
+      "audioId": "af6fa3a5be6707956084129528d0c07375bd733fc988e9eab1530afd37952dac",
+      "objectName": "assets/navigation/cmn-CN/Kore/af6fa3a5be6707956084129528d0c07375bd733fc988e9eab1530afd37952dac.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:zh:500": {
+      "audioId": "1b2f5249d230991fdee2b2d64ee7c8df3616535c12e932ffca581b4d723a7b82",
+      "objectName": "assets/navigation/cmn-CN/Kore/1b2f5249d230991fdee2b2d64ee7c8df3616535c12e932ffca581b4d723a7b82.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:left:zh": {
+      "audioId": "eb7d18f9bcb41ed186c1dfb6ecdce3b940b230faa2ccae84235b5beb7fc91825",
+      "objectName": "assets/navigation/cmn-CN/Kore/eb7d18f9bcb41ed186c1dfb6ecdce3b940b230faa2ccae84235b5beb7fc91825.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:zh:30": {
+      "audioId": "c223a078104a9bea328f262392e9593648881d303f6a3d839010ecc739f9302f",
+      "objectName": "assets/navigation/cmn-CN/Kore/c223a078104a9bea328f262392e9593648881d303f6a3d839010ecc739f9302f.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:zh:50": {
+      "audioId": "6b504e4814f6d0e752bc2a180afc175715e50056fce17bb7e295c08298fecdd9",
+      "objectName": "assets/navigation/cmn-CN/Kore/6b504e4814f6d0e752bc2a180afc175715e50056fce17bb7e295c08298fecdd9.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:zh:100": {
+      "audioId": "41491d0d8470fa2e44bc2eb737637e09d9fce94ffa3f7c20017b0a8405a75c3c",
+      "objectName": "assets/navigation/cmn-CN/Kore/41491d0d8470fa2e44bc2eb737637e09d9fce94ffa3f7c20017b0a8405a75c3c.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:zh:200": {
+      "audioId": "88c0902ccb133b417e6e867e98eaaadbf197679f9b3d2dad02859e3fef16b0e4",
+      "objectName": "assets/navigation/cmn-CN/Kore/88c0902ccb133b417e6e867e98eaaadbf197679f9b3d2dad02859e3fef16b0e4.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:zh:300": {
+      "audioId": "97bb9db300b8679ff5b1f6d94b3d14ed151a042e5fcf462368cba74bbe1edd13",
+      "objectName": "assets/navigation/cmn-CN/Kore/97bb9db300b8679ff5b1f6d94b3d14ed151a042e5fcf462368cba74bbe1edd13.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:zh:500": {
+      "audioId": "a265964cafaa791a40549311ee8729c17190ee5e153a0eb6feff02c043bbd610",
+      "objectName": "assets/navigation/cmn-CN/Kore/a265964cafaa791a40549311ee8729c17190ee5e153a0eb6feff02c043bbd610.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-left:zh": {
+      "audioId": "85415df8f579c0ec6302ad429147ac534562ad57998332e64ad1b6ffa8ac751f",
+      "objectName": "assets/navigation/cmn-CN/Kore/85415df8f579c0ec6302ad429147ac534562ad57998332e64ad1b6ffa8ac751f.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:zh:30": {
+      "audioId": "7d23d597c027edf9b1c3e94afa3b3fb58e3de93d345d9b3a48bfc3f0eb362da6",
+      "objectName": "assets/navigation/cmn-CN/Kore/7d23d597c027edf9b1c3e94afa3b3fb58e3de93d345d9b3a48bfc3f0eb362da6.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:zh:50": {
+      "audioId": "791cf8a13abf873718f709ad7d5b05f820d63e312840f0d8bb5b6000ca56fd97",
+      "objectName": "assets/navigation/cmn-CN/Kore/791cf8a13abf873718f709ad7d5b05f820d63e312840f0d8bb5b6000ca56fd97.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:zh:100": {
+      "audioId": "89a4bcf97c69444373041930d16eaa421fd67fbde10cefbd91f449803a412140",
+      "objectName": "assets/navigation/cmn-CN/Kore/89a4bcf97c69444373041930d16eaa421fd67fbde10cefbd91f449803a412140.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:zh:200": {
+      "audioId": "23194e7c6ecc4418a2994b69d8b0f75089c642fc2e0b70a7bb2d236388b5d1f0",
+      "objectName": "assets/navigation/cmn-CN/Kore/23194e7c6ecc4418a2994b69d8b0f75089c642fc2e0b70a7bb2d236388b5d1f0.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:zh:300": {
+      "audioId": "3422abfb7d478eed5b80e2ce42bbaccce4c062db543cfc5776439ebd52a043ac",
+      "objectName": "assets/navigation/cmn-CN/Kore/3422abfb7d478eed5b80e2ce42bbaccce4c062db543cfc5776439ebd52a043ac.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:zh:500": {
+      "audioId": "2386f1312f252790099961dac6e720b628452ec1af462f0eeb115a47a05fa3af",
+      "objectName": "assets/navigation/cmn-CN/Kore/2386f1312f252790099961dac6e720b628452ec1af462f0eeb115a47a05fa3af.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:slight-right:zh": {
+      "audioId": "2ff1bb0a78e35b507f6a4e9b7c27c8c420bd45e4bfaf403bd15cd3613c367e85",
+      "objectName": "assets/navigation/cmn-CN/Kore/2ff1bb0a78e35b507f6a4e9b7c27c8c420bd45e4bfaf403bd15cd3613c367e85.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:zh:30": {
+      "audioId": "89002fd7bc13bad40fb2e0c7350f55c6eae2f53f8e50470608656029126b2190",
+      "objectName": "assets/navigation/cmn-CN/Kore/89002fd7bc13bad40fb2e0c7350f55c6eae2f53f8e50470608656029126b2190.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:zh:50": {
+      "audioId": "4dfebde520669c54aa490be3f2015b0d554a06bb08e72116e383b5e3096fe815",
+      "objectName": "assets/navigation/cmn-CN/Kore/4dfebde520669c54aa490be3f2015b0d554a06bb08e72116e383b5e3096fe815.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:zh:100": {
+      "audioId": "378caf211097974d74b273e4326a17e6dc748966ae58f1210ff26df7c12a328a",
+      "objectName": "assets/navigation/cmn-CN/Kore/378caf211097974d74b273e4326a17e6dc748966ae58f1210ff26df7c12a328a.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:zh:200": {
+      "audioId": "902cfcad12d03f04566241bede7dd75ca7b6945035b8909829ed5b6f4683984d",
+      "objectName": "assets/navigation/cmn-CN/Kore/902cfcad12d03f04566241bede7dd75ca7b6945035b8909829ed5b6f4683984d.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:zh:300": {
+      "audioId": "959fd21142a9219b0e27c4c3854f1f2492e632149ff42b4f0d197d205efc0f42",
+      "objectName": "assets/navigation/cmn-CN/Kore/959fd21142a9219b0e27c4c3854f1f2492e632149ff42b4f0d197d205efc0f42.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:zh:500": {
+      "audioId": "48d82526914a2dd7ad3a65afb7c4cb8589dea93429b7b0da771fc900d893e434",
+      "objectName": "assets/navigation/cmn-CN/Kore/48d82526914a2dd7ad3a65afb7c4cb8589dea93429b7b0da771fc900d893e434.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:right:zh": {
+      "audioId": "55238ca5f57d09dbb89825dcc6b50360978c6b5b8e57b92db14a562b4da709bf",
+      "objectName": "assets/navigation/cmn-CN/Kore/55238ca5f57d09dbb89825dcc6b50360978c6b5b8e57b92db14a562b4da709bf.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:zh:30": {
+      "audioId": "f1d5b7ae7413a5d66e7d80196d053c845930b096626a482f5b62fe3a9d5e3801",
+      "objectName": "assets/navigation/cmn-CN/Kore/f1d5b7ae7413a5d66e7d80196d053c845930b096626a482f5b62fe3a9d5e3801.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:zh:50": {
+      "audioId": "be542341e18b74f468f85f0c06c6288f806d4bdb11c400172d427d89d30d6cda",
+      "objectName": "assets/navigation/cmn-CN/Kore/be542341e18b74f468f85f0c06c6288f806d4bdb11c400172d427d89d30d6cda.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:zh:100": {
+      "audioId": "3716c639e9ba20aa266bb0bbed4a9626a6330deabb2a5533bd7578fce7af42e1",
+      "objectName": "assets/navigation/cmn-CN/Kore/3716c639e9ba20aa266bb0bbed4a9626a6330deabb2a5533bd7578fce7af42e1.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:zh:200": {
+      "audioId": "3db607ce720fde6aca1fcec5ce4b56fcdc9332458320626dab298e584463c4f3",
+      "objectName": "assets/navigation/cmn-CN/Kore/3db607ce720fde6aca1fcec5ce4b56fcdc9332458320626dab298e584463c4f3.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:zh:300": {
+      "audioId": "5c2d94f800d739ba96c16545a9f8a964e5440a7f01c1c065b6f5c28074103ffa",
+      "objectName": "assets/navigation/cmn-CN/Kore/5c2d94f800d739ba96c16545a9f8a964e5440a7f01c1c065b6f5c28074103ffa.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:zh:500": {
+      "audioId": "273b27661c1f9c81b08a65d0eda852e4b707e0311d2d3cd2cb705aac9a614b56",
+      "objectName": "assets/navigation/cmn-CN/Kore/273b27661c1f9c81b08a65d0eda852e4b707e0311d2d3cd2cb705aac9a614b56.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:sharp-right:zh": {
+      "audioId": "4eedf291da3b0aff6d85864fd7f427e8e34d129a60ae9a1260ec1b68fb9ae3e2",
+      "objectName": "assets/navigation/cmn-CN/Kore/4eedf291da3b0aff6d85864fd7f427e8e34d129a60ae9a1260ec1b68fb9ae3e2.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:zh:30": {
+      "audioId": "1c53d6d045bd625d3b9a0c1d36b7b8a0876222f895f1272e2eba79839ae8c179",
+      "objectName": "assets/navigation/cmn-CN/Kore/1c53d6d045bd625d3b9a0c1d36b7b8a0876222f895f1272e2eba79839ae8c179.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:zh:50": {
+      "audioId": "1a75ead5ad9de568568325523099299940bd7b7a41cd8bad6eb71ea4c211bbbf",
+      "objectName": "assets/navigation/cmn-CN/Kore/1a75ead5ad9de568568325523099299940bd7b7a41cd8bad6eb71ea4c211bbbf.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:zh:100": {
+      "audioId": "98b292e9240ef3a1597c04dca6fee2a0e8b3e76c5de7c4ee7074ca5cd6ba00f3",
+      "objectName": "assets/navigation/cmn-CN/Kore/98b292e9240ef3a1597c04dca6fee2a0e8b3e76c5de7c4ee7074ca5cd6ba00f3.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:zh:200": {
+      "audioId": "a584560aa5224771568e0e48eb8e4573c2efdaf59e7e27866da5a29aa9cf2701",
+      "objectName": "assets/navigation/cmn-CN/Kore/a584560aa5224771568e0e48eb8e4573c2efdaf59e7e27866da5a29aa9cf2701.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:zh:300": {
+      "audioId": "2dabd5b08c20a5fc005baacdc74fe75a55ebbfc54e280f7a01286bf689ad59af",
+      "objectName": "assets/navigation/cmn-CN/Kore/2dabd5b08c20a5fc005baacdc74fe75a55ebbfc54e280f7a01286bf689ad59af.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:zh:500": {
+      "audioId": "06e54fd004a5330fa859363d90f20736ab5f096559a662b270280f22a058b81c",
+      "objectName": "assets/navigation/cmn-CN/Kore/06e54fd004a5330fa859363d90f20736ab5f096559a662b270280f22a058b81c.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:uturn:zh": {
+      "audioId": "2f9ded01fa88afa680b751b304d6d045c8c2b75e4d45b8f009110213c5d5284c",
+      "objectName": "assets/navigation/cmn-CN/Kore/2f9ded01fa88afa680b751b304d6d045c8c2b75e4d45b8f009110213c5d5284c.mp3",
+      "locale": "cmn-CN",
+      "style": "navigation",
+      "contentVersion": "v1"
+    },
+    "navigation:arrive:zh": {
+      "audioId": "17bb544af130a5da1d70568642c1d184b52851c12ec9149ee25a39850647bfa2",
+      "objectName": "assets/arrival/cmn-CN/Kore/17bb544af130a5da1d70568642c1d184b52851c12ec9149ee25a39850647bfa2.mp3",
+      "locale": "cmn-CN",
+      "style": "arrival",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_leopard_statue:ko": {
+      "audioId": "88da3264ffb83d3fa822be2959132f066bae8d3a5913892ef000710f5458e6c3",
+      "objectName": "assets/core-docent/ko-KR/Kore/88da3264ffb83d3fa822be2959132f066bae8d3a5913892ef000710f5458e6c3.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_engineering_airplane:ko": {
+      "audioId": "1104b9d83ad7f16959e76031f9c8998b5f41bc452b7ea48995fefcb217689ea3",
+      "objectName": "assets/core-docent/ko-KR/Kore/1104b9d83ad7f16959e76031f9c8998b5f41bc452b7ea48995fefcb217689ea3.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_engineering_park:ko": {
+      "audioId": "9047fcf0662f2061a63c8b018f3f82a36053755be4e222c83cfc415b7c6ac880",
+      "objectName": "assets/core-docent/ko-KR/Kore/9047fcf0662f2061a63c8b018f3f82a36053755be4e222c83cfc415b7c6ac880.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_club_building:ko": {
+      "audioId": "6dc346080cf7792bc8b2b7bd26baa000cd53fd0eec3b8f7c2abc8c0d76a86b73",
+      "objectName": "assets/core-docent/ko-KR/Kore/6dc346080cf7792bc8b2b7bd26baa000cd53fd0eec3b8f7c2abc8c0d76a86b73.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_basketball_court:ko": {
+      "audioId": "bf696bf22ebd2cb51e9cd5391052963ad04efb156df493e0d3f0669b839c7377",
+      "objectName": "assets/core-docent/ko-KR/Kore/bf696bf22ebd2cb51e9cd5391052963ad04efb156df493e0d3f0669b839c7377.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_museum_pavilion:ko": {
+      "audioId": "595846abdac4eaf1f39b97d01a84ce4aca350e84f9173d2cfbf7adf2cee5cb58",
+      "objectName": "assets/core-docent/ko-KR/Kore/595846abdac4eaf1f39b97d01a84ce4aca350e84f9173d2cfbf7adf2cee5cb58.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_cultural_center_park:ko": {
+      "audioId": "8fc5fad34d0c28167a077de613982365a142ec2aeacd3d1e4cc58629f6e6ca02",
+      "objectName": "assets/core-docent/ko-KR/Kore/8fc5fad34d0c28167a077de613982365a142ec2aeacd3d1e4cc58629f6e6ca02.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_humanities_cherry_road:ko": {
+      "audioId": "139e25c1e31d57fbecb9a224a9c6ed892e5d03c7d9e2a6b669b6fd221de8085b",
+      "objectName": "assets/core-docent/ko-KR/Kore/139e25c1e31d57fbecb9a224a9c6ed892e5d03c7d9e2a6b669b6fd221de8085b.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_agriculture_cherry_road:ko": {
+      "audioId": "ea96dad99a42c19073c919cf9f9b761a8c5b830734cc7e69876e963162fd388c",
+      "objectName": "assets/core-docent/ko-KR/Kore/ea96dad99a42c19073c919cf9f9b761a8c5b830734cc7e69876e963162fd388c.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_shuttle_route1_student_hall:ko": {
+      "audioId": "c8b879178b94dced9b89b6dc2a74da8eabc8a4101ad899eb1568ee578d38e23a",
+      "objectName": "assets/core-docent/ko-KR/Kore/c8b879178b94dced9b89b6dc2a74da8eabc8a4101ad899eb1568ee578d38e23a.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_shuttle_route2_student_hall:ko": {
+      "audioId": "8fbef4566272fa45bb5ba76c510fb861c7fad30a6438ebb5ddee0809770ab5d7",
+      "objectName": "assets/core-docent/ko-KR/Kore/8fbef4566272fa45bb5ba76c510fb861c7fad30a6438ebb5ddee0809770ab5d7.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_shuttle_route1_jinsudang:ko": {
+      "audioId": "3622814a1a5abea79b911f1c9af8d4743714a73c9d3499a34363493580d27503",
+      "objectName": "assets/core-docent/ko-KR/Kore/3622814a1a5abea79b911f1c9af8d4743714a73c9d3499a34363493580d27503.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    }
+  }
 }

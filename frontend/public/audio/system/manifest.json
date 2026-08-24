@@ -1,3 +1,12 @@
 {
-  "available": []
+  "available": [
+    "audio-unavailable-en.mp3",
+    "audio-unavailable-ja.mp3",
+    "audio-unavailable-ko.mp3",
+    "audio-unavailable-zh.mp3",
+    "network-unavailable-en.mp3",
+    "network-unavailable-ja.mp3",
+    "network-unavailable-ko.mp3",
+    "network-unavailable-zh.mp3"
+  ]
 }

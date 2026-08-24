@@ -183,8 +183,8 @@ function remainingRouteDistance(
 
 export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const router = useRouter();
-  const { locale, isMuted, t } = useAppSettings();
-  const { speak, prefetch, clearCategory } = useAudioGuide();
+  const { locale, t } = useAppSettings();
+  const { speak, prefetch, clearCategory, beginNetworkGrace } = useAudioGuide();
   const [tourData, setTourData] = useState(() => addCurrentLocationStart(data));
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -205,12 +205,13 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const confirmedArrivalStopIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
+    beginNetworkGrace();
     clientDebug("tour", "mounted", {
       stops: data.stops.length,
       routeSegments: data.routeSegments.length,
     });
     return () => clientDebug("tour", "unmounted");
-  }, [data.routeSegments.length, data.stops.length]);
+  }, [beginNetworkGrace, data.routeSegments.length, data.stops.length]);
 
   const currentStop = tourData?.stops?.[currentStopIndex];
   const nextStop = currentStop?.nextStopId
@@ -270,7 +271,10 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.docentText);
 
   useEffect(() => {
-    if (!narrationStop || !narrationText) return;
+    // Only immutable, reviewed tour scripts are prefetched. Dynamic segment
+    // tips may need model synthesis and should never delay or colour the tour
+    // start as a network problem.
+    if (!narrationStop || !narrationText || !hasReviewedNarration) return;
     void prefetch({
       id: `prefetch:tour-stop:${narrationStop.id}:${locale}`,
       text: narrationText,
@@ -281,9 +285,10 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
         ? { kind: "asset", assetId: `core-docent:${narrationStop.id}:${locale}` }
         : { kind: "tts" },
       interruptible: true,
+      resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
     });
-  }, [hasReviewedNarration, isMuted, locale, narrationStop, narrationText, prefetch]);
+  }, [hasReviewedNarration, locale, narrationStop, narrationText, prefetch]);
 
   useEffect(() => {
     if (!narrationStop || !narrationText) return;
@@ -292,7 +297,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     if (!arrived || (locationAccuracy !== null && locationAccuracy > 30 && !manuallyConfirmed)) return;
     const narrationId = `${narrationStop.id}:${locale}`;
     if (narratedStopIdsRef.current.has(narrationId)) return;
-    if (!isMuted) narratedStopIdsRef.current.add(narrationId);
+    narratedStopIdsRef.current.add(narrationId);
     void speak({
       id: `tour-stop:${narrationId}`,
       text: narrationText,
@@ -303,9 +308,10 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
         ? { kind: "asset", assetId: `core-docent:${narrationStop.id}:${locale}` }
         : { kind: "tts" },
       interruptible: true,
+      resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
     });
-  }, [canAdvance, hasArrived, hasReviewedNarration, isMuted, locale, locationAccuracy, narrationStop, narrationText, nextStop, speak]);
+  }, [canAdvance, hasArrived, hasReviewedNarration, locale, locationAccuracy, narrationStop, narrationText, nextStop, speak]);
 
   useEffect(() => {
     if (distanceFromRoute === null) return;
@@ -617,6 +623,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       priority: 65,
       source: { kind: "tts" },
       interruptible: true,
+      resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
     });
   }
@@ -644,6 +651,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
         ? { kind: "asset", assetId: `core-docent:${spot.id}:ko` }
         : { kind: "tts" },
       interruptible: true,
+      resumePolicy: "resume",
       report: { placeId: spot.id, placeName: spot.name, include: true },
     });
   }

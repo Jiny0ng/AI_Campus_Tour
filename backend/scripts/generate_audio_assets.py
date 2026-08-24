@@ -11,6 +11,7 @@ import csv
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 
@@ -19,10 +20,17 @@ REPOSITORY_DIR = BACKEND_DIR.parent
 CONTENT_DIR = REPOSITORY_DIR / "campusdata" / "audio_content"
 MANIFEST_PATH = CONTENT_DIR / "audio_manifest.json"
 PLACES_PATH = REPOSITORY_DIR / "campusdata" / "campus_places.csv"
+SYSTEM_PUBLIC_DIR = Path(
+    os.getenv(
+        "AUDIO_SYSTEM_PUBLIC_DIR",
+        str(REPOSITORY_DIR / "frontend" / "public" / "audio" / "system"),
+    )
+)
 sys.path.insert(0, str(BACKEND_DIR))
 
-from services.audio_storage import write_object  # noqa: E402
+from services.audio_storage import is_configured, read_object, write_object  # noqa: E402
 from services.tts_service import (  # noqa: E402
+    TtsUnavailable,
     _synthesize_with_google,
     audio_id_for,
     normalize_text,
@@ -32,6 +40,28 @@ from services.tts_service import (  # noqa: E402
 
 LOCALES = {"ko-KR", "en-US", "ja-JP", "cmn-CN"}
 DISTANCE_BUCKETS = (30, 50, 100, 200, 300, 500)
+
+
+def save_manifest(manifest: dict) -> None:
+    """Persist progress after every asset so a transient API error is resumable."""
+    temporary_path = MANIFEST_PATH.with_suffix(".json.tmp")
+    temporary_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    temporary_path.replace(MANIFEST_PATH)
+
+
+def synthesize_with_retry(text: str, locale: str, style: str) -> bytes:
+    delays = (2, 5)
+    for attempt in range(len(delays) + 1):
+        try:
+            return _synthesize_with_google(text, locale, style)
+        except TtsUnavailable:
+            if attempt >= len(delays):
+                raise
+            time.sleep(delays[attempt])
+    raise AssertionError("unreachable")
 
 
 def read_rows(path: Path) -> list[dict[str, str]]:
@@ -148,20 +178,29 @@ def main() -> int:
         return 1
     if not args.apply:
         return 0
+    if not is_configured():
+        print("TTS_BUCKET_NAME is required when --apply is used", file=sys.stderr)
+        return 1
 
     local_system_files: set[str] = set()
-    for row, text, version, audio_id, object_name in planned:
-        content = _synthesize_with_google(text, row["locale"], row["style"])
-        write_object(
-            object_name,
-            content,
-            {
-                "content_hash": audio_id,
-                "locale": row["locale"],
-                "style": row["style"],
-                "content_version": version,
-            },
-        )
+    reused_objects = 0
+    for completed, (row, text, version, audio_id, object_name) in enumerate(planned, start=1):
+        stored = read_object(object_name)
+        if stored is not None:
+            content = stored.content
+            reused_objects += 1
+        else:
+            content = synthesize_with_retry(text, row["locale"], row["style"])
+            write_object(
+                object_name,
+                content,
+                {
+                    "content_hash": audio_id,
+                    "locale": row["locale"],
+                    "style": row["style"],
+                    "content_version": version,
+                },
+            )
         manifest["assets"][row["id"]] = {
             "audioId": audio_id,
             "objectName": object_name,
@@ -172,18 +211,22 @@ def main() -> int:
         if row["style"] == "system":
             parts = row["id"].split(":")
             if len(parts) == 3:
-                local_dir = REPOSITORY_DIR / "frontend" / "public" / "audio" / "system"
-                local_dir.mkdir(parents=True, exist_ok=True)
-                local_path = local_dir / f"{parts[1]}-{parts[2]}.mp3"
+                SYSTEM_PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
+                local_path = SYSTEM_PUBLIC_DIR / f"{parts[1]}-{parts[2]}.mp3"
                 local_path.write_bytes(content)
                 local_system_files.add(local_path.name)
                 manifest["assets"][row["id"]]["localPath"] = str(
-                    local_path.relative_to(REPOSITORY_DIR / "frontend" / "public")
+                    local_path.relative_to(SYSTEM_PUBLIC_DIR.parent.parent)
                 )
+        save_manifest(manifest)
+        print(json.dumps({
+            "completed": completed,
+            "total": len(planned),
+            "assetId": row["id"],
+            "storage": "reused" if stored is not None else "created",
+        }, ensure_ascii=False), flush=True)
 
-    system_manifest_path = (
-        REPOSITORY_DIR / "frontend" / "public" / "audio" / "system" / "manifest.json"
-    )
+    system_manifest_path = SYSTEM_PUBLIC_DIR / "manifest.json"
     existing_local_files = {
         path.name for path in system_manifest_path.parent.glob("*.mp3")
     }
@@ -192,10 +235,8 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    MANIFEST_PATH.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
+    save_manifest(manifest)
+    print(json.dumps({"reusedStoredAssets": reused_objects}, ensure_ascii=False))
     return 0
 
 

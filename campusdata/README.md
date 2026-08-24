@@ -3,7 +3,7 @@
 캠퍼스 원본 데이터는 아래 두 CSV만 수정합니다.
 
 - `campus_places.csv`: 건물, 매장, 도슨트 지점, 투어 정류장
-- `campus_interiors.csv`: 층, 호실
+- `campus_interiors.csv`: 층, 호실, 층별 편의시설
 
 두 파일은 공통적으로 `entity_type`, 전역 고유 `id`, 상위 개체를 가리키는
 `parent_id`를 사용합니다. 따라서 `rels_building_floor.csv`와
@@ -25,6 +25,7 @@ python campusdata/consolidate_csv.py
 | `tour_stop` | `campus_places.csv` | `id`, `tour_order` |
 | `floor` | `campus_interiors.csv` | `id`, `parent_id`(건물) |
 | `room` | `campus_interiors.csv` | `id`, `parent_id`(층) |
+| `facility` | `campus_interiors.csv` | `id`, `parent_id`(층), `features`, `note` |
 
 빈 칼럼은 해당 분류에 적용되지 않는 속성입니다. 좌표는 모든 장소 분류에서
 동일하게 `latitude`, `longitude`, `coordinate_source`로 관리합니다.

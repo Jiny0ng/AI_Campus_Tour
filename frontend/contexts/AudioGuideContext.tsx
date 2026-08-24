@@ -28,7 +28,8 @@ import type {
 
 const AudioGuideContext = createContext<AudioGuideApi | null>(null);
 
-type ActiveAudio = QueuedAudio & { token: number };
+type ActiveAudio = QueuedAudio & { token: number; sourceUrl?: string };
+type SuspendedAudio = ActiveAudio & { sourceUrl: string; positionSeconds: number };
 
 function silentWavUrl() {
   const sampleCount = 2_205;
@@ -66,6 +67,7 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
   const cacheRef = useRef<AudioBlobLru | null>(null);
   const queueRef = useRef<QueuedAudio[]>([]);
   const activeRef = useRef<ActiveAudio | null>(null);
+  const suspendedRef = useRef<SuspendedAudio | null>(null);
   const orderRef = useRef(0);
   const tokenRef = useRef(0);
   const seenIdsRef = useRef(new Set<string>());
@@ -74,13 +76,17 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
   const networkRef = useRef<NetworkQuality>("online");
   const samplesRef = useRef<NetworkSample[]>([]);
   const unlockedRef = useRef(false);
-  const pausedByMuteRef = useRef(false);
   const networkMessagePlayedRef = useRef(false);
+  const networkGraceUntilRef = useRef(0);
   const localSystemFilesRef = useRef(new Set<string>());
   const drainRef = useRef<() => void>(() => undefined);
+  const resumeSuspendedRef = useRef<() => void>(() => undefined);
 
   const updateNetwork = useCallback((sample: NetworkSample, browserOnline = navigator.onLine) => {
     samplesRef.current = [...samplesRef.current.slice(-4), sample];
+    // Browser offline is definitive. Otherwise, allow initial route, GPS and
+    // audio requests to settle before surfacing a non-blocking warning.
+    if (browserOnline && Date.now() < networkGraceUntilRef.current) return;
     const next = nextNetworkQuality(networkRef.current, samplesRef.current, browserOnline);
     networkRef.current = next;
     setStatus((current) => ({ ...current, network: next }));
@@ -100,6 +106,19 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     setStatus((current) => ({ ...current, request: null, playback: "idle" }));
   }, []);
 
+  const finishSuspended = useCallback((outcome: PlaybackOutcome) => {
+    const suspended = suspendedRef.current;
+    if (!suspended) return;
+    if (suspended.request.report?.include) {
+      recordNarrationEvent(
+        suspended.request,
+        outcome === "skipped" ? "text-only" : outcome,
+      );
+    }
+    suspended.resolve(outcome);
+    suspendedRef.current = null;
+  }, []);
+
   const loadUrl = useCallback(async (request: AudioRequest) => {
     const key = audioCacheKey(request);
     const cache = cacheRef.current;
@@ -110,15 +129,27 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController();
     controllersRef.current.add(controller);
     const operation = fetchAudio(request, controller.signal, networkRef.current === "online")
-      .then(({ blob, ttfbMs }) => {
-        updateNetwork({ ttfbMs, ok: true, at: Date.now() });
+      .then(({ blob, ttfbMs, source }) => {
+        updateNetwork({
+          ttfbMs,
+          ok: true,
+          at: Date.now(),
+          source,
+          affectsQuality: source !== "realtime-tts",
+        });
         return cache?.put(key, blob) ?? URL.createObjectURL(blob);
       })
       .catch((error: unknown) => {
         const ttfbMs = typeof error === "object" && error !== null && "ttfbMs" in error
           ? Number(error.ttfbMs)
           : 12_000;
-        updateNetwork({ ttfbMs, ok: false, at: Date.now() });
+        updateNetwork({
+          ttfbMs,
+          ok: false,
+          at: Date.now(),
+          source: request.source.kind === "asset" ? "asset-cache" : "realtime-tts",
+          affectsQuality: request.source.kind === "asset",
+        });
         throw error;
       })
       .finally(() => {
@@ -130,7 +161,7 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
   }, [updateNetwork]);
 
   const startItem = useCallback(async (item: QueuedAudio) => {
-    if (isExpired(item.request) || isMuted) {
+    if (isExpired(item.request)) {
       if (item.request.report?.include) recordNarrationEvent(item.request, "text-only");
       item.resolve("skipped");
       drainRef.current();
@@ -156,9 +187,10 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       }
       const audio = audioRef.current;
       if (!audio) throw new Error("audio element is unavailable");
+      if (activeRef.current?.token === token) activeRef.current.sourceUrl = url;
       audio.src = url;
       audio.volume = volume;
-      audio.muted = false;
+      audio.muted = isMuted;
       await audio.play();
       unlockedRef.current = true;
       setStatus((current) => ({ ...current, playback: "playing" }));
@@ -174,14 +206,59 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     }
   }, [finishActive, isMuted, loadUrl, volume]);
 
+  const resumeSuspended = useCallback(async () => {
+    const suspended = suspendedRef.current;
+    const audio = audioRef.current;
+    if (!suspended || !audio) return;
+    if (isExpired(suspended.request)) {
+      finishSuspended("skipped");
+      drainRef.current();
+      return;
+    }
+
+    const token = ++tokenRef.current;
+    activeRef.current = { ...suspended, token, sourceUrl: suspended.sourceUrl };
+    suspendedRef.current = null;
+    setStatus((current) => ({ ...current, request: suspended.request, playback: "loading" }));
+    try {
+      audio.src = suspended.sourceUrl;
+      audio.currentTime = suspended.positionSeconds;
+      audio.volume = volume;
+      audio.muted = isMuted;
+      await audio.play();
+      unlockedRef.current = true;
+      setStatus((current) => ({ ...current, playback: "playing" }));
+    } catch (error) {
+      if (activeRef.current?.token !== token || tokenRef.current !== token) return;
+      const blocked = error instanceof DOMException && error.name === "NotAllowedError";
+      if (blocked) {
+        setStatus((current) => ({ ...current, playback: "blocked" }));
+        return;
+      }
+      finishActive("skipped");
+      drainRef.current();
+    }
+  }, [finishActive, finishSuspended, isMuted, volume]);
+  resumeSuspendedRef.current = () => { void resumeSuspended(); };
+
   const drain = useCallback(() => {
     if (activeRef.current) return;
-    let next = queueRef.current.shift();
+    let next = queueRef.current[0];
     while (next && isExpired(next.request)) {
+      queueRef.current.shift();
       next.resolve("skipped");
-      next = queueRef.current.shift();
+      next = queueRef.current[0];
     }
-    if (next) void startItem(next);
+    // A suspended docent keeps its place ahead of ordinary queued audio. Only
+    // another urgent route instruction may run before it resumes.
+    if (suspendedRef.current && (!next || next.request.priority < 90)) {
+      resumeSuspendedRef.current();
+      return;
+    }
+    if (next) {
+      queueRef.current.shift();
+      void startItem(next);
+    }
   }, [startItem]);
   drainRef.current = drain;
 
@@ -201,15 +278,36 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       await new Promise((resolve) => window.setTimeout(resolve, 30));
     }
     audio.pause();
-    finishActive("interrupted");
+    const sourceUrl = active.sourceUrl;
+    const canResume = ["navigation", "arrival"].includes(item.request.category)
+      && active.request.resumePolicy === "resume"
+      && typeof sourceUrl === "string";
+    if (canResume && sourceUrl) {
+      suspendedRef.current = {
+        ...active,
+        sourceUrl,
+        positionSeconds: audio.currentTime,
+      };
+      activeRef.current = null;
+      setStatus((current) => ({ ...current, request: null, playback: "idle" }));
+    } else if (!sourceUrl) {
+      // The previous item was still loading. Retry it after the urgent
+      // instruction instead of resolving its promise as if it had completed.
+      activeRef.current = null;
+      queueRef.current = enqueueByPriority(queueRef.current, active);
+      setStatus((current) => ({ ...current, request: null, playback: "idle" }));
+    } else {
+      finishActive("interrupted");
+    }
     audio.volume = volume;
+    audio.muted = isMuted;
     await startItem(item);
-  }, [finishActive, startItem, volume]);
+  }, [finishActive, isMuted, startItem, volume]);
 
   const speak = useCallback((request: AudioRequest) => new Promise<PlaybackOutcome>((resolve) => {
     const dynamicBlocked = networkRef.current !== "online"
       && ["location-docent", "filler", "user-answer"].includes(request.category);
-    if (!request.text.trim() || isMuted || dynamicBlocked || isExpired(request) || seenIdsRef.current.has(request.id)) {
+    if (!request.text.trim() || dynamicBlocked || isExpired(request) || seenIdsRef.current.has(request.id)) {
       if (request.report?.include) recordNarrationEvent(request, "text-only");
       resolve("skipped");
       return;
@@ -223,27 +321,28 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     }
     queueRef.current = enqueueByPriority(queueRef.current, item);
     drainRef.current();
-  }), [interruptAndStart, isMuted]);
+  }), [interruptAndStart]);
 
   const prefetch = useCallback(async (request: AudioRequest) => {
     const dynamicBlocked = networkRef.current !== "online"
       && ["location-docent", "filler", "user-answer"].includes(request.category);
-    if (isMuted || dynamicBlocked || isExpired(request) || networkRef.current === "text-only") return;
+    if (dynamicBlocked || isExpired(request) || networkRef.current === "text-only") return;
     try {
       await loadUrl(request);
     } catch {
       // Prefetch is opportunistic and must not affect screen behavior.
     }
-  }, [isMuted, loadUrl]);
+  }, [loadUrl]);
 
   const stop = useCallback((_reason?: string) => {
     tokenRef.current += 1;
     const audio = audioRef.current;
     audio?.pause();
     if (activeRef.current) finishActive("interrupted");
+    finishSuspended("interrupted");
     queueRef.current.forEach((item) => item.resolve("skipped"));
     queueRef.current = [];
-  }, [finishActive]);
+  }, [finishActive, finishSuspended]);
 
   const pause = useCallback(() => {
     audioRef.current?.pause();
@@ -267,7 +366,7 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       audio.muted = true;
       await audio.play();
       audio.pause();
-      audio.muted = false;
+      audio.muted = isMuted;
       unlockedRef.current = true;
       return true;
     } catch {
@@ -275,6 +374,13 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     } finally {
       URL.revokeObjectURL(url);
     }
+  }, [isMuted]);
+
+  const beginNetworkGrace = useCallback((durationMs = 10_000) => {
+    networkGraceUntilRef.current = Math.max(
+      networkGraceUntilRef.current,
+      Date.now() + Math.max(0, durationMs),
+    );
   }, []);
 
   const clearCategory = useCallback((category: AudioCategory) => {
@@ -289,7 +395,8 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       finishActive("interrupted");
       drainRef.current();
     }
-  }, [finishActive]);
+    if (suspendedRef.current?.request.category === category) finishSuspended("interrupted");
+  }, [finishActive, finishSuspended]);
 
   useEffect(() => {
     const audio = new Audio();
@@ -320,23 +427,17 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       audio.removeEventListener("error", failed);
       audio.pause();
       controllersRef.current.forEach((controller) => controller.abort());
+      finishSuspended("interrupted");
       cacheRef.current?.clear();
       audioRef.current = null;
     };
-  }, [finishActive, unlock]);
+  }, [finishActive, finishSuspended, unlock]);
 
   useEffect(() => {
     if (!audioRef.current) return;
     audioRef.current.volume = volume;
     audioRef.current.muted = isMuted;
-    if (isMuted && activeRef.current) {
-      pausedByMuteRef.current = true;
-      pause();
-    } else if (!isMuted && pausedByMuteRef.current && activeRef.current) {
-      pausedByMuteRef.current = false;
-      resume();
-    }
-  }, [isMuted, pause, resume, volume]);
+  }, [isMuted, volume]);
 
   useEffect(() => {
     const receiveSample = (event: Event) => {
@@ -373,9 +474,9 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       const started = performance.now();
       try {
         const response = await fetch("/api/health/network", { cache: "no-store" });
-        updateNetwork({ ttfbMs: performance.now() - started, ok: response.ok, at: Date.now() });
+        updateNetwork({ ttfbMs: performance.now() - started, ok: response.ok, at: Date.now(), source: "health" });
       } catch {
-        updateNetwork({ ttfbMs: performance.now() - started, ok: false, at: Date.now() });
+        updateNetwork({ ttfbMs: performance.now() - started, ok: false, at: Date.now(), source: "health" });
       }
     };
     void check();
@@ -386,7 +487,6 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (
       status.network !== "text-only"
-      || isMuted
       || activeRef.current
       || networkMessagePlayedRef.current
       || !audioRef.current
@@ -397,6 +497,7 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     audio.src = `/audio/system/${filename}`;
     audio.volume = volume;
+    audio.muted = isMuted;
     void audio.play().catch(() => undefined);
   }, [isMuted, locale, status.network, volume]);
 
@@ -408,8 +509,9 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     pause,
     resume,
     unlock,
+    beginNetworkGrace,
     clearCategory,
-  }), [clearCategory, pause, prefetch, resume, speak, status, stop, unlock]);
+  }), [beginNetworkGrace, clearCategory, pause, prefetch, resume, speak, status, stop, unlock]);
 
   return (
     <AudioGuideContext.Provider value={value}>

@@ -117,7 +117,12 @@ def get_audio_asset(asset_id: str):
         raise HTTPException(status_code=503, detail="음성 저장소를 사용할 수 없습니다.") from error
     if stored is None or not isinstance(asset_meta, dict):
         raise HTTPException(status_code=404, detail="음성 파일을 찾을 수 없습니다.")
-    headers = {"Cache-Control": "private, max-age=604800"}
+    headers = {
+        "Cache-Control": "private, max-age=604800",
+        # Lets the frontend distinguish an already-generated GCS asset from a
+        # real-time synthesis delay when assessing network quality.
+        "X-Audio-Cache": "HIT",
+    }
     if stored.etag:
         headers["ETag"] = stored.etag
     return Response(stored.content, media_type="audio/mpeg", headers=headers)

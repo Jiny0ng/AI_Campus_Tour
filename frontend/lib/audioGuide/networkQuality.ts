@@ -1,6 +1,17 @@
 import type { NetworkQuality } from "@/types/audioGuide";
 
-export type NetworkSample = { ttfbMs: number; ok: boolean; at: number };
+/**
+ * `realtime-tts` includes model synthesis time, not just network latency.  It
+ * is retained for diagnostics but must not make the whole application appear
+ * offline.
+ */
+export type NetworkSample = {
+  ttfbMs: number;
+  ok: boolean;
+  at: number;
+  source?: "api" | "health" | "asset-cache" | "realtime-tts";
+  affectsQuality?: boolean;
+};
 
 export function nextNetworkQuality(
   current: NetworkQuality,
@@ -8,7 +19,7 @@ export function nextNetworkQuality(
   browserOnline: boolean,
 ): NetworkQuality {
   if (!browserOnline) return "text-only";
-  const recent = samples.slice(-5);
+  const recent = samples.filter((sample) => sample.affectsQuality !== false).slice(-5);
   const lastTwo = recent.slice(-2);
   const slowOrFailed = lastTwo.length === 2 && lastTwo.every((sample) => (
     !sample.ok || sample.ttfbMs > 3_000
@@ -29,4 +40,3 @@ export function nextNetworkQuality(
   if (slowOrFailed || failuresInThirtySeconds >= 2) return "degraded";
   return current;
 }
-

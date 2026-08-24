@@ -1,0 +1,33 @@
+name: Refresh managed GCP TTS assets
+
+on:
+  # 03:00 KST on the 2nd and 16th (UTC cron dates 1st and 15th).
+  # Content hashes make unchanged assets a no-op.
+  schedule:
+    - cron: "0 18 1,15 * *"
+  workflow_dispatch:
+
+concurrency:
+  group: production-audio-assets
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Generate changed managed assets on the production VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          port: 22
+          command_timeout: 25m
+          script: |
+            set -Eeuo pipefail
+            cd ~/AI_Campus_Tour
+            # The deployed revision is the content source of truth. The script
+            # compares content hashes and synthesizes/uploads only changed rows.
+            docker-compose --profile audio run --rm audio-asset-generator
+            docker-compose exec -T backend python /app/scripts/validate_audio_manifest.py

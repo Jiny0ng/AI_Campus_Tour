@@ -17,6 +17,8 @@ export type AudioRequest = {
   priority: number;
   source: { kind: "asset"; assetId: string } | { kind: "tts" };
   interruptible: boolean;
+  /** Whether a navigation/arrival interruption should continue this audio later. */
+  resumePolicy?: "resume" | "discard";
   expiresAt?: number;
   report?: { placeId?: string; placeName?: string; include: boolean };
 };
@@ -40,6 +42,8 @@ export type AudioGuideApi = {
   pause(): void;
   resume(): void;
   unlock(): Promise<boolean>;
+  /** Keep the initial tour requests from prematurely showing a degraded state. */
+  beginNetworkGrace(durationMs?: number): void;
   clearCategory(category: AudioCategory): void;
 };
 
@@ -53,4 +57,3 @@ export type TourNarrationEvent = {
   playback: "completed" | "interrupted" | "text-only";
   includeInReport: boolean;
 };
-

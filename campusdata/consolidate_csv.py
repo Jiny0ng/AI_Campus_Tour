@@ -11,7 +11,7 @@ from pathlib import Path
 DATA_DIR = Path(__file__).resolve().parent
 CANONICAL_FILES = ("campus_places.csv", "campus_interiors.csv")
 PLACE_TYPES = {"building", "store", "docent_spot", "tour_stop"}
-INTERIOR_TYPES = {"floor", "room"}
+INTERIOR_TYPES = {"floor", "room", "facility"}
 
 
 def read_csv(filename: str) -> list[dict[str, str]]:

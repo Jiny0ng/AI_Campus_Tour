@@ -48,7 +48,7 @@ function normalizeMode(value: string | null): TransportModeValue {
 export function NavigationScreen({ data }: NavigationScreenProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { locale, isMuted } = useAppSettings();
+  const { locale } = useAppSettings();
   const { speak, prefetch, clearCategory } = useAudioGuide();
   const mode = normalizeMode(searchParams.get("mode"));
   const destination = destinationFromSearchParams(searchParams, data.places[0]);
@@ -156,7 +156,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   );
 
   useEffect(() => {
-    if (!drivingRoute || isMuted) return;
+    if (!drivingRoute) return;
     const nextIndex = drivingProgress?.nextGuide
       ? drivingRoute.guides.findIndex((guide) => guide.pointIndex === drivingProgress.nextGuide?.pointIndex)
       : 0;
@@ -172,7 +172,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
         interruptible: false,
       });
     });
-  }, [drivingProgress?.nextGuide, drivingRoute, isMuted, locale, prefetch]);
+  }, [drivingProgress?.nextGuide, drivingRoute, locale, prefetch]);
 
   useEffect(() => {
     if (!drivingProgress || !drivingRoute) return;
@@ -201,7 +201,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   ]);
 
   useEffect(() => {
-    if (!drivingProgress?.nextGuide || isMuted) return;
+    if (!drivingProgress?.nextGuide) return;
     const triggerDistance = mode === "car" ? 180 : 40;
     if (drivingProgress.distanceToNextGuideMeters > triggerDistance) return;
 
@@ -221,20 +221,16 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
       interruptible: false,
       expiresAt: Date.now() + (mode === "car" ? 45_000 : 30_000),
     });
-  }, [drivingProgress, drivingRoute?.generatedAt, isMuted, locale, mode, speak]);
+  }, [drivingProgress, drivingRoute?.generatedAt, locale, mode, speak]);
 
   useEffect(() => {
-    if (!drivingRoute || isMuted || destinationSpokenRef.current === destination.id) return;
+    if (!drivingRoute || destinationSpokenRef.current === destination.id) return;
     destinationSpokenRef.current = destination.id;
     const message = `${destination.name}. ${destination.description}`;
     setDocentMessage(message);
     lastDocentAtRef.current = Date.now();
 
     const timer = window.setTimeout(() => {
-      if (
-        drivingRoute.guides[0]
-        && drivingRoute.guides[0].distanceMeters <= (mode === "car" ? 180 : 40)
-      ) return;
       void speak({
         id: `guide-destination:${destination.id}:${locale}`,
         text: message,
@@ -243,10 +239,11 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
         priority: 30,
         source: { kind: "tts" },
         interruptible: true,
+        resumePolicy: "resume",
       });
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [destination.description, destination.id, destination.name, drivingRoute, isMuted, locale, mode, speak]);
+  }, [destination.description, destination.id, destination.name, drivingRoute, locale, speak]);
 
   useEffect(() => {
     if (!drivingRoute) return;
@@ -279,7 +276,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
         setDocentMessage(message);
 
         const canSpeak = mode !== "car"
-          && !isMuted && Date.now() - lastDocentAtRef.current >= 60_000
+          && Date.now() - lastDocentAtRef.current >= 60_000
           && (!drivingProgress?.nextGuide || drivingProgress.distanceToNextGuideMeters > 220);
         if (canSpeak) {
           lastDocentAtRef.current = Date.now();
@@ -291,13 +288,14 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
             priority: 30,
             source: { kind: "tts" },
             interruptible: true,
+            resumePolicy: "discard",
           });
         }
       })
       .catch(() => undefined);
 
     return () => controller.abort();
-  }, [currentLocation, destination.id, drivingProgress, drivingRoute, isMuted, locale, mode, speak]);
+  }, [currentLocation, destination.id, drivingProgress, drivingRoute, locale, mode, speak]);
 
   useEffect(() => () => {
     clearCategory("navigation");

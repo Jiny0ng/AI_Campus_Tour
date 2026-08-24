@@ -67,6 +67,27 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # 고정 음성 자산을 GCS에 생성하는 일회성 작업. campusdata와 시스템 음성
+  # 폴더만 쓰기 가능하며, 일반 backend 컨테이너는 계속 읽기 전용으로 유지한다.
+  audio-asset-generator:
+    build: ./backend
+    command: ["python", "/app/scripts/generate_audio_assets.py", "--allow-missing-core-docent", "--apply"]
+    volumes:
+      - ./backend:/app
+      - ./campusdata:/campusdata
+      - ./frontend/public/audio/system:/frontend/audio/system
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-}
+      - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID:-}
+      - GOOGLE_CLOUD_REGION=${GOOGLE_CLOUD_REGION:-global}
+      - TTS_BUCKET_NAME=${TTS_BUCKET_NAME:-}
+      - TTS_MODEL=${TTS_MODEL:-gemini-2.5-flash-tts}
+      - TTS_VOICE_NAME=${TTS_VOICE_NAME:-Kore}
+      - TTS_PROMPT_VERSION=${TTS_PROMPT_VERSION:-v1}
+      - AUDIO_SYSTEM_PUBLIC_DIR=/frontend/audio/system
+    profiles: ["audio"]
+    restart: "no"
+
   # -----------------------------------------------
   # 4. Neo4j 지식 그래프 데이터베이스
   # -----------------------------------------------
