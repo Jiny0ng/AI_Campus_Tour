@@ -1,10 +1,10 @@
 name: Refresh managed GCP TTS assets
 
 on:
-  # 03:00 KST on the 2nd and 16th (UTC cron dates 1st and 15th).
+  # Every Monday at 03:00 KST (Sunday 18:00 UTC).
   # Content hashes make unchanged assets a no-op.
   schedule:
-    - cron: "0 18 1,15 * *"
+    - cron: "0 18 * * 0"
   workflow_dispatch:
 
 concurrency:
@@ -29,5 +29,8 @@ jobs:
             cd ~/AI_Campus_Tour
             # The deployed revision is the content source of truth. The script
             # compares content hashes and synthesizes/uploads only changed rows.
+            docker-compose --profile audio run --rm audio-asset-generator \
+              python /app/scripts/generate_docent_assets.py --apply
             docker-compose --profile audio run --rm audio-asset-generator
             docker-compose exec -T backend python /app/scripts/validate_audio_manifest.py
+            docker-compose restart backend

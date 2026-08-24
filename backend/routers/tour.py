@@ -12,6 +12,7 @@ from langchain.prompts import PromptTemplate
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 from utils.routing import get_shortest_path, haversine
+from services.docent_content import get_docent_context
 
 router = APIRouter(prefix="/tour", tags=["캠퍼스 투어"])
 TOUR_TIPS_MODEL = os.getenv("TOUR_TIPS_MODEL", "gemini-3.5-flash-lite")
@@ -152,6 +153,7 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
     if not os.path.exists(csv_path):
         return []
 
+    generated_docents = active_generated_docent_texts()
     spots = []
     with open(csv_path, "r", encoding="utf-8-sig") as f:
         for row in csv.DictReader(f):
@@ -170,7 +172,9 @@ def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_m
                     "name": row.get("name", ""),
                     "category": row.get("subcategory", "도슨트스팟"),
                     "description": row.get("description", ""),
-                    "docentText": row.get("docent_text", ""),
+                    "docentText": generated_docents.get(
+                        row.get("id", ""), row.get("docent_text", "")
+                    ),
                     "latitude": spot_lat,
                     "longitude": spot_lng,
                     "distanceMeters": round(distance),
@@ -207,6 +211,29 @@ _tour_data_cache: Optional[Dict[str, Any]] = None
 
 
 @lru_cache(maxsize=1)
+def active_generated_docent_texts() -> Dict[str, str]:
+    path = os.path.join(
+        os.path.dirname(__file__), "..", "..", "campusdata", "audio_content",
+        "generated_docents.json",
+    )
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            scripts = json.load(file).get("scripts", {})
+        return {
+            entity_id: entry["text"].strip()
+            for entity_id, entry in scripts.items()
+            if isinstance(entry, dict)
+            and entry.get("status") == "active"
+            and isinstance(entry.get("text"), str)
+            and entry["text"].strip()
+        }
+    except (OSError, ValueError, AttributeError):
+        return {}
+
+
+@lru_cache(maxsize=1)
 def tour_stop_docent_texts() -> Dict[str, str]:
     csv_path = os.path.join(
         os.path.dirname(__file__), "..", "..", "campusdata", "campus_places.csv"
@@ -214,11 +241,13 @@ def tour_stop_docent_texts() -> Dict[str, str]:
     if not os.path.exists(csv_path):
         return {}
     with open(csv_path, "r", encoding="utf-8-sig") as file:
-        return {
+        reviewed = {
             row.get("id", ""): row.get("docent_text", "").strip()
             for row in csv.DictReader(file)
             if row.get("entity_type") == "tour_stop" and row.get("docent_text", "").strip()
         }
+    reviewed.update(active_generated_docent_texts())
+    return reviewed
 
 
 def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
@@ -234,11 +263,13 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
     reviewed_docents = tour_stop_docent_texts()
     for i, route_stop in enumerate(route_stops):
         name = route_stop["name"]
+        docent_context = get_docent_context(driver, route_stop["place_id"])
         stops_data.append({
             "id": route_stop["place_id"],
             "name": name,
             "description": f"{name}입니다.",
             "docentText": reviewed_docents.get(route_stop["place_id"], ""),
+            "docentContext": docent_context,
             "tags": [],
             "studentTip": [],
             "nextStopId": route_stops[i + 1]["place_id"] if i < len(route_stops) - 1 else None,

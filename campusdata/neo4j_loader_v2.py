@@ -22,6 +22,8 @@ NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
 DATA_DIR = Path(__file__).resolve().parent
 CANONICAL_PLACES = "campus_places.csv"
 CANONICAL_INTERIORS = "campus_interiors.csv"
+CANONICAL_FACTS = "campus_facts.csv"
+CANONICAL_DOCENTS = "campus_docents.csv"
 
 FACILITY_BUILDING_NAMES = {
     "박물관", "법학도서관", "무진동실험실", "삼성문화회관",
@@ -77,6 +79,28 @@ def read_csv(filename: str) -> list[dict[str, str]]:
                 converted.append(normalized)
             return converted
     raise ValueError(f"Unsupported campus CSV view: {filename}")
+
+
+def read_content_csv(filename: str) -> list[dict[str, str]]:
+    path = DATA_DIR / filename
+    if not path.is_file():
+        raise FileNotFoundError(f"Required docent content CSV is missing: {path}")
+    with path.open("r", encoding="utf-8-sig", newline="") as file:
+        return [
+            {str(key).strip(): (value or "").strip() for key, value in row.items()}
+            for row in csv.DictReader(file, skipinitialspace=True)
+        ]
+
+
+def parse_bool(value: str) -> bool:
+    normalized = value.strip().lower()
+    if normalized not in {"true", "false"}:
+        raise ValueError(f"Expected true or false, got {value!r}")
+    return normalized == "true"
+
+
+def split_ids(value: str) -> list[str]:
+    return [item.strip() for item in value.split("|") if item.strip()]
 
 
 def optional_float(value: str) -> float | None:
@@ -139,6 +163,41 @@ def validate_source_data() -> None:
         if optional_float(row["latitude"]) is None or optional_float(row["longitude"]) is None:
             raise ValueError(f"Tour stop needs valid coordinates: {row['place_id']}")
 
+    all_entities = read_csv("nodes_building.csv") + read_csv("nodes_store.csv")
+    all_entities += read_csv("nodes_docent_spot.csv") + read_csv("tour_route.csv")
+    all_entities += read_csv("nodes_floor.csv") + read_csv("nodes_room.csv")
+    all_entities += read_csv("nodes_facility.csv")
+    entity_ids = {row["id"] for row in all_entities if row.get("id")}
+    facts = read_content_csv(CANONICAL_FACTS)
+    docents = read_content_csv(CANONICAL_DOCENTS)
+    fact_ids = [row.get("fact_id", "") for row in facts]
+    ensure_unique(fact_ids, "fact IDs")
+    ensure_unique((row.get("entity_id", "") for row in docents), "docent entity IDs")
+    for fact in facts:
+        if not fact.get("fact_id") or fact.get("entity_id") not in entity_ids:
+            raise ValueError(f"Fact needs a valid fact_id and entity_id: {fact}")
+        importance = optional_float(fact.get("importance", ""))
+        if importance is None or not 0 <= importance <= 100:
+            raise ValueError(f"Fact importance must be between 0 and 100: {fact['fact_id']}")
+        parse_bool(fact.get("verified", ""))
+    facts_by_entity: dict[str, set[str]] = {}
+    for fact in facts:
+        facts_by_entity.setdefault(fact["entity_id"], set()).add(fact["fact_id"])
+    for docent in docents:
+        entity_id = docent.get("entity_id", "")
+        if entity_id not in entity_ids:
+            raise ValueError(f"Docent config points to an unknown entity: {entity_id}")
+        parse_bool(docent.get("enabled", ""))
+        target_duration = optional_float(docent.get("target_duration_seconds", ""))
+        if target_duration is None or target_duration <= 0:
+            raise ValueError(f"Docent duration must be positive: {entity_id}")
+        configured = split_ids(docent.get("required_fact_ids", "")) + split_ids(
+            docent.get("optional_fact_ids", "")
+        )
+        missing = sorted(set(configured) - facts_by_entity.get(entity_id, set()))
+        if missing:
+            raise ValueError(f"Docent config {entity_id} references unknown facts: {missing}")
+
 
 def create_indexes(driver) -> None:
     queries = (
@@ -150,6 +209,8 @@ def create_indexes(driver) -> None:
         "CREATE INDEX floor_building IF NOT EXISTS FOR (n:Floor) ON (n.building_name)",
         "CREATE INDEX room_building IF NOT EXISTS FOR (n:Room) ON (n.building_name)",
         "CREATE CONSTRAINT interior_facility_id IF NOT EXISTS FOR (n:Facility) REQUIRE n.facility_id IS UNIQUE",
+        "CREATE CONSTRAINT fact_id IF NOT EXISTS FOR (n:Fact) REQUIRE n.fact_id IS UNIQUE",
+        "CREATE CONSTRAINT docent_config_id IF NOT EXISTS FOR (n:DocentConfig) REQUIRE n.entity_id IS UNIQUE",
     )
     for query in queries:
         run(driver, query)
@@ -178,6 +239,7 @@ def load_buildings(driver) -> int:
     rows = read_csv("nodes_building.csv")
     batch = [
         {
+            "building_id": row["id"],
             "code": row["code"] or None,
             "name": row["name"],
             "main_function": row["main_function"],
@@ -196,7 +258,8 @@ def load_buildings(driver) -> int:
         """
         UNWIND $batch AS row
         MERGE (building:Building {name: row.name})
-        SET building.code = row.code,
+        SET building.building_id = row.building_id,
+            building.code = row.code,
             building.main_function = row.main_function,
             building.latitude = row.latitude,
             building.longitude = row.longitude,
@@ -309,7 +372,8 @@ def load_floors(driver) -> int:
         """
         UNWIND $batch AS row
         MERGE (floor:Floor {building_name: row.building_name, floor: row.floor})
-        SET floor.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
+        SET floor.floor_id = row.id,
+            floor.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
             floor.source = 'campus_interiors.csv'
         WITH row, floor
         MATCH (building:Building {name: row.building_name})
@@ -357,7 +421,8 @@ def load_rooms(driver) -> int:
             room_no: row.room_no,
             name: row.name
         })
-        SET room.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
+        SET room.room_id = row.id,
+            room.building_code = CASE WHEN row.building_code = '' THEN null ELSE row.building_code END,
             room.type = row.type,
             room.source = 'campus_interiors.csv'
         FOREACH (_ IN CASE WHEN row.is_facility THEN [1] ELSE [] END |
@@ -457,6 +522,7 @@ def load_stores(driver) -> int:
     rows = read_csv("nodes_store.csv")
     batch = [
         {
+            "store_id": row["id"],
             **row,
             "latitude": optional_float(row["latitude"]),
             "longitude": optional_float(row["longitude"]),
@@ -470,7 +536,8 @@ def load_stores(driver) -> int:
         """
         UNWIND $batch AS row
         MERGE (store:Store:Facility {name: row.name})
-        SET store.no = row.no,
+        SET store.store_id = row.store_id,
+            store.no = row.no,
             store.location = row.location,
             store.type = row.type,
             store.hours = row.hours,
@@ -529,6 +596,113 @@ def load_docent_spots(driver) -> int:
         batch=batch,
     )
     return len(batch)
+
+
+ENTITY_MATCH = """
+MATCH (entity)
+WHERE entity.place_id = row.entity_id
+   OR entity.spot_id = row.entity_id
+   OR entity.building_id = row.entity_id
+   OR entity.store_id = row.entity_id
+   OR entity.floor_id = row.entity_id
+   OR entity.room_id = row.entity_id
+   OR entity.facility_id = row.entity_id
+"""
+
+
+def load_facts(driver) -> int:
+    rows = [
+        {
+            **row,
+            "importance": int(row["importance"]),
+            "verified": parse_bool(row["verified"]),
+        }
+        for row in read_content_csv(CANONICAL_FACTS)
+    ]
+    run(
+        driver,
+        "MATCH (fact:Fact {source: 'campus_facts.csv'}) "
+        "WHERE NOT fact.fact_id IN $fact_ids DETACH DELETE fact",
+        fact_ids=[row["fact_id"] for row in rows],
+    )
+    run(
+        driver,
+        f"""
+        UNWIND $batch AS row
+        MERGE (fact:Fact {{fact_id: row.fact_id}})
+        SET fact.category = row.category,
+            fact.content = row.content,
+            fact.importance = row.importance,
+            fact.verified = row.verified,
+            fact.source_url = CASE WHEN row.source_url = '' THEN null ELSE row.source_url END,
+            fact.source = 'campus_facts.csv'
+        WITH row, fact
+        OPTIONAL MATCH ()-[old_owner:HAS_FACT]->(fact)
+        DELETE old_owner
+        WITH DISTINCT row, fact
+        {ENTITY_MATCH}
+        MERGE (entity)-[:HAS_FACT]->(fact)
+        """,
+        batch=rows,
+    )
+    return len(rows)
+
+
+def load_docent_configs(driver) -> int:
+    source_rows = read_content_csv(CANONICAL_DOCENTS)
+    rows = [
+        {
+            **row,
+            "enabled": parse_bool(row["enabled"]),
+            "target_duration_seconds": int(row["target_duration_seconds"]),
+            "required_fact_ids": split_ids(row["required_fact_ids"]),
+            "optional_fact_ids": split_ids(row["optional_fact_ids"]),
+        }
+        for row in source_rows
+    ]
+    run(
+        driver,
+        "MATCH (config:DocentConfig {source: 'campus_docents.csv'}) "
+        "WHERE NOT config.entity_id IN $entity_ids DETACH DELETE config",
+        entity_ids=[row["entity_id"] for row in rows],
+    )
+    run(
+        driver,
+        f"""
+        UNWIND $batch AS row
+        MERGE (config:DocentConfig {{entity_id: row.entity_id}})
+        SET config.enabled = row.enabled,
+            config.opening_line = CASE WHEN row.opening_line = '' THEN null ELSE row.opening_line END,
+            config.target_duration_seconds = row.target_duration_seconds,
+            config.source = 'campus_docents.csv'
+        WITH row, config
+        OPTIONAL MATCH ()-[old_owner:HAS_DOCENT_CONFIG]->(config)
+        DELETE old_owner
+        WITH DISTINCT row, config
+        {ENTITY_MATCH}
+        MERGE (entity)-[:HAS_DOCENT_CONFIG]->(config)
+        WITH row, config
+        OPTIONAL MATCH (config)-[old:REQUIRES_FACT|OPTIONALLY_USES_FACT]->(:Fact)
+        DELETE old
+        WITH DISTINCT row, config
+        UNWIND row.required_fact_ids AS fact_id
+        MATCH (fact:Fact {{fact_id: fact_id}})
+        MERGE (config)-[:REQUIRES_FACT]->(fact)
+        """,
+        batch=rows,
+    )
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MATCH (config:DocentConfig {entity_id: row.entity_id})
+        UNWIND row.optional_fact_ids AS fact_id
+        MATCH (fact:Fact {fact_id: fact_id})
+        MERGE (config)-[:OPTIONALLY_USES_FACT]->(fact)
+        """,
+        batch=rows,
+    )
+    return len(rows)
 
 
 def load_campus_relations(driver) -> int:
@@ -610,6 +784,15 @@ def verify(driver) -> None:
             "MATCH (building:Building)-[:HAS_STORE]->(store:Store {source: 'campus_places.csv'}) "
             "WITH store, count(DISTINCT building) AS buildings WHERE buildings <> 1 RETURN count(store) AS count"
         ).single()["count"]
+        dangling_facts = session.run(
+            "MATCH (fact:Fact {source: 'campus_facts.csv'}) "
+            "WHERE NOT ()-[:HAS_FACT]->(fact) RETURN count(fact) AS count"
+        ).single()["count"]
+        invalid_docent_fact_links = session.run(
+            "MATCH (entity)-[:HAS_DOCENT_CONFIG]->(config:DocentConfig)"
+            "-[:REQUIRES_FACT|OPTIONALLY_USES_FACT]->(fact:Fact) "
+            "WHERE NOT (entity)-[:HAS_FACT]->(fact) RETURN count(DISTINCT fact) AS count"
+        ).single()["count"]
 
     result = dict(counts) if counts else {}
     result.update({
@@ -618,6 +801,8 @@ def verify(driver) -> None:
         "dangling_facilities": dangling_facilities,
         "unlinked_stores": unlinked_stores,
         "ambiguous_stores": ambiguous_stores,
+        "dangling_facts": dangling_facts,
+        "invalid_docent_fact_links": invalid_docent_fact_links,
     })
     print(f"Verification: {result}")
     if result.get("tour_stops") != 12 or result.get("tour_stops_with_coordinates") != 12:
@@ -626,6 +811,8 @@ def verify(driver) -> None:
         raise RuntimeError("CSV relationships contain dangling nodes")
     if unlinked_stores or ambiguous_stores:
         raise RuntimeError("Every CSV store must be linked to exactly one building")
+    if dangling_facts or invalid_docent_fact_links:
+        raise RuntimeError("Every docent fact must be linked to its configured entity")
 
 
 def load_all(driver, reset: bool) -> None:
@@ -643,6 +830,8 @@ def load_all(driver, reset: bool) -> None:
         ("stores", load_stores),
         ("docent spots", load_docent_spots),
         ("tour stops", load_tour_stops),
+        ("facts", load_facts),
+        ("docent configs", load_docent_configs),
         ("campus relation set", load_campus_relations),
     )
     for label, loader in loaders:

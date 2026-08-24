@@ -8,11 +8,34 @@ export type CampusTourTag = {
   value: string;
 };
 
+export type CampusTourFact = {
+  factId: string;
+  category: string;
+  content: string;
+  importance: number;
+  verified: boolean;
+  sourceUrl?: string;
+  selection?: "required" | "optional";
+};
+
+export type CampusTourDocentContext = {
+  entityId: string;
+  label: string;
+  description: string;
+  enabled: boolean;
+  openingLine?: string;
+  targetDurationSeconds: number;
+  requiredFacts: CampusTourFact[];
+  optionalFacts: CampusTourFact[];
+  usesDefaultRule: boolean;
+};
+
 export type CampusTourStop = {
   id: string;
   name: string;
   description: string;
   docentText?: string;
+  docentContext?: CampusTourDocentContext;
   tags: CampusTourTag[];
   studentTip: string[];
   nextStopId?: string;

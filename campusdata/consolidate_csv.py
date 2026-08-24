@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the two canonical CampusTour CSV data files."""
+"""Validate the canonical CampusTour CSV data files."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from pathlib import Path
 
 DATA_DIR = Path(__file__).resolve().parent
 CANONICAL_FILES = ("campus_places.csv", "campus_interiors.csv")
+CONTENT_FILES = ("campus_facts.csv", "campus_docents.csv")
 PLACE_TYPES = {"building", "store", "docent_spot", "tour_stop"}
 INTERIOR_TYPES = {"floor", "room", "facility"}
 
@@ -74,6 +75,50 @@ def validate() -> None:
     ]
     if missing_names:
         errors.append(f"place rows with blank names: {missing_names[:10]}")
+
+    facts = read_csv(CONTENT_FILES[0])
+    docents = read_csv(CONTENT_FILES[1])
+    fact_ids = [row.get("fact_id", "") for row in facts]
+    duplicate_fact_ids = sorted(
+        value for value, count in Counter(fact_ids).items() if count > 1
+    )
+    if "" in fact_ids or duplicate_fact_ids:
+        errors.append(f"blank or duplicate fact ids: {duplicate_fact_ids[:10]}")
+    invalid_fact_entities = sorted(
+        row.get("entity_id", "") for row in facts if row.get("entity_id") not in known_ids
+    )
+    if invalid_fact_entities:
+        errors.append(f"facts with unknown entity_id: {invalid_fact_entities[:10]}")
+    facts_by_entity: dict[str, set[str]] = {}
+    for row in facts:
+        facts_by_entity.setdefault(row.get("entity_id", ""), set()).add(row.get("fact_id", ""))
+        try:
+            importance = int(row.get("importance", ""))
+            if not 0 <= importance <= 100:
+                raise ValueError
+        except ValueError:
+            errors.append(f"invalid fact importance: {row.get('fact_id', '')}")
+        if row.get("verified") not in {"true", "false"}:
+            errors.append(f"invalid fact verified value: {row.get('fact_id', '')}")
+    docent_entity_ids = [row.get("entity_id", "") for row in docents]
+    duplicate_docents = sorted(
+        value for value, count in Counter(docent_entity_ids).items() if count > 1
+    )
+    if duplicate_docents:
+        errors.append(f"duplicate docent configs: {duplicate_docents[:10]}")
+    for row in docents:
+        entity_id = row.get("entity_id", "")
+        if entity_id not in known_ids:
+            errors.append(f"docent with unknown entity_id: {entity_id}")
+        configured_ids = {
+            value.strip()
+            for field in ("required_fact_ids", "optional_fact_ids")
+            for value in row.get(field, "").split("|")
+            if value.strip()
+        }
+        missing = sorted(configured_ids - facts_by_entity.get(entity_id, set()))
+        if missing:
+            errors.append(f"docent {entity_id} references unknown facts: {missing}")
 
     if errors:
         raise ValueError("Canonical CSV validation failed:\n- " + "\n- ".join(errors))

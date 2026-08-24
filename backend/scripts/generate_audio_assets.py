@@ -20,6 +20,7 @@ REPOSITORY_DIR = BACKEND_DIR.parent
 CONTENT_DIR = REPOSITORY_DIR / "campusdata" / "audio_content"
 MANIFEST_PATH = CONTENT_DIR / "audio_manifest.json"
 PLACES_PATH = REPOSITORY_DIR / "campusdata" / "campus_places.csv"
+GENERATED_DOCENTS_PATH = CONTENT_DIR / "generated_docents.json"
 SYSTEM_PUBLIC_DIR = Path(
     os.getenv(
         "AUDIO_SYSTEM_PUBLIC_DIR",
@@ -95,11 +96,21 @@ def managed_rows() -> list[dict[str, str]]:
 def core_docent_rows() -> tuple[list[dict[str, str]], list[str]]:
     rows: list[dict[str, str]] = []
     errors: list[str] = []
+    generated = {"scripts": {}}
+    if GENERATED_DOCENTS_PATH.is_file():
+        generated = json.loads(GENERATED_DOCENTS_PATH.read_text(encoding="utf-8"))
+    generated_scripts = generated.get("scripts", {})
     for row in read_rows(PLACES_PATH):
         entity_type = row.get("entity_type")
         if entity_type not in {"tour_stop", "docent_spot"}:
             continue
-        text = normalize_text(row.get("docent_text", ""))
+        generated_script = generated_scripts.get(row.get("id", ""), {})
+        generated_text = (
+            generated_script.get("text", "")
+            if isinstance(generated_script, dict) and generated_script.get("status") == "active"
+            else ""
+        )
+        text = normalize_text(generated_text or row.get("docent_text", ""))
         if not text:
             if entity_type == "tour_stop":
                 errors.append(f"tour stop {row.get('id')} ({row.get('name')}) has no reviewed docent_text")
@@ -110,7 +121,7 @@ def core_docent_rows() -> tuple[list[dict[str, str]], list[str]]:
                 "locale": "ko-KR",
                 "text": text,
                 "style": "core-docent",
-                "content_version": "v1",
+                "content_version": generated_script.get("contentVersion", "v1"),
             }
         )
     return rows, errors

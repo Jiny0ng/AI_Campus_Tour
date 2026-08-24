@@ -77,6 +77,7 @@ services:
       - ./campusdata:/campusdata
       - ./frontend/public/audio/system:/frontend/audio/system
     environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - GCP_PROJECT_ID=${GCP_PROJECT_ID:-}
       - GOOGLE_CLOUD_PROJECT=${GCP_PROJECT_ID:-}
       - GOOGLE_CLOUD_REGION=${GOOGLE_CLOUD_REGION:-global}
@@ -84,6 +85,8 @@ services:
       - TTS_MODEL=${TTS_MODEL:-gemini-2.5-flash-tts}
       - TTS_VOICE_NAME=${TTS_VOICE_NAME:-Kore}
       - TTS_PROMPT_VERSION=${TTS_PROMPT_VERSION:-v1}
+      - DOCENT_SCRIPT_MODEL=${DOCENT_SCRIPT_MODEL:-gemini-2.5-flash}
+      - DOCENT_SCRIPT_PROMPT_VERSION=${DOCENT_SCRIPT_PROMPT_VERSION:-v1}
       - AUDIO_SYSTEM_PUBLIC_DIR=/frontend/audio/system
     profiles: ["audio"]
     restart: "no"
