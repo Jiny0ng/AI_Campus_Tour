@@ -1,0 +1,16 @@
+logging:
+  receivers:
+    campus_docker_logs:
+      type: files
+      include_paths:
+        - /var/lib/docker/containers/*/*-json.log
+      record_log_file_path: true
+  service:
+    pipelines:
+      campus_docker_pipeline:
+        receivers: [campus_docker_logs]
+
+# Host CPU, memory, disk, network and system logs continue to use the Ops
+# Agent built-in pipelines. Keep Docker output as text so a malformed
+# application log line cannot break ingestion; Cloud Logging can still filter
+# ERROR, Traceback, TtsUnavailable and AudioStorageUnavailable strings.
