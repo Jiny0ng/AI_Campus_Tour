@@ -11,6 +11,7 @@ from pathlib import Path
 DATA_DIR = Path(__file__).resolve().parent
 CANONICAL_FILES = ("campus_places.csv", "campus_interiors.csv")
 CONTENT_FILES = ("campus_facts.csv", "campus_docents.csv")
+NEAR_OVERRIDES_FILE = "campus_near_overrides.csv"
 PLACE_TYPES = {"building", "store", "docent_spot", "tour_stop"}
 INTERIOR_TYPES = {"floor", "room", "facility"}
 
@@ -59,6 +60,29 @@ def validate() -> None:
     )
     if dangling:
         errors.append(f"dangling parent_id values: {dangling[:10]}")
+
+    near_overrides = read_csv(NEAR_OVERRIDES_FILE)
+    near_candidate_ids = {
+        row["id"] for row in places
+        if row.get("entity_type") in PLACE_TYPES
+        and row.get("latitude") and row.get("longitude")
+    }
+    seen_near_pairs: set[tuple[str, str]] = set()
+    for row in near_overrides:
+        pair = tuple(sorted((row.get("from_id", ""), row.get("to_id", ""))))
+        if not all(value in near_candidate_ids for value in pair) or pair[0] == pair[1]:
+            errors.append(f"near override has invalid entity IDs: {pair}")
+        if pair in seen_near_pairs:
+            errors.append(f"duplicate near override pair: {pair}")
+        seen_near_pairs.add(pair)
+        if row.get("action") not in {"include", "exclude"}:
+            errors.append(f"near override has invalid action: {pair}")
+        if (row.get("verified") or "true").lower() not in {"true", "false"}:
+            errors.append(f"near override has invalid verified value: {pair}")
+        if row.get("action") == "include" and not (
+            row.get("distance_m") or row.get("walking_seconds")
+        ):
+            errors.append(f"included near override needs distance or walking time: {pair}")
 
     route_orders = sorted(
         int(row["tour_order"])

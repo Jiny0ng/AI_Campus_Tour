@@ -34,6 +34,8 @@ export type CampusTourStop = {
   id: string;
   name: string;
   description: string;
+  overview?: string;
+  insights?: CampusTourFact[];
   docentText?: string;
   docentContext?: CampusTourDocentContext;
   tags: CampusTourTag[];
@@ -64,6 +66,9 @@ export type CampusTourNearbySpot = {
   latitude: number;
   longitude: number;
   distanceMeters: number;
+  walkingSeconds?: number;
+  nearMethod?: "walking_network" | "straight_line_fallback" | "manual";
+  nearVerified?: boolean;
 };
 
 export type CampusTourSegmentInfo = {

@@ -11,8 +11,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.prompts import PromptTemplate
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
-from utils.routing import get_shortest_path, haversine
-from services.docent_content import get_docent_context
+from utils.routing import get_shortest_path
+from services.docent_content import build_stop_presentation, get_docent_context
 
 router = APIRouter(prefix="/tour", tags=["캠퍼스 투어"])
 TOUR_TIPS_MODEL = os.getenv("TOUR_TIPS_MODEL", "gemini-3.5-flash-lite")
@@ -54,6 +54,7 @@ class StartRouteRequest(BaseModel):
     first_stop_lng: float
 
 class NearbySpotsRequest(BaseModel):
+    destination_id: str
     latitude: float
     longitude: float
 
@@ -143,44 +144,64 @@ def generate_segment_tips(
         "tip": FALLBACK_TIPS[language],
     }]
 
-def get_nearby_docent_spots(lat: Optional[float], lng: Optional[float], radius_meters: float = 100.0):
-    if lat is None or lng is None:
+def get_nearby_places(
+    driver,
+    destination_id: str,
+    lat: Optional[float],
+    lng: Optional[float],
+):
+    if lat is None or lng is None or not destination_id:
         return []
 
-    csv_path = os.path.join(
-        os.path.dirname(__file__), "..", "..", "campusdata", "campus_places.csv"
-    )
-    if not os.path.exists(csv_path):
-        return []
-
-    generated_docents = active_generated_docent_texts()
-    spots = []
-    with open(csv_path, "r", encoding="utf-8-sig") as f:
-        for row in csv.DictReader(f):
-            if row.get("entity_type") != "docent_spot":
-                continue
-            try:
-                spot_lat = float(row["latitude"])
-                spot_lng = float(row["longitude"])
-            except (KeyError, TypeError, ValueError):
-                continue
-
-            distance = haversine(lat, lng, spot_lat, spot_lng)
-            if distance <= radius_meters:
-                spots.append({
-                    "id": row.get("id", ""),
-                    "name": row.get("name", ""),
-                    "category": row.get("subcategory", "도슨트스팟"),
-                    "description": row.get("description", ""),
-                    "docentText": generated_docents.get(
-                        row.get("id", ""), row.get("docent_text", "")
-                    ),
-                    "latitude": spot_lat,
-                    "longitude": spot_lng,
-                    "distanceMeters": round(distance),
-                })
-
-    return sorted(spots, key=lambda spot: spot["distanceMeters"])
+    with driver.session() as session:
+        rows = session.run(
+            """
+            MATCH (destination)
+            WHERE destination.place_id = $destination_id
+               OR destination.spot_id = $destination_id
+               OR destination.building_id = $destination_id
+            MATCH (destination)-[near:NEAR]-(place)
+            WHERE near.kind = 'physical_walk'
+              AND (place:Building OR place:Place OR place:Facility OR place:DocentSpot)
+              AND place <> destination
+              AND place.name IS NOT NULL
+              AND place.latitude IS NOT NULL
+              AND place.longitude IS NOT NULL
+            OPTIONAL MATCH (place)-[:HAS_FACT]->(fact:Fact)
+            WITH place, near, fact
+            ORDER BY fact.importance DESC
+            WITH place, near, collect(fact)[0] AS first_fact
+            WITH place, near, first_fact,
+                 coalesce(
+                    place.description,
+                    place.main_function,
+                    place.related_content,
+                    first_fact.content,
+                    ''
+                 ) AS summary
+            WHERE trim(summary) <> ''
+            RETURN coalesce(
+                       place.place_id, place.spot_id, place.building_id,
+                       place.facility_id, place.store_id, elementId(place)
+                   ) AS id,
+                   place.name AS name,
+                   coalesce(place.subcategory, place.category, place.type, '장소') AS category,
+                   summary AS description,
+                   coalesce(place.docent_text, '') AS docentText,
+                   place.latitude AS latitude,
+                   place.longitude AS longitude,
+                   near.distance_m AS distanceMeters,
+                   near.walking_seconds AS walkingSeconds,
+                   near.method AS nearMethod,
+                   near.verified AS nearVerified
+            ORDER BY near.walking_seconds, near.distance_m, name
+            LIMIT 12
+            """,
+            destination_id=destination_id,
+            latitude=lat,
+            longitude=lng,
+        )
+        return [dict(row) for row in rows]
 
 def get_building_coords(driver, name: str):
     with driver.session() as session:
@@ -200,10 +221,16 @@ def get_all_landmarks(driver):
     return landmarks
 
 @router.post("/nearby-spots")
-async def nearby_docent_spots(req: NearbySpotsRequest):
+async def nearby_docent_spots(req: NearbySpotsRequest, request: Request):
     return {
         "status": "success",
-        "nearbySpots": get_nearby_docent_spots(req.latitude, req.longitude),
+        "maxWalkingSeconds": 60,
+        "nearbySpots": get_nearby_places(
+            request.app.state.neo4j_driver,
+            req.destination_id,
+            req.latitude,
+            req.longitude,
+        ),
     }
 
 
@@ -264,10 +291,13 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
     for i, route_stop in enumerate(route_stops):
         name = route_stop["name"]
         docent_context = get_docent_context(driver, route_stop["place_id"])
+        overview, insights = build_stop_presentation(docent_context, f"{name}입니다.")
         stops_data.append({
             "id": route_stop["place_id"],
             "name": name,
-            "description": f"{name}입니다.",
+            "description": overview,
+            "overview": overview,
+            "insights": insights,
             "docentText": reviewed_docents.get(route_stop["place_id"], ""),
             "docentContext": docent_context,
             "tags": [],
@@ -330,8 +360,6 @@ def get_tour_segment(req: SegmentRequest, request: Request):
     오차 +- 10m 고려하여 대략 50m 반경을 위경도 차이(~0.00045도)로 단순 계산합니다.
     """
     driver = request.app.state.neo4j_driver
-    nearby_spots = get_nearby_docent_spots(req.current_lat, req.current_lng)
-
     # 1. 위치의 위경도 정보 확인 (요청에 없으면 DB에서 조회)
     cur_lat, cur_lng = req.current_lat, req.current_lng
     nxt_lat, nxt_lng = req.next_lat, req.next_lng
@@ -355,7 +383,7 @@ def get_tour_segment(req: SegmentRequest, request: Request):
             "next_location": req.next_location,
             "pois": [],
             "tips": [],
-            "nearbySpots": nearby_spots,
+            "nearbySpots": [],
         }
 
     # 2. 바운딩 박스 계산 (50m 반경 확장)
@@ -413,7 +441,7 @@ def get_tour_segment(req: SegmentRequest, request: Request):
         "next_location": req.next_location,
         "pois": pois,
         "tips": tips,
-        "nearbySpots": nearby_spots,
+        "nearbySpots": [],
     }
 
 @router.post("/waypoint-route")

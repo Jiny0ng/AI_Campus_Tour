@@ -1,4 +1,4 @@
-from services.docent_content import assemble_docent_context
+from services.docent_content import assemble_docent_context, build_stop_presentation
 
 
 def test_explicit_docent_config_selects_linked_facts():
@@ -36,3 +36,33 @@ def test_missing_config_uses_importance_fallback():
     assert [fact["factId"] for fact in context["optionalFacts"]] == ["d", "e"]
     assert context["usesDefaultRule"] is True
     assert context["targetDurationSeconds"] == 45
+
+
+def test_stop_presentation_uses_verified_identity_as_overview():
+    context = {
+        "description": "긴 장소 설명",
+        "requiredFacts": [
+            {
+                "factId": "place:identity",
+                "category": "identity",
+                "content": "대표적인 캠퍼스 학습 공간이다.",
+                "verified": True,
+            },
+            {
+                "factId": "place:tip",
+                "category": "recommendation",
+                "content": "2층 열람실도 이용해 볼 만하다.",
+                "verified": False,
+            },
+        ],
+        "optionalFacts": [],
+    }
+
+    overview, insights = build_stop_presentation(context, "기본 설명")
+
+    assert overview == "대표적인 캠퍼스 학습 공간이다."
+    assert [fact["factId"] for fact in insights] == ["place:tip"]
+
+
+def test_stop_presentation_has_safe_fallback():
+    assert build_stop_presentation(None, "기본 설명") == ("기본 설명", [])

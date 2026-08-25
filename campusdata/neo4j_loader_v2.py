@@ -14,6 +14,9 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from neo4j import GraphDatabase
+from neo4j.exceptions import ClientError
+
+from near_relations import build_near_relations, read_manual_overrides, read_place_candidates
 
 
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7687")
@@ -168,6 +171,19 @@ def validate_source_data() -> None:
     all_entities += read_csv("nodes_floor.csv") + read_csv("nodes_room.csv")
     all_entities += read_csv("nodes_facility.csv")
     entity_ids = {row["id"] for row in all_entities if row.get("id")}
+    near_candidate_ids = {row["id"] for row in read_place_candidates()}
+    for override in read_manual_overrides():
+        pair = (override.get("from_id", ""), override.get("to_id", ""))
+        if override.get("action") not in {"include", "exclude"}:
+            raise ValueError(f"Near override needs include or exclude action: {override}")
+        if not all(entity_id in near_candidate_ids for entity_id in pair) or pair[0] == pair[1]:
+            raise ValueError(f"Near override needs two distinct coordinate-bearing place IDs: {override}")
+        if (override.get("verified") or "true").lower() not in {"true", "false"}:
+            raise ValueError(f"Near override verified must be true or false: {override}")
+        if override.get("action") == "include" and not (
+            override.get("distance_m") or override.get("walking_seconds")
+        ):
+            raise ValueError(f"Included near override needs distance or walking time: {override}")
     facts = read_content_csv(CANONICAL_FACTS)
     docents = read_content_csv(CANONICAL_DOCENTS)
     fact_ids = [row.get("fact_id", "") for row in facts]
@@ -213,7 +229,12 @@ def create_indexes(driver) -> None:
         "CREATE CONSTRAINT docent_config_id IF NOT EXISTS FOR (n:DocentConfig) REQUIRE n.entity_id IS UNIQUE",
     )
     for query in queries:
-        run(driver, query)
+        try:
+            run(driver, query)
+        except ClientError as error:
+            if error.code != "Neo.ClientError.Schema.IndexAlreadyExists":
+                raise
+            print(f"Skipped constraint because a compatible index already exists: {query}")
 
 
 def building_name_lookup() -> tuple[dict[str, str], dict[str, str]]:
@@ -258,7 +279,8 @@ def load_buildings(driver) -> int:
         """
         UNWIND $batch AS row
         MERGE (building:Building {name: row.name})
-        SET building.building_id = row.building_id,
+        SET building:Place,
+            building.building_id = row.building_id,
             building.code = row.code,
             building.main_function = row.main_function,
             building.latitude = row.latitude,
@@ -718,31 +740,60 @@ def load_campus_relations(driver) -> int:
         MERGE (node)-[:PART_OF_CAMPUS]->(campus)
         """,
     )
+    relations = build_near_relations()
     run(
         driver,
         """
-        MATCH (spot:DocentSpot)
-        WHERE spot.latitude IS NOT NULL AND spot.longitude IS NOT NULL
-        CALL {
-            WITH spot
-            MATCH (building:Building {source: 'campus_places.csv'})
-            WHERE building.latitude IS NOT NULL AND building.longitude IS NOT NULL
-            WITH building,
-                 point.distance(
-                    point({latitude: spot.latitude, longitude: spot.longitude}),
-                    point({latitude: building.latitude, longitude: building.longitude})
-                 ) AS distance_m
-            ORDER BY distance_m
-            LIMIT 1
-            RETURN building, distance_m
-        }
-        WITH spot, building, distance_m WHERE distance_m <= 300
-        MERGE (spot)-[near:NEAR]->(building)
-        SET near.distance_m = round(distance_m),
-            near.method = 'nearest_canonical_building'
+        MATCH ()-[near:NEAR]->()
+        WHERE near.kind = 'physical_walk'
+           OR near.method IN ['nearest_canonical_building', 'tour_destination_radius_200m']
+        DELETE near
         """,
     )
-    return 1
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        CALL {
+            WITH row
+            MATCH (entity)
+            WHERE entity.place_id = row.from_id
+               OR entity.spot_id = row.from_id
+               OR entity.building_id = row.from_id
+               OR entity.store_id = row.from_id
+               OR entity.facility_id = row.from_id
+            RETURN entity AS first
+            ORDER BY elementId(entity)
+            LIMIT 1
+        }
+        CALL {
+            WITH row
+            MATCH (entity)
+            WHERE entity.place_id = row.to_id
+               OR entity.spot_id = row.to_id
+               OR entity.building_id = row.to_id
+               OR entity.store_id = row.to_id
+               OR entity.facility_id = row.to_id
+            RETURN entity AS second
+            ORDER BY elementId(entity)
+            LIMIT 1
+        }
+        WITH row,
+             CASE WHEN elementId(first) < elementId(second) THEN first ELSE second END AS first,
+             CASE WHEN elementId(first) < elementId(second) THEN second ELSE first END AS second
+        WHERE first <> second
+        MERGE (first)-[near:NEAR]->(second)
+        SET near.kind = row.kind,
+            near.distance_m = row.distance_m,
+            near.walking_seconds = row.walking_seconds,
+            near.method = row.method,
+            near.source = row.source,
+            near.verified = row.verified,
+            near.note = CASE WHEN row.note = '' THEN null ELSE row.note END
+        """,
+        batch=relations,
+    )
+    return len(relations)
 
 
 def verify(driver) -> None:
@@ -793,6 +844,16 @@ def verify(driver) -> None:
             "-[:REQUIRES_FACT|OPTIONALLY_USES_FACT]->(fact:Fact) "
             "WHERE NOT (entity)-[:HAS_FACT]->(fact) RETURN count(DISTINCT fact) AS count"
         ).single()["count"]
+        near_counts = session.run(
+            """
+            MATCH ()-[near:NEAR {kind: 'physical_walk'}]->()
+            RETURN count(near) AS total,
+                   count(CASE WHEN near.source IN ['generated', 'manual']
+                                   AND near.method IN ['walking_network', 'straight_line_fallback', 'manual']
+                                   AND near.walking_seconds IS NOT NULL
+                              THEN 1 END) AS valid
+            """
+        ).single()
 
     result = dict(counts) if counts else {}
     result.update({
@@ -803,6 +864,8 @@ def verify(driver) -> None:
         "ambiguous_stores": ambiguous_stores,
         "dangling_facts": dangling_facts,
         "invalid_docent_fact_links": invalid_docent_fact_links,
+        "physical_near_relations": near_counts["total"],
+        "invalid_physical_near_relations": near_counts["total"] - near_counts["valid"],
     })
     print(f"Verification: {result}")
     if result.get("tour_stops") != 12 or result.get("tour_stops_with_coordinates") != 12:
@@ -813,6 +876,8 @@ def verify(driver) -> None:
         raise RuntimeError("Every CSV store must be linked to exactly one building")
     if dangling_facts or invalid_docent_fact_links:
         raise RuntimeError("Every docent fact must be linked to its configured entity")
+    if not result["physical_near_relations"] or result["invalid_physical_near_relations"]:
+        raise RuntimeError("Physical NEAR relationships are missing or invalid")
 
 
 def load_all(driver, reset: bool) -> None:

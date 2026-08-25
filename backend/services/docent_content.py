@@ -5,6 +5,33 @@ from __future__ import annotations
 from typing import Any
 
 
+def build_stop_presentation(
+    docent_context: dict[str, Any] | None,
+    fallback: str,
+) -> tuple[str, list[dict[str, Any]]]:
+    """Select a short overview and non-duplicating insight cards from reviewed facts."""
+    if not docent_context:
+        return fallback, []
+
+    facts = [
+        *docent_context.get("requiredFacts", []),
+        *docent_context.get("optionalFacts", []),
+    ]
+    overview_fact = next(
+        (
+            fact for fact in facts
+            if fact.get("category") == "identity" and fact.get("verified") is not False
+        ),
+        facts[0] if facts else None,
+    )
+    overview = (
+        (overview_fact or {}).get("content")
+        or docent_context.get("description")
+        or fallback
+    )
+    return overview, [fact for fact in facts if fact is not overview_fact]
+
+
 def assemble_docent_context(
     entity_id: str,
     label: str,

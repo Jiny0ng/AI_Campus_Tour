@@ -54,6 +54,20 @@ function getTourTipIcon(tip: TourTip) {
   return tip.icon?.trim() || "📍";
 }
 
+const insightIcons: Record<string, string> = {
+  history: "🏛️",
+  recommendation: "💡",
+  facility: "🏢",
+  experience: "✨",
+  usage: "🧭",
+  symbolism: "🎓",
+  story: "📖",
+  event: "🎪",
+  seasonal: "🌸",
+  hidden_place: "🔎",
+  "hidden-place": "🔎",
+};
+
 export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenTip, onOpenTip, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t, pn } = useAppSettings();
   const { status: audioStatus, pause, resume } = useAudioGuide();
@@ -100,12 +114,18 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   }
 
   const displayStop = nextStop || currentStop;
-  const destinationTip = segmentInfo?.tips.find(
-    (tipInfo) =>
-      tipInfo.name.includes(displayStop.name)
-      || displayStop.name.includes(tipInfo.name),
-  )?.tip;
-  const destinationDescription = destinationTip || displayStop.description;
+  const destinationDescription = displayStop.overview || displayStop.description;
+  const destinationInsights: TourTip[] = (displayStop.insights || []).map((insight) => ({
+    name: displayStop.name,
+    icon: insightIcons[insight.category] || "💡",
+    category: insight.category,
+    tip: insight.content,
+  }));
+  const formattedDistance = typeof remainingDistanceMeters === "number"
+    ? remainingDistanceMeters >= 1000
+      ? `${(remainingDistanceMeters / 1000).toFixed(1)}km`
+      : `${remainingDistanceMeters}m`
+    : null;
   return (
     <>
     <section className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
@@ -169,14 +189,14 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                 <h2 className="text-sm font-extrabold text-ink">{t("sheet.placeTips")}</h2>
               </div>
 
-              {isSegmentLoading ? (
+              {isSegmentLoading && destinationInsights.length === 0 ? (
                 <div className="flex gap-3 overflow-x-auto pb-4 snap-x no-scrollbar">
                   <div className="shrink-0 w-[240px] rounded-card border border-primary/20 bg-primary-soft p-4 h-[120px] snap-center animate-pulse" />
                   <div className="shrink-0 w-[240px] rounded-card border border-primary/20 bg-primary-soft p-4 h-[120px] snap-center animate-pulse" />
                 </div>
-              ) : segmentInfo && segmentInfo.tips.length > 0 ? (
+              ) : destinationInsights.length > 0 ? (
                 <div className="flex gap-3 overflow-x-auto pb-4 snap-x no-scrollbar">
-                  {segmentInfo.tips.map((tipInfo, idx) => (
+                  {destinationInsights.map((tipInfo, idx) => (
                     <button
                       key={`${tipInfo.name}-${idx}`}
                       type="button"

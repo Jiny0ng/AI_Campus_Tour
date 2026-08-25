@@ -198,7 +198,6 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const [arrivedStopId, setArrivedStopId] = useState<string | null>(null);
   const [recenterUserLocationToken, setRecenterUserLocationToken] = useState(0);
   const [isOffRouteDialogOpen, setIsOffRouteDialogOpen] = useState(false);
-  const nearbyFetchOriginRef = useRef<LatLng | null>(null);
   const startLocationInitializedRef = useRef(false);
   const offRouteWarningArmedRef = useRef(true);
   const lastRouteDistanceLogRef = useRef<number | null>(null);
@@ -513,15 +512,12 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   }, [data]);
 
   useEffect(() => {
-    if (!userLocation) return;
-    if (
-      nearbyFetchOriginRef.current
-      && distanceMeters(nearbyFetchOriginRef.current, userLocation) < 10
-    ) {
+    const destination = nextStop || currentStop;
+    if (!destination || destination.id === CURRENT_LOCATION_STOP_ID) {
+      setNearbySpots([]);
+      setIsNearbyLoading(false);
       return;
     }
-    nearbyFetchOriginRef.current = userLocation;
-
     const controller = new AbortController();
     setIsNearbyLoading(true);
 
@@ -529,8 +525,9 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        latitude: userLocation.lat,
-        longitude: userLocation.lng,
+        destination_id: destination.id,
+        latitude: destination.mapPoint.y,
+        longitude: destination.mapPoint.x,
       }),
       signal: controller.signal,
     })
@@ -547,7 +544,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       .finally(() => setIsNearbyLoading(false));
 
     return () => controller.abort();
-  }, [userLocation]);
+  }, [currentStop, nextStop]);
 
   async function handleAddWaypoint(spot: CampusTourNearbySpot) {
     if (!userLocation || !currentStop || !nextStop || addingSpotId) return;
@@ -726,9 +723,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           onNext={handleNext}
           onPrev={handlePrev}
           hasPrev={currentStopIndex > 0}
-          nearbySpots={nearbySpots.filter(
-            (spot) => !tourData.stops.some((stop) => stop.id === spot.id),
-          )}
+          nearbySpots={nearbySpots}
           isNearbyLoading={isNearbyLoading}
           addingSpotId={addingSpotId}
           onAddWaypoint={handleAddWaypoint}
