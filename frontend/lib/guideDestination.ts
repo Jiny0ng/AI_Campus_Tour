@@ -46,5 +46,9 @@ export function destinationToPlace(
     distanceMeters: Math.round(distanceMeters),
     coordinate: destination.coordinate,
     mapPoint: { x: destination.coordinate.lng, y: destination.coordinate.lat },
+    purposes: destination.purposes,
+    matchedPurpose: destination.matchedPurpose,
+    facilities: destination.facilities,
+    facts: destination.facts,
   };
 }

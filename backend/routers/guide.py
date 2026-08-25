@@ -1,4 +1,7 @@
-from typing import Literal
+from typing import Literal, Optional
+import json
+import os
+from functools import lru_cache
 
 from fastapi import APIRouter, Query, Request
 from pydantic import BaseModel, Field
@@ -20,6 +23,12 @@ POPULAR_NAMES = [
     "참빛관",
     "후생관",
 ]
+
+@lru_cache(maxsize=1)
+def _purpose_rules():
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "campusdata", "guide_purposes.json")
+    with open(path, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
 class Coordinate(BaseModel):
@@ -52,6 +61,148 @@ def _category(labels, name, detail=""):
     if "Store" in labels:
         return "convenience"
     return "building"
+
+
+def _purposes_for_text(*values):
+    text = " ".join(str(value or "") for value in values).lower()
+    return [
+        purpose for purpose, keywords in _purpose_rules().items()
+        if any(keyword in text for keyword in keywords)
+    ]
+
+
+def _facility_summary(facility):
+    location = " ".join(
+        value for value in (facility.get("floor"), facility.get("name")) if value
+    )
+    detail = facility.get("features") or facility.get("note") or facility.get("type") or ""
+    if location and detail:
+        return f"{location}: {detail}"
+    return location or detail
+
+
+def _guide_discovery(driver, purpose: Optional[str] = None, query: str = "", limit: int = 50):
+    """Combine structural facilities and editorial facts into one place-level result."""
+    with driver.session() as session:
+        places = [dict(row) for row in session.run(
+            """
+            MATCH (place)
+            WHERE (place:Building OR place:Place)
+              AND place.name IS NOT NULL
+              AND coalesce(place.tour_latitude, place.latitude) IS NOT NULL
+              AND coalesce(place.tour_longitude, place.longitude) IS NOT NULL
+            RETURN elementId(place) AS key,
+                   coalesce(place.place_id, place.spot_id, place.building_id, elementId(place)) AS id,
+                   labels(place) AS labels, place.name AS name,
+                   coalesce(place.description, place.main_function, place.related_content, '') AS description,
+                   coalesce(place.tour_latitude, place.latitude) AS latitude,
+                   coalesce(place.tour_longitude, place.longitude) AS longitude
+            """
+        )]
+        facilities = [dict(row) for row in session.run(
+            """
+            MATCH (facility:Facility)-[:LOCATED_IN]->(place)
+            RETURN DISTINCT elementId(place) AS placeKey,
+                   coalesce(facility.facility_id, facility.store_id, facility.room_id, elementId(facility)) AS id,
+                   facility.name AS name, coalesce(facility.type, '') AS type,
+                   coalesce(facility.floor, facility.location, '') AS floor,
+                   coalesce(facility.features, '') AS features,
+                   coalesce(facility.note, '') AS note
+            UNION
+            MATCH (place)-[:HAS_STORE]->(facility:Facility)
+            RETURN DISTINCT elementId(place) AS placeKey,
+                   coalesce(facility.facility_id, facility.store_id, facility.room_id, elementId(facility)) AS id,
+                   facility.name AS name, coalesce(facility.type, '') AS type,
+                   coalesce(facility.floor, facility.location, '') AS floor,
+                   coalesce(facility.features, '') AS features,
+                   coalesce(facility.note, '') AS note
+            UNION
+            MATCH (place)-[:HAS_FLOOR]->(:Floor)-[:HAS_FACILITY|HAS_ROOM]->(facility:Facility)
+            RETURN DISTINCT elementId(place) AS placeKey,
+                   coalesce(facility.facility_id, facility.store_id, facility.room_id, elementId(facility)) AS id,
+                   facility.name AS name, coalesce(facility.type, '') AS type,
+                   coalesce(facility.floor, facility.location, '') AS floor,
+                   coalesce(facility.features, '') AS features,
+                   coalesce(facility.note, '') AS note
+            """
+        )]
+        facts = [dict(row) for row in session.run(
+            """
+            MATCH (place)-[:HAS_FACT]->(fact:Fact)
+            WHERE place:Building OR place:Place
+            RETURN elementId(place) AS placeKey, fact.fact_id AS id,
+                   fact.category AS category, fact.content AS content,
+                   fact.importance AS importance, fact.verified AS verified
+            ORDER BY fact.importance DESC
+            """
+        )]
+
+    by_key = {place["key"]: {**place, "facilities": [], "facts": []} for place in places}
+    for facility in facilities:
+        if facility["placeKey"] in by_key:
+            facility["purposes"] = _purposes_for_text(
+                facility["name"], facility["type"], facility["features"], facility["note"]
+            )
+            by_key[facility["placeKey"]]["facilities"].append(facility)
+    for fact in facts:
+        if fact["placeKey"] in by_key:
+            fact["purposes"] = _purposes_for_text(fact["category"], fact["content"])
+            by_key[fact["placeKey"]]["facts"].append(fact)
+
+    normalized_query = query.strip().lower()
+    results = []
+    for place in by_key.values():
+        place_purposes = set(_purposes_for_text(place["name"], place["description"]))
+        matched_facilities = [
+            facility for facility in place["facilities"]
+            if purpose is None or purpose in facility["purposes"]
+        ]
+        matched_facts = [
+            fact for fact in place["facts"]
+            if purpose is None or purpose in fact["purposes"]
+        ]
+        place_purposes.update(
+            item for facility in place["facilities"] for item in facility["purposes"]
+        )
+        place_purposes.update(item for fact in place["facts"] for item in fact["purposes"])
+        if purpose and purpose not in place_purposes:
+            continue
+
+        searchable = " ".join([
+            place["name"], place["description"],
+            *(
+                " ".join(str(value or "") for value in facility.values())
+                for facility in place["facilities"]
+            ),
+            *(fact.get("content", "") for fact in place["facts"]),
+        ]).lower()
+        if normalized_query and normalized_query not in searchable:
+            continue
+
+        best_facility = next((item for item in matched_facilities if _facility_summary(item)), None)
+        best_fact = next(
+            (item for item in matched_facts if item.get("verified") is not False),
+            matched_facts[0] if matched_facts else None,
+        )
+        summary = (
+            _facility_summary(best_facility) if best_facility
+            else (best_fact or {}).get("content")
+            or place["description"]
+            or f"{place['name']} 위치 안내"
+        )
+        results.append({
+            "id": place["id"],
+            "name": place["name"],
+            "description": summary,
+            "category": _category(place["labels"], place["name"], summary),
+            "labels": place["labels"],
+            "coordinate": {"lat": place["latitude"], "lng": place["longitude"]},
+            "purposes": sorted(place_purposes),
+            "matchedPurpose": purpose,
+            "facilities": matched_facilities[:6],
+            "facts": matched_facts[:4],
+        })
+    return results[:limit]
 
 
 def _destinations(driver, query="", limit=50):
@@ -99,8 +250,24 @@ def destinations(
     q: str = Query(default="", max_length=100),
     limit: int = Query(default=30, ge=1, le=50),
 ):
-    results = _destinations(request.app.state.neo4j_driver, q.strip(), limit)
+    results = _guide_discovery(request.app.state.neo4j_driver, query=q, limit=limit)
     return {"query": q, "total": len(results), "results": results}
+
+
+@router.get("/discover")
+def discover(
+    request: Request,
+    purpose: Literal["study", "rest", "convenience", "food", "parking"],
+    q: str = Query(default="", max_length=100),
+    limit: int = Query(default=30, ge=1, le=50),
+):
+    results = _guide_discovery(
+        request.app.state.neo4j_driver,
+        purpose=purpose,
+        query=q,
+        limit=limit,
+    )
+    return {"purpose": purpose, "query": q, "total": len(results), "results": results}
 
 
 @router.get("/popular")

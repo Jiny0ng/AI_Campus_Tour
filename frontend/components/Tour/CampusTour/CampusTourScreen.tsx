@@ -11,7 +11,7 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import { clientDebug, clientDebugError } from "@/lib/clientDebug";
 import { trackedFetch } from "@/lib/networkFetch";
-import { recordTipViewed, recordVisitedPlace } from "@/lib/audioGuide/sessionReport";
+import { recordVisitedPlace } from "@/lib/audioGuide/sessionReport";
 import type {
   CampusTourData,
   CampusTourNearbySpot,
@@ -627,30 +627,6 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     setCurrentStopIndex((index) => Math.max(index - 1, 0));
   }
 
-  function handleListenTip(tip: CampusTourSegmentInfo["tips"][number]) {
-    if (!narrationStop) return;
-    void speak({
-      id: `tour-tip:${narrationStop.id}:${tip.name}:${locale}:${Date.now()}`,
-      text: tip.tip,
-      locale,
-      category: "core-docent",
-      priority: 65,
-      source: { kind: "tts" },
-      interruptible: true,
-      resumePolicy: "resume",
-      report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
-    });
-  }
-
-  function handleOpenTip(tip: CampusTourSegmentInfo["tips"][number]) {
-    recordTipViewed(
-      `${narrationStop?.id ?? "unknown"}:${tip.name}:${locale}`,
-      tip.tip,
-      narrationStop?.id,
-      narrationStop?.name,
-    );
-  }
-
   function handleListenNearby(spot: CampusTourNearbySpot) {
     const text = spot.docentText || spot.description;
     if (!text) return;
@@ -727,10 +703,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           isNearbyLoading={isNearbyLoading}
           addingSpotId={addingSpotId}
           onAddWaypoint={handleAddWaypoint}
-          onListenTip={handleListenTip}
-          onOpenTip={handleOpenTip}
           onListenNearby={handleListenNearby}
-          segmentInfo={segmentInfo}
           isSegmentLoading={isSegmentLoading}
           hasArrived={canAdvance}
           needsArrivalConfirmation={needsArrivalConfirmation}

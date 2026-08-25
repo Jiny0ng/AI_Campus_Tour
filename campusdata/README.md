@@ -34,6 +34,7 @@ CSV 객체는 공통적으로 다음 규칙을 사용합니다.
 | `entity_type` | 파일 | 핵심 관계 |
 |---|---|---|
 | `building` | `campus_places.csv` | 최상위 건물 객체 |
+| `parking` | `campus_places.csv` | 좌표를 가진 교내 주차장·주차 가능 공간 |
 | `store` | `campus_places.csv` | `parent_id`로 건물 참조 |
 | `docent_spot` | `campus_places.csv` | 주변 도슨트 지점 |
 | `tour_stop` | `campus_places.csv` | `tour_order`를 가진 투어 정류장 |

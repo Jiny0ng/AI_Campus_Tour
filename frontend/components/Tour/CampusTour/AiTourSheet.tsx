@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, Pause, Play, Volume2, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, animate as animateValue, useDragControls, useMotionValue } from "framer-motion";
 import { Button } from "@/components/Common";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { useAudioGuide } from "@/contexts/AudioGuideContext";
-import type { CampusTourNearbySpot, CampusTourSegmentInfo, CampusTourStop } from "@/types";
+import type { CampusTourNearbySpot, CampusTourStop } from "@/types";
 
 type AiTourSheetProps = {
   currentStop?: CampusTourStop;
@@ -20,22 +20,17 @@ type AiTourSheetProps = {
   nearbySpots?: CampusTourNearbySpot[];
   isNearbyLoading?: boolean;
   addingSpotId?: string | null;
-  segmentInfo?: CampusTourSegmentInfo | null;
   isSegmentLoading?: boolean;
   hasArrived?: boolean;
   needsArrivalConfirmation?: boolean;
   remainingDistanceMeters?: number | null;
   onRecenterMap?: () => void;
   canRecenter?: boolean;
-  onListenTip?: (tip: TourTip) => void;
-  onOpenTip?: (tip: TourTip) => void;
   onListenNearby?: (spot: CampusTourNearbySpot) => void;
 };
 
-type TourTip = CampusTourSegmentInfo["tips"][number];
-
-function getTourTipIcon(tip: TourTip) {
-  const text = `${tip.name} ${tip.category} ${tip.tip}`;
+function getPlaceIcon(name: string, category: string, description: string) {
+  const text = `${name} ${category} ${description}`;
   const keywordIcons: Array<[RegExp, string]> = [
     [/벚꽃|꽃|계절/, "🌸"],
     [/도서관|책|열람|학습|공부/, "📚"],
@@ -51,7 +46,7 @@ function getTourTipIcon(tip: TourTip) {
   ];
   const matched = keywordIcons.find(([pattern]) => pattern.test(text));
   if (matched) return matched[1];
-  return tip.icon?.trim() || "📍";
+  return "📍";
 }
 
 const insightIcons: Record<string, string> = {
@@ -68,23 +63,51 @@ const insightIcons: Record<string, string> = {
   "hidden-place": "🔎",
 };
 
-export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenTip, onOpenTip, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
+export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t, pn } = useAppSettings();
   const { status: audioStatus, pause, resume } = useAudioGuide();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedTip, setSelectedTip] = useState<TourTip | null>(null);
+  const [selectedNearby, setSelectedNearby] = useState<CampusTourNearbySpot | null>(null);
+  const sheetRef = useRef<HTMLElement | null>(null);
+  const sheetY = useMotionValue(0);
+  const dragControls = useDragControls();
+  const [maxDragY, setMaxDragY] = useState(0);
+  const initializedDragRef = useRef(false);
+
+  useLayoutEffect(() => {
+    const updateConstraints = () => {
+      const maximumHeight = window.innerHeight * 0.62;
+      const minimumVisibleHeight = 145;
+      const nextMaxDragY = Math.max(0, maximumHeight - minimumVisibleHeight);
+      setMaxDragY(nextMaxDragY);
+      if (!initializedDragRef.current) {
+        sheetY.set(nextMaxDragY);
+        initializedDragRef.current = true;
+      } else if (sheetY.get() > nextMaxDragY) {
+        sheetY.set(nextMaxDragY);
+      }
+    };
+    updateConstraints();
+    window.addEventListener("resize", updateConstraints);
+    return () => window.removeEventListener("resize", updateConstraints);
+  }, [sheetY]);
+
+  const toggleSheet = () => {
+    const nextExpanded = sheetY.get() > maxDragY / 2;
+    setIsExpanded(nextExpanded);
+    animateValue(sheetY, nextExpanded ? 0 : maxDragY, { type: "spring", bounce: 0, duration: 0.35 });
+  };
 
   useEffect(() => {
-    setIsExpanded(false);
-    setSelectedTip(null);
+    setSelectedNearby(null);
   }, [currentStop?.id]);
 
   useEffect(() => {
-    if (!selectedTip) return;
+    if (!selectedNearby) return;
 
     const previousOverflow = document.body.style.overflow;
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedTip(null);
+      if (event.key === "Escape") setSelectedNearby(null);
     };
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", closeOnEscape);
@@ -92,7 +115,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", closeOnEscape);
     };
-  }, [selectedTip]);
+  }, [selectedNearby]);
 
   if (!currentStop) {
     return (
@@ -115,12 +138,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
 
   const displayStop = nextStop || currentStop;
   const destinationDescription = displayStop.overview || displayStop.description;
-  const destinationInsights: TourTip[] = (displayStop.insights || []).map((insight) => ({
-    name: displayStop.name,
-    icon: insightIcons[insight.category] || "💡",
-    category: insight.category,
-    tip: insight.content,
-  }));
+  const destinationInsights = displayStop.insights || [];
   const formattedDistance = typeof remainingDistanceMeters === "number"
     ? remainingDistanceMeters >= 1000
       ? `${(remainingDistanceMeters / 1000).toFixed(1)}km`
@@ -128,17 +146,28 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
     : null;
   return (
     <>
-    <section className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
+    <motion.section
+      ref={sheetRef}
+      drag="y"
+      dragControls={dragControls}
+      dragListener={false}
+      dragConstraints={{ top: 0, bottom: maxDragY }}
+      dragElastic={0}
+      dragMomentum={false}
+      style={{ y: sheetY, height: "62dvh" }}
+      onDragEnd={() => setIsExpanded(sheetY.get() < maxDragY / 2)}
+      className="absolute inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet"
+    >
       <div
-        className="mx-auto -mt-2 mb-2 flex h-8 w-full cursor-pointer items-center justify-center"
-        onClick={() => setIsExpanded(!isExpanded)}
+        className="mx-auto -mt-2 mb-2 flex h-8 w-full shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
+        onPointerDown={(event) => dragControls.start(event)}
       >
         <div className="h-1.5 w-10 rounded-full bg-handle" />
       </div>
 
       <div
-        onClick={() => !isExpanded && setIsExpanded(true)}
-        className={!isExpanded ? "cursor-pointer" : ""}
+        onClick={() => !isExpanded && toggleSheet()}
+        className="shrink-0 cursor-pointer"
       >
         <div className="flex items-center gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary">
@@ -158,7 +187,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             type="button"
             aria-label={isExpanded ? t("settings.close") : t("sheet.placeTips")}
             className="text-muted hover:text-ink transition-colors"
-            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
+            onClick={(e) => { e.stopPropagation(); toggleSheet(); }}
           >
             {isExpanded ? <ChevronDown size={24} /> : <ChevronUp size={24} />}
           </button>
@@ -172,13 +201,13 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       </div>
 
       <AnimatePresence initial={false}>
-        {isExpanded && (
+        {(
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="max-h-[62dvh] overflow-y-auto overscroll-contain"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
           >
             <p className="mt-4 text-sm font-medium leading-5 text-ink/80">
               {destinationDescription || (isSegmentLoading ? t("sheet.loading") : t("sheet.noTips"))}
@@ -196,29 +225,16 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                 </div>
               ) : destinationInsights.length > 0 ? (
                 <div className="flex gap-3 overflow-x-auto pb-4 snap-x no-scrollbar">
-                  {destinationInsights.map((tipInfo, idx) => (
-                    <button
-                      key={`${tipInfo.name}-${idx}`}
-                      type="button"
-                      aria-haspopup="dialog"
-                      onClick={() => {
-                        setSelectedTip(tipInfo);
-                        onOpenTip?.(tipInfo);
-                      }}
-                      className="flex w-[240px] shrink-0 snap-center flex-col rounded-card border border-primary/20 bg-white p-4 text-left shadow-sm transition active:scale-[0.98]"
+                  {destinationInsights.map((insight, idx) => (
+                    <article
+                      key={`${insight.factId}-${idx}`}
+                      className="flex min-h-[112px] w-[240px] shrink-0 snap-center items-start gap-3 rounded-card border border-primary/20 bg-white p-4 text-left shadow-sm"
                     >
-                      <div className="mb-2 flex items-center gap-2">
-                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-lg" aria-hidden="true">
-                          {getTourTipIcon(tipInfo)}
-                        </span>
-                        <span className="font-bold text-ink text-sm truncate">{pn(tipInfo.name)}</span>
-                      </div>
-                      <p className="text-xs text-muted font-medium mb-1">{tipInfo.category}</p>
-                      <p className="text-sm text-ink line-clamp-3">{tipInfo.tip}</p>
-                      <span className="mt-3 text-xs font-bold text-primary">
-                        {t("sheet.tipDetails")} →
+                      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-lg" aria-hidden="true">
+                        {insightIcons[insight.category] || "💡"}
                       </span>
-                    </button>
+                      <p className="pt-1 text-sm leading-6 text-ink">{insight.content}</p>
+                    </article>
                   ))}
                 </div>
               ) : (
@@ -239,11 +255,11 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                   {nearbySpots.map((spot) => (
                     <article
                       key={spot.id}
-                      className="flex w-[270px] shrink-0 snap-center items-center gap-3 rounded-card border border-primary/15 bg-surface p-3 shadow-sm"
+                      className="flex w-[300px] shrink-0 snap-center flex-col rounded-card border border-primary/15 bg-surface p-3 shadow-sm"
                     >
-                      <div className="min-w-0 flex-1">
+                      <div className="w-full min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-extrabold text-ink">{pn(spot.name)}</span>
+                          <span className="min-w-0 flex-1 text-sm font-extrabold leading-5 text-ink">{pn(spot.name)}</span>
                           <span className="shrink-0 text-[10px] font-bold text-primary">
                             {spot.distanceMeters}m
                           </span>
@@ -253,24 +269,35 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                           {spot.description}
                         </p>
                       </div>
-                      <Button
-                        type="button"
-                        variant="primary"
-                        size="sm"
-                        className="h-9 shrink-0 rounded-full px-3 text-xs"
-                        disabled={Boolean(addingSpotId)}
-                        onClick={() => onAddWaypoint?.(spot)}
-                      >
-                        {addingSpotId === spot.id ? t("sheet.adding") : t("sheet.detour")}
-                      </Button>
-                      <button
-                        type="button"
-                        aria-label={`${pn(spot.name)} ${t("audio.listen")}`}
-                        className="grid size-9 shrink-0 place-items-center rounded-full border border-primary/20 bg-primary-soft text-primary"
-                        onClick={() => onListenNearby?.(spot)}
-                      >
-                        <Volume2 size={16} />
-                      </button>
+                      <div className="mt-3 flex w-full items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          className="h-9 min-w-0 flex-1 rounded-full px-3 text-xs"
+                          onClick={() => setSelectedNearby(spot)}
+                        >
+                          {t("sheet.nearbyDetails")}
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="primary"
+                          size="sm"
+                          className="h-9 min-w-0 flex-1 rounded-full px-3 text-xs"
+                          disabled={Boolean(addingSpotId)}
+                          onClick={() => onAddWaypoint?.(spot)}
+                        >
+                          {addingSpotId === spot.id ? t("sheet.adding") : t("sheet.detour")}
+                        </Button>
+                        <button
+                          type="button"
+                          aria-label={`${pn(spot.name)} ${t("audio.listen")}`}
+                          className="grid size-9 shrink-0 place-items-center rounded-full border border-primary/20 bg-primary-soft text-primary"
+                          onClick={() => onListenNearby?.(spot)}
+                        >
+                          <Volume2 size={16} />
+                        </button>
+                      </div>
                     </article>
                   ))}
                 </div>
@@ -309,21 +336,21 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
           </motion.div>
         )}
       </AnimatePresence>
-    </section>
+    </motion.section>
     {typeof document !== "undefined" && createPortal(
       <AnimatePresence>
-        {selectedTip && (
+        {selectedNearby && (
           <motion.div
             className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/45 px-4 pb-[calc(18px+env(safe-area-inset-bottom))] pt-16 backdrop-blur-sm sm:items-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelectedTip(null)}
+            onClick={() => setSelectedNearby(null)}
           >
             <motion.article
               role="dialog"
               aria-modal="true"
-              aria-labelledby="tour-tip-dialog-title"
+              aria-labelledby="nearby-place-dialog-title"
               initial={{ opacity: 0, y: 24, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -333,46 +360,46 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             >
               <div className="flex items-start gap-3">
                 <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary-soft text-xl" aria-hidden="true">
-                  {getTourTipIcon(selectedTip)}
+                  {getPlaceIcon(selectedNearby.name, selectedNearby.category, selectedNearby.description)}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-primary">{t("sheet.tipDetails")}</p>
-                  <h2 id="tour-tip-dialog-title" className="mt-1 text-xl font-extrabold leading-7 text-ink">
-                    {pn(selectedTip.name)}
+                  <p className="text-xs font-bold text-primary">{t("sheet.nearbyDetails")}</p>
+                  <h2 id="nearby-place-dialog-title" className="mt-1 text-xl font-extrabold leading-7 text-ink">
+                    {pn(selectedNearby.name)}
                   </h2>
                 </div>
                 <button
                   type="button"
                   aria-label={t("sheet.closeDetails")}
                   className="grid size-9 shrink-0 place-items-center rounded-full bg-line/70 text-ink"
-                  onClick={() => setSelectedTip(null)}
+                  onClick={() => setSelectedNearby(null)}
                 >
                   <X size={19} />
                 </button>
               </div>
               <span className="mt-4 inline-flex rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
-                {selectedTip.category}
+                {selectedNearby.category} · {selectedNearby.distanceMeters}m
               </span>
               <p className="mt-4 whitespace-pre-wrap text-[15px] font-medium leading-7 text-ink/85">
-                {selectedTip.tip}
+                {selectedNearby.description}
               </p>
               <Button
                 type="button"
                 className="mt-5 h-12 w-full"
                 onClick={() => {
-                  const isCurrentTip = audioStatus.request?.id.startsWith("tour-tip:")
-                    && audioStatus.request.text === selectedTip.tip;
-                  if (isCurrentTip && audioStatus.playback === "playing") pause();
-                  else if (isCurrentTip && audioStatus.playback === "paused") resume();
-                  else onListenTip?.(selectedTip);
+                  const nearbyText = selectedNearby.docentText || selectedNearby.description;
+                  const isCurrentNearby = audioStatus.request?.text === nearbyText;
+                  if (isCurrentNearby && audioStatus.playback === "playing") pause();
+                  else if (isCurrentNearby && audioStatus.playback === "paused") resume();
+                  else onListenNearby?.(selectedNearby);
                 }}
               >
-                {audioStatus.request?.text === selectedTip.tip && audioStatus.playback === "playing"
+                {audioStatus.request?.text === (selectedNearby.docentText || selectedNearby.description) && audioStatus.playback === "playing"
                   ? <Pause size={18} />
                   : <Play size={18} />}
-                {audioStatus.request?.text === selectedTip.tip && audioStatus.playback === "playing"
+                {audioStatus.request?.text === (selectedNearby.docentText || selectedNearby.description) && audioStatus.playback === "playing"
                   ? t("audio.pause")
-                  : audioStatus.request?.text === selectedTip.tip && audioStatus.playback === "paused"
+                  : audioStatus.request?.text === (selectedNearby.docentText || selectedNearby.description) && audioStatus.playback === "paused"
                     ? t("audio.resume")
                     : t("audio.listen")}
               </Button>

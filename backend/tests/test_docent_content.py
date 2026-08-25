@@ -52,6 +52,12 @@ def test_stop_presentation_uses_verified_identity_as_overview():
                 "factId": "place:tip",
                 "category": "recommendation",
                 "content": "2층 열람실도 이용해 볼 만하다.",
+                "verified": True,
+            },
+            {
+                "factId": "place:extra",
+                "category": "experience",
+                "content": "날씨가 좋으면 테라스를 이용할 수 있다.",
                 "verified": False,
             },
         ],
@@ -60,8 +66,8 @@ def test_stop_presentation_uses_verified_identity_as_overview():
 
     overview, insights = build_stop_presentation(context, "기본 설명")
 
-    assert overview == "대표적인 캠퍼스 학습 공간이다."
-    assert [fact["factId"] for fact in insights] == ["place:tip"]
+    assert overview == "대표적인 캠퍼스 학습 공간이다. 2층 열람실도 이용해 볼 만하다."
+    assert [fact["factId"] for fact in insights] == ["place:extra"]
 
 
 def test_stop_presentation_has_safe_fallback():

@@ -15,7 +15,7 @@ NEAR_SECONDS = 60
 FALLBACK_RADIUS_M = 80.0
 MAX_SNAP_DISTANCE_M = 40.0
 MAX_SEGMENT_LENGTH_M = 5.0
-ELIGIBLE_TYPES = {"building", "store", "docent_spot", "tour_stop"}
+ELIGIBLE_TYPES = {"building", "parking", "store", "docent_spot", "tour_stop"}
 
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

@@ -8,6 +8,27 @@ export type GuidePlaceCategory =
   | "cafeteria"
   | "rest";
 
+export type GuidePurpose = "study" | "rest" | "convenience" | "food" | "parking";
+
+export type GuideFacilityInsight = {
+  id: string;
+  name: string;
+  type: string;
+  floor: string;
+  features: string;
+  note: string;
+  purposes: GuidePurpose[];
+};
+
+export type GuideFactInsight = {
+  id: string;
+  category: string;
+  content: string;
+  importance: number;
+  verified: boolean;
+  purposes: GuidePurpose[];
+};
+
 export type GuidePlace = {
   id: string;
   name: string;
@@ -19,6 +40,10 @@ export type GuidePlace = {
     x: number;
     y: number;
   };
+  purposes?: GuidePurpose[];
+  matchedPurpose?: GuidePurpose | null;
+  facilities?: GuideFacilityInsight[];
+  facts?: GuideFactInsight[];
 };
 
 export type GuideCategory = {
@@ -44,4 +69,8 @@ export type GuideDestination = {
   labels: string[];
   coordinate: CampusCoordinate;
   distanceMeters?: number;
+  purposes?: GuidePurpose[];
+  matchedPurpose?: GuidePurpose | null;
+  facilities?: GuideFacilityInsight[];
+  facts?: GuideFactInsight[];
 };

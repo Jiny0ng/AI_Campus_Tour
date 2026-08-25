@@ -17,19 +17,32 @@ def build_stop_presentation(
         *docent_context.get("requiredFacts", []),
         *docent_context.get("optionalFacts", []),
     ]
-    overview_fact = next(
+    identity_fact = next(
         (
             fact for fact in facts
             if fact.get("category") == "identity" and fact.get("verified") is not False
         ),
         facts[0] if facts else None,
     )
-    overview = (
-        (overview_fact or {}).get("content")
-        or docent_context.get("description")
-        or fallback
+    overview_facts = [identity_fact] if identity_fact else []
+    supporting_fact = next(
+        (
+            fact for fact in facts
+            if fact is not identity_fact
+            and fact.get("verified") is not False
+            and fact.get("content")
+        ),
+        None,
     )
-    return overview, [fact for fact in facts if fact is not overview_fact]
+    if supporting_fact:
+        overview_facts.append(supporting_fact)
+
+    overview = " ".join(
+        str(fact.get("content", "")).strip() for fact in overview_facts
+        if fact and fact.get("content")
+    ) or docent_context.get("description") or fallback
+    used_fact_ids = {id(fact) for fact in overview_facts}
+    return overview, [fact for fact in facts if id(fact) not in used_fact_ids]
 
 
 def assemble_docent_context(

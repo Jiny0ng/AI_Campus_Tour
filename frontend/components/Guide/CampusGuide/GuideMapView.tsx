@@ -12,6 +12,7 @@ type GuideMapViewProps = {
 export function GuideMapView({
   places,
   selectedPlaceId,
+  onSelectPlace,
   recenterUserLocationToken = 0,
 }: GuideMapViewProps) {
   const markers = places.map((place) => ({
@@ -26,6 +27,10 @@ export function GuideMapView({
         center={campusCenter}
         zoom={16}
         markers={markers}
+        onMarkerClick={(markerId) => {
+          const place = places.find((item) => item.id === markerId);
+          if (place) onSelectPlace(place);
+        }}
         recenterUserLocationToken={recenterUserLocationToken}
       />
     </div>

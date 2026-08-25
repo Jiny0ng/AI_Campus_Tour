@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import os
 import time
 from pathlib import Path
@@ -41,6 +42,7 @@ FACILITY_ROOM_SUFFIXES = (
 def read_csv(filename: str) -> list[dict[str, str]]:
     canonical_types = {
         "nodes_building.csv": "building",
+        "nodes_parking.csv": "parking",
         "nodes_store.csv": "store",
         "nodes_docent_spot.csv": "docent_spot",
         "tour_route.csv": "tour_stop",
@@ -131,6 +133,7 @@ def ensure_unique(values: Iterable[str], label: str) -> None:
 
 def validate_source_data() -> None:
     buildings = read_csv("nodes_building.csv")
+    parkings = read_csv("nodes_parking.csv")
     stores = read_csv("nodes_store.csv")
     route = read_csv("tour_route.csv")
 
@@ -166,7 +169,7 @@ def validate_source_data() -> None:
         if optional_float(row["latitude"]) is None or optional_float(row["longitude"]) is None:
             raise ValueError(f"Tour stop needs valid coordinates: {row['place_id']}")
 
-    all_entities = read_csv("nodes_building.csv") + read_csv("nodes_store.csv")
+    all_entities = read_csv("nodes_building.csv") + parkings + read_csv("nodes_store.csv")
     all_entities += read_csv("nodes_docent_spot.csv") + read_csv("tour_route.csv")
     all_entities += read_csv("nodes_floor.csv") + read_csv("nodes_room.csv")
     all_entities += read_csv("nodes_facility.csv")
@@ -293,6 +296,42 @@ def load_buildings(driver) -> int:
             SET building:Facility,
                 building.facility_label_source = 'campus_places.csv'
         )
+        """,
+        batch=batch,
+    )
+    return len(batch)
+
+
+def load_parkings(driver) -> int:
+    rows = read_csv("nodes_parking.csv")
+    batch = [
+        {
+            "place_id": row["id"],
+            "name": row["name"],
+            "description": row["description"],
+            "address": row["location"],
+            "phone": row["phone"],
+            "latitude": optional_float(row["latitude"]),
+            "longitude": optional_float(row["longitude"]),
+            "coordinate_source": row["coordinate_source"],
+        }
+        for row in rows
+        if row["name"]
+    ]
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (parking:Parking:Place {place_id: row.place_id})
+        SET parking.name = row.name,
+            parking.type = '주차장',
+            parking.description = row.description,
+            parking.address = row.address,
+            parking.phone = row.phone,
+            parking.latitude = row.latitude,
+            parking.longitude = row.longitude,
+            parking.coordinate_source = row.coordinate_source,
+            parking.source = 'campus_places.csv'
         """,
         batch=batch,
     )
@@ -727,6 +766,41 @@ def load_docent_configs(driver) -> int:
     return len(rows)
 
 
+def load_guide_purposes(driver) -> int:
+    with (DATA_DIR / "guide_purposes.json").open("r", encoding="utf-8") as file:
+        rules = json.load(file)
+    rows = [
+        {"id": purpose, "keywords": [keyword.lower() for keyword in keywords]}
+        for purpose, keywords in rules.items()
+    ]
+    run(
+        driver,
+        "MATCH ()-[relation:SERVES_PURPOSE {source: 'guide_purposes.json'}]->() DELETE relation",
+    )
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        MERGE (purpose:Purpose {purpose_id: row.id})
+        SET purpose.name = row.id, purpose.source = 'guide_purposes.json'
+        WITH row, purpose
+        MATCH (content)
+        WHERE content:Facility OR content:Fact OR content:Place
+        WITH row, purpose, content,
+             toLower(
+                coalesce(content.name, '') + ' ' + coalesce(content.type, '') + ' ' +
+                coalesce(content.features, '') + ' ' + coalesce(content.note, '') + ' ' +
+                coalesce(content.description, '') + ' ' + coalesce(content.content, '')
+             ) AS searchable
+        WHERE any(keyword IN row.keywords WHERE searchable CONTAINS keyword)
+        MERGE (content)-[relation:SERVES_PURPOSE]->(purpose)
+        SET relation.source = 'guide_purposes.json'
+        """,
+        batch=rows,
+    )
+    return len(rows)
+
+
 def load_campus_relations(driver) -> int:
     run(
         driver,
@@ -736,7 +810,7 @@ def load_campus_relations(driver) -> int:
             campus.source = 'neo4j_loader_v2.py'
         WITH campus
         MATCH (node)
-        WHERE node:Building OR node:Facility OR node:TourStop OR node:DocentSpot
+        WHERE node:Building OR node:Facility OR node:TourStop OR node:DocentSpot OR node:Parking
         MERGE (node)-[:PART_OF_CAMPUS]->(campus)
         """,
     )
@@ -889,6 +963,7 @@ def load_all(driver, reset: bool) -> None:
     create_indexes(driver)
     loaders = (
         ("buildings", load_buildings),
+        ("parkings", load_parkings),
         ("floors", load_floors),
         ("rooms", load_rooms),
         ("facilities", load_facilities),
@@ -897,6 +972,7 @@ def load_all(driver, reset: bool) -> None:
         ("tour stops", load_tour_stops),
         ("facts", load_facts),
         ("docent configs", load_docent_configs),
+        ("guide purposes", load_guide_purposes),
         ("campus relation set", load_campus_relations),
     )
     for label, loader in loaders:

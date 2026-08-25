@@ -11,7 +11,7 @@ declare global {
         Polyline: typeof naver.maps.Polyline;
         Event: {
           addListener(
-            target: naver.maps.Map,
+            target: naver.maps.Map | naver.maps.Marker,
             eventName: string,
             handler: () => void,
           ): unknown;

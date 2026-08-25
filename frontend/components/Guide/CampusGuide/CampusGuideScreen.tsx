@@ -10,7 +10,7 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { distanceMeters } from "@/lib/drivingNavigation";
 import { destinationToPlace, destinationToSearchParams } from "@/lib/guideDestination";
 import { trackedFetch } from "@/lib/networkFetch";
-import type { CampusCoordinate, CampusGuideData, GuideDestination, GuidePlace } from "@/types";
+import type { CampusCoordinate, CampusGuideData, GuideDestination, GuidePlace, GuidePurpose } from "@/types";
 import { GuideMapView } from "./GuideMapView";
 import { GuideSearchResults } from "./GuideSearchResults";
 import { NearbyFacilitySheet } from "./NearbyFacilitySheet";
@@ -27,6 +27,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   const [currentLocation, setCurrentLocation] = useState<CampusCoordinate>(data.currentLocation);
   const [popularDestinations, setPopularDestinations] = useState<GuideDestination[]>([]);
   const [matchedDestinations, setMatchedDestinations] = useState<GuideDestination[]>([]);
+  const [selectedPurpose, setSelectedPurpose] = useState<GuidePurpose | null>(null);
   const [recenterUserLocationToken, setRecenterUserLocationToken] = useState(0);
 
   useEffect(() => {
@@ -51,13 +52,16 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
 
   useEffect(() => {
     const query = keyword.trim();
-    if (!query) {
+    if (!query && !selectedPurpose) {
       setMatchedDestinations([]);
       return;
     }
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
-      void trackedFetch(`/api/guide/destinations?q=${encodeURIComponent(query)}`, {
+      const endpoint = selectedPurpose
+        ? `/api/guide/discover?purpose=${selectedPurpose}&q=${encodeURIComponent(query)}`
+        : `/api/guide/destinations?q=${encodeURIComponent(query)}`;
+      void trackedFetch(endpoint, {
         signal: controller.signal,
       })
         .then((response) => response.ok ? response.json() : Promise.reject())
@@ -70,7 +74,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [keyword]);
+  }, [keyword, selectedPurpose]);
 
   const popularPlaces = useMemo(
     () => popularDestinations.length > 0
@@ -89,19 +93,31 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
     () => matchedDestinations.map((destination) => destinationToPlace(
       destination,
       distanceMeters(currentLocation, destination.coordinate),
-    )),
+    )).sort((first, second) => first.distanceMeters - second.distanceMeters),
     [currentLocation, matchedDestinations],
   );
 
+  const filteredPlaces = keyword.trim() || selectedPurpose ? searchResults : popularPlaces;
   const visiblePlaces = selectedPlace
-    ? [selectedPlace, ...popularPlaces.filter((place) => place.id !== selectedPlace.id)]
-    : popularPlaces;
+    ? [selectedPlace, ...filteredPlaces.filter((place) => place.id !== selectedPlace.id)]
+    : filteredPlaces;
 
   function handleSelectPlace(place: GuidePlace) {
     setSelectedPlace(place);
     setKeyword("");
+  }
+
+  function handleGuidePlace(place: GuidePlace) {
     router.push(`/guide/transport?${destinationToSearchParams(place)}`);
   }
+
+  const purposeOptions: Array<{ id: GuidePurpose; label: string }> = [
+    { id: "study", label: t("guide.purpose.study") },
+    { id: "rest", label: t("guide.purpose.rest") },
+    { id: "convenience", label: t("guide.purpose.convenience") },
+    { id: "food", label: t("guide.purpose.food") },
+    { id: "parking", label: t("guide.purpose.parking") },
+  ];
 
   return (
     <MobileShell className="bg-surface">
@@ -130,6 +146,27 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
               containerClassName="h-[38px] flex-1 bg-surface/95"
             />
           </div>
+          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {purposeOptions.map((purpose) => {
+              const selected = selectedPurpose === purpose.id;
+              return (
+                <button
+                  key={purpose.id}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => {
+                    setSelectedPurpose(selected ? null : purpose.id);
+                    setSelectedPlace(null);
+                  }}
+                  className={`h-8 shrink-0 rounded-full px-4 text-xs font-extrabold shadow-card transition ${
+                    selected ? "bg-emerald-300 text-emerald-950" : "bg-surface/95 text-ink"
+                  }`}
+                >
+                  {purpose.label}
+                </button>
+              );
+            })}
+          </div>
           <GuideSearchResults places={searchResults} onSelectPlace={handleSelectPlace} />
         </div>
 
@@ -150,7 +187,13 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
           </div>
         ) : null}
 
-        <NearbyFacilitySheet places={popularPlaces} onSelectPlace={handleSelectPlace} />
+        <NearbyFacilitySheet
+          places={filteredPlaces}
+          selectedPlace={selectedPlace}
+          selectedPurpose={selectedPurpose}
+          onSelectPlace={handleSelectPlace}
+          onGuidePlace={handleGuidePlace}
+        />
       </main>
     </MobileShell>
   );

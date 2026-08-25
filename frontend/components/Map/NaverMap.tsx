@@ -21,6 +21,7 @@ type NaverMapProps = {
   maxZoom?: number;
   onReady?: (map: naver.maps.Map) => void;
   onError?: (error: Error) => void;
+  onMarkerClick?: (markerId: string) => void;
 };
 
 type DeviceOrientationEventWithPermission = DeviceOrientationEvent & {
@@ -236,10 +237,12 @@ export function NaverMap({
   maxZoom = 21,
   onReady,
   onError,
+  onMarkerClick,
 }: NaverMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<naver.maps.Map | null>(null);
   const markerRefs = useRef<naver.maps.Marker[]>([]);
+  const markerListenerRefs = useRef<unknown[]>([]);
   const routeRefs = useRef<naver.maps.Polyline[]>([]);
   const routeArrowMarkerRefs = useRef<naver.maps.Marker[]>([]);
   const userLocationMarkerRef = useRef<naver.maps.Marker | null>(null);
@@ -330,6 +333,7 @@ export function NaverMap({
     return () => {
       cancelled = true;
       markerRefs.current.forEach((marker) => marker.setMap(null));
+      markerListenerRefs.current.forEach((listener) => window.naver?.maps.Event.removeListener(listener));
       routeRefs.current.forEach((route) => route.setMap(null));
       routeArrowMarkerRefs.current.forEach((marker) => marker.setMap(null));
       userLocationMarkerRef.current?.setMap(null);
@@ -339,6 +343,7 @@ export function NaverMap({
       resizeObserverRef.current?.disconnect();
       mapRef.current?.destroy?.();
       markerRefs.current = [];
+      markerListenerRefs.current = [];
       routeRefs.current = [];
       routeArrowMarkerRefs.current = [];
       userLocationMarkerRef.current = null;
@@ -486,16 +491,26 @@ export function NaverMap({
     }
 
     markerRefs.current.forEach((marker) => marker.setMap(null));
+    markerListenerRefs.current.forEach((listener) => window.naver?.maps.Event.removeListener(listener));
+    markerListenerRefs.current = [];
     markerRefs.current = markers.map(
-      (marker) =>
-        new window.naver!.maps.Marker({
+      (marker) => {
+        const mapMarker = new window.naver!.maps.Marker({
           map,
           title: marker.title,
           position: new window.naver!.maps.LatLng(marker.position.lat, marker.position.lng),
           icon: createMarkerIcon(marker.type),
-        }),
+          clickable: Boolean(onMarkerClick),
+        });
+        if (onMarkerClick) {
+          markerListenerRefs.current.push(
+            window.naver!.maps.Event.addListener(mapMarker, "click", () => onMarkerClick(marker.id)),
+          );
+        }
+        return mapMarker;
+      },
     );
-  }, [markers, ready]);
+  }, [markers, onMarkerClick, ready]);
 
   useEffect(() => {
     const map = mapRef.current;

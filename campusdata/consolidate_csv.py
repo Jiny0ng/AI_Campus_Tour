@@ -12,7 +12,7 @@ DATA_DIR = Path(__file__).resolve().parent
 CANONICAL_FILES = ("campus_places.csv", "campus_interiors.csv")
 CONTENT_FILES = ("campus_facts.csv", "campus_docents.csv")
 NEAR_OVERRIDES_FILE = "campus_near_overrides.csv"
-PLACE_TYPES = {"building", "store", "docent_spot", "tour_stop"}
+PLACE_TYPES = {"building", "parking", "store", "docent_spot", "tour_stop"}
 INTERIOR_TYPES = {"floor", "room", "facility"}
 
 
