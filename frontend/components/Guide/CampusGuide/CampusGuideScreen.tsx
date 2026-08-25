@@ -97,7 +97,44 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
     [currentLocation, matchedDestinations],
   );
 
-  const filteredPlaces = keyword.trim() || selectedPurpose ? searchResults : popularPlaces;
+  const purposeFacilityPlaces = useMemo(() => {
+    if (!selectedPurpose) return searchResults;
+    const expanded = searchResults.flatMap((place) => {
+      const facilities = (place.facilities ?? []).filter((facility) =>
+        facility.purposes.includes(selectedPurpose),
+      );
+      if (facilities.length === 0) return [place];
+      return facilities.map((facility) => {
+        const genericName = ["편의점", "카페", "커피점", "주차장", "열람실", "학습실"].includes(facility.name);
+        const description = [
+          facility.floor,
+          facility.hours,
+          facility.features,
+          facility.restriction,
+          facility.note,
+        ].filter(Boolean).join(" · ") || place.description;
+        return {
+          ...place,
+          id: `${place.id}::${facility.id}`,
+          name: genericName ? `${place.name} ${facility.name}` : facility.name,
+          description,
+          facilities: [facility],
+        };
+      });
+    }).sort((first, second) => first.distanceMeters - second.distanceMeters);
+    const unique = new Map<string, GuidePlace>();
+    for (const place of expanded) {
+      const parentId = place.id.split("::", 1)[0];
+      const key = parentId;
+      const existing = unique.get(key);
+      if (!existing || place.description.length > existing.description.length) unique.set(key, place);
+    }
+    return [...unique.values()].sort((first, second) => first.distanceMeters - second.distanceMeters);
+  }, [searchResults, selectedPurpose]);
+
+  const filteredPlaces = selectedPurpose
+    ? purposeFacilityPlaces
+    : keyword.trim() ? searchResults : popularPlaces;
   const visiblePlaces = selectedPlace
     ? [selectedPlace, ...filteredPlaces.filter((place) => place.id !== selectedPlace.id)]
     : filteredPlaces;
@@ -186,15 +223,14 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
           </div>
         ) : null}
 
-        {selectedPurpose && !selectedPlace ? null : (
-          <NearbyFacilitySheet
-            places={filteredPlaces}
-            selectedPlace={selectedPlace}
-            selectedPurpose={selectedPurpose}
-            onSelectPlace={handleSelectPlace}
-            onGuidePlace={handleGuidePlace}
-          />
-        )}
+        <NearbyFacilitySheet
+          key={selectedPurpose ?? "popular"}
+          places={selectedPurpose ? filteredPlaces.slice(0, 3) : filteredPlaces}
+          selectedPlace={selectedPlace}
+          selectedPurpose={selectedPurpose}
+          onSelectPlace={handleSelectPlace}
+          onGuidePlace={handleGuidePlace}
+        />
       </main>
     </MobileShell>
   );

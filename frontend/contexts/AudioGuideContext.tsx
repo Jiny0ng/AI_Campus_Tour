@@ -64,6 +64,7 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     network: "online",
   });
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const speechUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
   const cacheRef = useRef<AudioBlobLru | null>(null);
   const queueRef = useRef<QueuedAudio[]>([]);
   const activeRef = useRef<ActiveAudio | null>(null);
@@ -160,6 +161,36 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     return operation;
   }, [updateNetwork]);
 
+  const startBrowserSpeech = useCallback((request: AudioRequest, token: number) => {
+    if (!("speechSynthesis" in window) || !("SpeechSynthesisUtterance" in window)) return false;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(request.text);
+    utterance.lang = ({ ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" })[request.locale];
+    utterance.volume = isMuted ? 0 : volume;
+    utterance.rate = 1;
+    utterance.onend = () => {
+      if (activeRef.current?.token !== token) return;
+      speechUtteranceRef.current = null;
+      finishActive("completed");
+      drainRef.current();
+    };
+    utterance.onerror = () => {
+      if (activeRef.current?.token !== token) return;
+      speechUtteranceRef.current = null;
+      finishActive("skipped");
+      drainRef.current();
+    };
+    speechUtteranceRef.current = utterance;
+    window.speechSynthesis.speak(utterance);
+    setStatus((current) => ({
+      ...current,
+      request,
+      playback: "playing",
+      message: "browser-speech-fallback",
+    }));
+    return true;
+  }, [finishActive, isMuted, volume]);
+
   const startItem = useCallback(async (item: QueuedAudio) => {
     if (isExpired(item.request)) {
       if (item.request.report?.include) recordNarrationEvent(item.request, "text-only");
@@ -168,14 +199,17 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       return;
     }
     const cached = cacheRef.current?.get(audioCacheKey(item.request));
+    const token = ++tokenRef.current;
     if (networkRef.current === "text-only" && !cached) {
+      activeRef.current = { ...item, token };
+      if (startBrowserSpeech(item.request, token)) return;
       if (item.request.report?.include) recordNarrationEvent(item.request, "text-only");
+      activeRef.current = null;
       item.resolve("skipped");
       drainRef.current();
       return;
     }
 
-    const token = ++tokenRef.current;
     activeRef.current = { ...item, token };
     setStatus((current) => ({ ...current, request: item.request, playback: "loading" }));
     try {
@@ -201,10 +235,11 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
         setStatus((current) => ({ ...current, playback: "blocked" }));
         return;
       }
+      if (startBrowserSpeech(item.request, token)) return;
       finishActive("skipped");
       drainRef.current();
     }
-  }, [finishActive, isMuted, loadUrl, volume]);
+  }, [finishActive, isMuted, loadUrl, startBrowserSpeech, volume]);
 
   const resumeSuspended = useCallback(async () => {
     const suspended = suspendedRef.current;
@@ -338,6 +373,8 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     tokenRef.current += 1;
     const audio = audioRef.current;
     audio?.pause();
+    window.speechSynthesis?.cancel();
+    speechUtteranceRef.current = null;
     if (activeRef.current) finishActive("interrupted");
     finishSuspended("interrupted");
     queueRef.current.forEach((item) => item.resolve("skipped"));
@@ -346,11 +383,18 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
 
   const pause = useCallback(() => {
     audioRef.current?.pause();
+    if (speechUtteranceRef.current) window.speechSynthesis.pause();
     if (activeRef.current) setStatus((current) => ({ ...current, playback: "paused" }));
   }, []);
 
   const resume = useCallback(() => {
-    if (!activeRef.current || !audioRef.current) return;
+    if (!activeRef.current) return;
+    if (speechUtteranceRef.current) {
+      window.speechSynthesis.resume();
+      setStatus((current) => ({ ...current, playback: "playing" }));
+      return;
+    }
+    if (!audioRef.current) return;
     void audioRef.current.play()
       .then(() => setStatus((current) => ({ ...current, playback: "playing" })))
       .catch(() => setStatus((current) => ({ ...current, playback: "blocked" })));
@@ -392,6 +436,8 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     if (activeRef.current?.request.category === category) {
       const audio = audioRef.current;
       audio?.pause();
+      window.speechSynthesis?.cancel();
+      speechUtteranceRef.current = null;
       finishActive("interrupted");
       drainRef.current();
     }
@@ -426,6 +472,8 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       audio.removeEventListener("ended", ended);
       audio.removeEventListener("error", failed);
       audio.pause();
+      window.speechSynthesis?.cancel();
+      speechUtteranceRef.current = null;
       controllersRef.current.forEach((controller) => controller.abort());
       finishSuspended("interrupted");
       cacheRef.current?.clear();

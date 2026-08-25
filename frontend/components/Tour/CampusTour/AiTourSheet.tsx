@@ -52,8 +52,8 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
 
   useLayoutEffect(() => {
     const updateConstraints = () => {
-      const maximumHeight = window.innerHeight * 0.62;
-      const minimumVisibleHeight = 145;
+      const maximumHeight = window.innerHeight * 0.4;
+      const minimumVisibleHeight = 172;
       const nextMaxDragY = Math.max(0, maximumHeight - minimumVisibleHeight);
       setMaxDragY(nextMaxDragY);
       if (!initializedDragRef.current) {
@@ -116,12 +116,12 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       dragConstraints={{ top: 0, bottom: maxDragY }}
       dragElastic={0}
       dragMomentum={false}
-      style={{ y: sheetY, height: "62dvh" }}
+      style={{ y: sheetY, height: "40dvh" }}
       onDragEnd={() => setIsExpanded(sheetY.get() < maxDragY / 2)}
-      className="absolute inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet"
+      className="absolute inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col rounded-t-[22px] bg-surface px-6 pb-[calc(18px+env(safe-area-inset-bottom))] pt-2 shadow-sheet"
     >
       <div
-        className="mx-auto -mt-2 mb-2 flex h-8 w-full shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
+        className="mx-auto -mt-1 mb-1 flex h-6 w-full shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
         onPointerDown={(event) => dragControls.start(event)}
       >
         <div className="h-1.5 w-10 rounded-full bg-handle" />
@@ -172,10 +172,13 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
           >
-            <p className="mt-4 text-sm font-medium leading-5 text-ink/80">
+            <p className="mt-2 text-sm font-medium leading-5 text-ink/80">
               {destinationDescription || (isSegmentLoading ? t("sheet.loading") : t("sheet.noTips"))}
             </p>
-            <div className="mt-5 rounded-card border border-primary/20 bg-primary-soft p-4">
+            {(isSegmentLoading || destinationInsights.length > 0 || isNearbyLoading || nearbySpots.length > 0) && (
+            <div className="mt-3 rounded-card border border-primary/20 bg-primary-soft p-3">
+              {(isSegmentLoading || destinationInsights.length > 0) && (
+              <>
               <div className="mb-3 flex items-center gap-2">
                 <MessageCirclePlus size={18} className="text-primary" />
                 <h2 className="text-sm font-extrabold text-ink">{t("sheet.placeTips")}</h2>
@@ -201,12 +204,14 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted">
-                  {t("sheet.noTips")}
-                </div>
+                null
+              )}
+              </>
               )}
 
-              <div className="mb-3 mt-4 flex items-center gap-2 border-t border-primary/15 pt-4">
+              {(isNearbyLoading || nearbySpots.length > 0) && (
+              <>
+              <div className={`mb-3 flex items-center gap-2 ${isSegmentLoading || destinationInsights.length > 0 ? "mt-3 border-t border-primary/15 pt-3" : ""}`}>
                 <MapPin size={18} className="text-primary" />
                 <h2 className="text-sm font-extrabold text-ink">{t("sheet.nearby")}</h2>
               </div>
@@ -227,7 +232,6 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                             {spot.distanceMeters}m
                           </span>
                         </div>
-                        <p className="mt-1 text-[11px] font-semibold text-muted">{spot.category}</p>
                         <p className="mt-1 line-clamp-2 text-xs leading-4 text-ink/80">
                           {spot.description}
                         </p>
@@ -247,14 +251,13 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                     </article>
                   ))}
                 </div>
-              ) : (
-                <p className="py-3 text-center text-xs font-medium text-muted">
-                  {t("sheet.noNearby")}
-                </p>
+              ) : null}
+              </>
               )}
             </div>
+            )}
 
-            <div className="mt-6 flex gap-2">
+            <div className="mt-3 flex gap-2">
               {hasPrev && onPrev && (
                 <Button
                   variant="secondary"

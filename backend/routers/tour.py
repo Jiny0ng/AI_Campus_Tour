@@ -170,8 +170,8 @@ def get_nearby_places(
               AND NOT place:Parking
               AND NOT toLower(coalesce(place.type, '')) CONTAINS '주차'
               AND NOT toLower(coalesce(place.category, '')) CONTAINS '주차'
-              AND NOT toLower(coalesce(place.subcategory, '')) CONTAINS '버스 승강장'
-              AND NOT toLower(coalesce(place.subcategory, '')) CONTAINS '버스승강장'
+              AND NOT toLower(coalesce(place.spot_type, '')) CONTAINS '버스 승강장'
+              AND NOT toLower(coalesce(place.spot_type, '')) CONTAINS '버스승강장'
               AND NOT toLower(place.name) CONTAINS '승강장'
             OPTIONAL MATCH (place)-[:HAS_FACT]->(fact:Fact)
             WITH place, near, fact
@@ -191,7 +191,7 @@ def get_nearby_places(
                        place.facility_id, place.store_id, elementId(place)
                    ) AS id,
                    place.name AS name,
-                   coalesce(place.subcategory, place.category, place.type, '장소') AS category,
+                   coalesce(place.spot_type, place.category, place.type, '장소') AS category,
                    summary AS description,
                    coalesce(place.docent_text, '') AS docentText,
                    place.latitude AS latitude,
@@ -200,7 +200,13 @@ def get_nearby_places(
                    near.walking_seconds AS walkingSeconds,
                    near.method AS nearMethod,
                    near.verified AS nearVerified
-            ORDER BY near.walking_seconds, near.distance_m, name
+            ORDER BY CASE
+                       WHEN place:DocentSpot THEN 0
+                       WHEN place:Building THEN 2
+                       WHEN place:Place THEN 1
+                       ELSE 3
+                     END,
+                     near.walking_seconds, near.distance_m, name
             LIMIT 12
             """,
             destination_id=destination_id,

@@ -6,6 +6,33 @@ import re
 from typing import Any
 
 
+def _to_friendly_tip(content: str) -> str:
+    """Normalize reviewed tip copy to a consistent Korean 해요체."""
+    text = content.strip()
+    replacements = (
+        (r"할 수 있다\.$", "할 수 있어요."),
+        (r"이용된다\.$", "이용돼요."),
+        (r"활용된다\.$", "활용돼요."),
+        (r"좋다\.$", "좋아요."),
+        (r"만하다\.$", "만해요."),
+        (r"많다\.$", "많아요."),
+        (r"적다\.$", "적어요."),
+        (r"어렵다\.$", "어려워요."),
+        (r"있다\.$", "있어요."),
+        (r"없다\.$", "없어요."),
+        (r"이다\.$", "이에요."),
+        (r"한다\.$", "해요."),
+        (r"된다\.$", "돼요."),
+        (r"포인트다\.$", "포인트예요."),
+        (r"편이다\.$", "편이에요."),
+        (r"장소다\.$", "장소예요."),
+    )
+    for pattern, replacement in replacements:
+        if re.search(pattern, text):
+            return re.sub(pattern, replacement, text)
+    return text
+
+
 def build_stop_presentation(
     docent_context: dict[str, Any] | None,
     fallback: str,
@@ -31,21 +58,44 @@ def build_stop_presentation(
         ) or docent_context.get("description") or fallback
 
     tips: list[dict[str, Any]] = []
-    for facility in docent_context.get("facilities", [])[:3]:
+    useful_facility_keywords = (
+        "학습", "열람", "휴게", "라운지", "카페", "커피", "편의점", "식당",
+        "정수기", "수유", "atm", "증명", "테라스", "콘센트", "예약", "세미나",
+    )
+    excluded_facility_keywords = ("화장실", "창고", "사물함", "관리실", "기계실")
+    facilities = [
+        facility for facility in docent_context.get("facilities", [])
+        if any(keyword in " ".join(str(value or "").lower() for value in facility.values()) for keyword in useful_facility_keywords)
+        and not any(keyword in str(facility.get("name") or "").lower() for keyword in excluded_facility_keywords)
+    ]
+    facilities.sort(
+        key=lambda facility: -sum(
+            keyword in " ".join(str(value or "").lower() for value in facility.values())
+            for keyword in useful_facility_keywords
+        )
+    )
+    for facility in facilities[:3]:
         detail = facility.get("features") or facility.get("note") or facility.get("type")
         location = " ".join(value for value in (facility.get("floor"), facility.get("name")) if value)
         if location and detail:
+            clean_detail = str(detail).strip().rstrip(".")
+            if clean_detail.endswith("가능"):
+                content = f"{location}에서 {clean_detail[:-2].strip()}할 수 있어요."
+            else:
+                content = f"{location}에는 {clean_detail} 시설이 마련되어 있어요."
             tips.append({
                 "factId": f"facility:{facility.get('id', location)}",
                 "category": "facility",
-                "content": f"{location}에서 {detail} 서비스를 이용할 수 있어요.",
+                "content": content,
                 "importance": 80,
                 "verified": True,
             })
-    useful_categories = {"recommendation", "usage", "experience", "seasonal", "hidden_place", "hidden-place"}
-    tips.extend(fact for fact in facts if fact.get("category") in useful_categories)
-    if not tips:
-        tips = facts[1:4] if len(facts) > 1 else facts[:1]
+    useful_categories = {"facility", "recommendation", "usage", "experience", "seasonal", "hidden_place", "hidden-place"}
+    tips.extend(
+        {**fact, "content": _to_friendly_tip(str(fact.get("content", "")))}
+        for fact in facts
+        if fact.get("category") in useful_categories and fact.get("content")
+    )
     return overview, tips[:6]
 
 

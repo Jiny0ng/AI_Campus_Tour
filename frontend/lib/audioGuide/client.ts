@@ -22,12 +22,12 @@ export async function fetchAudio(
     : "realtime-tts";
   let response = request.source.kind === "asset"
     ? await fetch(`/api/tts/assets/${encodeURIComponent(request.source.assetId)}`, { signal })
-    : await synthesize(request, signal);
+    : await synthesizeWithRetry(request, signal);
   // A manifest can lag behind a content deployment. Preserve guidance by using
   // the same reviewed text through the shared synthesis endpoint.
   if (!response.ok && request.source.kind === "asset" && allowAssetSynthesisFallback) {
     source = "realtime-tts";
-    response = await synthesize(request, signal);
+    response = await synthesizeWithRetry(request, signal);
   }
   const ttfbMs = performance.now() - startedAt;
   if (!response.ok) throw Object.assign(new Error("Audio request failed"), { ttfbMs });
@@ -56,4 +56,31 @@ async function synthesize(request: AudioRequest, signal: AbortSignal) {
     }),
     signal,
   });
+}
+
+async function synthesizeWithRetry(request: AudioRequest, signal: AbortSignal) {
+  const retryDelays = [350, 900];
+  let lastResponse: Response | null = null;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {
+    try {
+      const response = await synthesize(request, signal);
+      lastResponse = response;
+      if (response.ok || (response.status >= 400 && response.status < 500)) return response;
+    } catch (error) {
+      if (signal.aborted) throw error;
+      lastError = error;
+    }
+    if (attempt === retryDelays.length) break;
+    const delay = retryDelays[attempt];
+    await new Promise<void>((resolve, reject) => {
+      const timer = window.setTimeout(resolve, delay);
+      signal.addEventListener("abort", () => {
+        window.clearTimeout(timer);
+        reject(signal.reason ?? new DOMException("Aborted", "AbortError"));
+      }, { once: true });
+    });
+  }
+  if (lastResponse) return lastResponse;
+  throw lastError ?? new Error("Audio request failed");
 }

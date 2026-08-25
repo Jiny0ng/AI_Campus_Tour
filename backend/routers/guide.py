@@ -125,7 +125,9 @@ def _guide_discovery(driver, purpose: Optional[str] = None, query: str = "", lim
                    facility.name AS name, coalesce(facility.type, '') AS type,
                    coalesce(facility.floor, facility.location, '') AS floor,
                    coalesce(facility.features, '') AS features,
-                   coalesce(facility.note, '') AS note
+                   coalesce(facility.note, '') AS note,
+                   coalesce(facility.hours, '') AS hours,
+                   coalesce(facility.restriction, '') AS restriction
             UNION
             MATCH (place)-[:HAS_STORE]->(facility:Facility)
             RETURN DISTINCT elementId(place) AS placeKey,
@@ -133,7 +135,9 @@ def _guide_discovery(driver, purpose: Optional[str] = None, query: str = "", lim
                    facility.name AS name, coalesce(facility.type, '') AS type,
                    coalesce(facility.floor, facility.location, '') AS floor,
                    coalesce(facility.features, '') AS features,
-                   coalesce(facility.note, '') AS note
+                   coalesce(facility.note, '') AS note,
+                   coalesce(facility.hours, '') AS hours,
+                   coalesce(facility.restriction, '') AS restriction
             UNION
             MATCH (place)-[:HAS_FLOOR]->(:Floor)-[:HAS_FACILITY|HAS_ROOM]->(facility:Facility)
             RETURN DISTINCT elementId(place) AS placeKey,
@@ -141,7 +145,9 @@ def _guide_discovery(driver, purpose: Optional[str] = None, query: str = "", lim
                    facility.name AS name, coalesce(facility.type, '') AS type,
                    coalesce(facility.floor, facility.location, '') AS floor,
                    coalesce(facility.features, '') AS features,
-                   coalesce(facility.note, '') AS note
+                   coalesce(facility.note, '') AS note,
+                   coalesce(facility.hours, '') AS hours,
+                   coalesce(facility.restriction, '') AS restriction
             """
         )]
         facts = [dict(row) for row in session.run(

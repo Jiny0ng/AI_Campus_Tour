@@ -17,6 +17,8 @@ export type GuideFacilityInsight = {
   floor: string;
   features: string;
   note: string;
+  hours?: string;
+  restriction?: string;
   purposes: GuidePurpose[];
 };
 

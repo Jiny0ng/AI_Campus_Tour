@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Wifi } from "lucide-react";
 import { CampusWifiHelpModal } from "@/components/Common/CampusWifiHelpModal";
 import { campusWifi } from "@/config/campusWifi";
@@ -22,6 +23,7 @@ function meters(first: GeolocationCoordinates, second: { latitude: number; longi
 
 export function NetworkSupportBanner() {
   const { status } = useAudioGuide();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const originRef = useRef<{ latitude: number; longitude: number; at: number } | null>(null);
 
@@ -67,7 +69,7 @@ export function NetworkSupportBanner() {
   if (status.network === "online" || !campusWifi.enabled) return null;
   return (
     <>
-      <div className="pointer-events-auto fixed left-1/2 top-14 z-[85] flex w-[min(calc(100%-24px),406px)] -translate-x-1/2 items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 shadow-card">
+      <div className={`pointer-events-auto fixed left-1/2 z-[85] flex w-[min(calc(100%-24px),406px)] -translate-x-1/2 items-center gap-2 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-900 shadow-card ${pathname.startsWith("/guide") ? "top-[218px]" : "top-14"}`}>
         <span className="min-w-0 flex-1">연결이 불안정해 텍스트 안내를 우선합니다.</span>
         <button type="button" className="flex shrink-0 items-center gap-1 text-primary" onClick={() => setOpen(true)}>
           <Wifi size={14} /> Wi-Fi 안내

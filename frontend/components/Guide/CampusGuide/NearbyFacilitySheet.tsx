@@ -20,8 +20,8 @@ export function NearbyFacilitySheet({ places, selectedPlace, selectedPurpose, on
       freeDrag
       showHandle
       minVisibleHeightVh={16}
-      initialHeightVh={24}
-      maxHeightVh={55}
+      initialHeightVh={selectedPurpose ? 35 : 24}
+      maxHeightVh={selectedPurpose ? 35 : 55}
       className="pointer-events-auto rounded-t-[18px] px-4 pb-[calc(16px+env(safe-area-inset-bottom))] pt-3"
       contentClassName="min-h-0"
     >
