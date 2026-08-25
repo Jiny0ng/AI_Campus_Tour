@@ -815,7 +815,8 @@ facility,facility:BLD-INTL:fc948166891d6676,floor:building:BLD-INTL:6층,BLD-INT
 facility,facility:BLD-INTL:4240b51eaa460b01,floor:building:BLD-INTL:6층,BLD-INTL,인터내셔널센터,6층,,유학생지원센터,학생지원시설,유학생 관련 지원,
 facility,facility:BLD-INTL:23a1974bc487f405,floor:building:BLD-INTL:6층,BLD-INTL,인터내셔널센터,6층,,전북국제개발협력센터,기관·지원시설,국제개발협력 관련,
 facility,facility:BLD-INTL:cd932d1a61e9e565,floor:building:BLD-INTL:6층,BLD-INTL,인터내셔널센터,6층,,스터디룸,학습공간,학습 및 모임 가능,
-facility,facility:BLD-INTL:e8ba7db8d87722aa,floor:building:BLD-INTL:7층,BLD-INTL,인터내셔널센터,7층,,청담원,식당,식사 가능,
+floor,floor:building:BLD-114:2층,building:BLD-114,BLD-114,후생관,2층,,,,,
+facility,facility:BLD-114:student-cafeteria,floor:building:BLD-114:2층,BLD-114,후생관,2층,,후생관 학생식당,학생식당,키오스크에서 식권 구매 가능,
 facility,facility:BLD-INTL:ca1d4ac24fbf07df,floor:building:BLD-INTL:7층,BLD-INTL,인터내셔널센터,7층,,남자화장실,편의시설,,
 facility,facility:BLD-INTL:1aae223afd792e75,floor:building:BLD-INTL:7층,BLD-INTL,인터내셔널센터,7층,,여자화장실,편의시설,,
 facility,facility:BLD-INTL:6b7bf3f705cc77dc,floor:building:BLD-INTL:7층,BLD-INTL,인터내셔널센터,7층,,휴게공간,학습·휴게공간,책상형 좌석으로 학습 가능,콘센트 있음

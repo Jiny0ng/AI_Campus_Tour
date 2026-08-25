@@ -1,6 +1,7 @@
 from typing import Literal, Optional
 import json
 import os
+import re
 from functools import lru_cache
 
 from fastapi import APIRouter, Query, Request
@@ -67,8 +68,25 @@ def _purposes_for_text(*values):
     text = " ".join(str(value or "") for value in values).lower()
     return [
         purpose for purpose, keywords in _purpose_rules().items()
-        if any(keyword in text for keyword in keywords)
+        if any(
+            re.search(rf"(?<![a-z0-9]){re.escape(keyword.lower())}(?![a-z0-9])", text)
+            if re.fullmatch(r"[a-z0-9 ]+", keyword.lower())
+            else keyword.lower() in text
+            for keyword in keywords
+        )
     ]
+
+
+def _facility_purposes(facility):
+    purposes = set(_purposes_for_text(
+        facility.get("name"), facility.get("type"), facility.get("features"), facility.get("note")
+    ))
+    identity = f"{facility.get('name') or ''} {facility.get('type') or ''}".lower()
+    if not any(keyword in identity for keyword in ("카페", "커피", "할리스", "cafe")):
+        purposes.discard("cafe")
+    if not any(keyword in identity for keyword in ("편의점", " cu", "cu ", "이마트24", "쿱스켓")):
+        purposes.discard("convenience_store")
+    return sorted(purposes)
 
 
 def _facility_summary(facility):
@@ -140,9 +158,7 @@ def _guide_discovery(driver, purpose: Optional[str] = None, query: str = "", lim
     by_key = {place["key"]: {**place, "facilities": [], "facts": []} for place in places}
     for facility in facilities:
         if facility["placeKey"] in by_key:
-            facility["purposes"] = _purposes_for_text(
-                facility["name"], facility["type"], facility["features"], facility["note"]
-            )
+            facility["purposes"] = _facility_purposes(facility)
             by_key[facility["placeKey"]]["facilities"].append(facility)
     for fact in facts:
         if fact["placeKey"] in by_key:
@@ -166,6 +182,8 @@ def _guide_discovery(driver, purpose: Optional[str] = None, query: str = "", lim
         )
         place_purposes.update(item for fact in place["facts"] for item in fact["purposes"])
         if purpose and purpose not in place_purposes:
+            continue
+        if purpose in {"convenience_store", "cafe"} and not matched_facilities:
             continue
 
         searchable = " ".join([
@@ -257,7 +275,7 @@ def destinations(
 @router.get("/discover")
 def discover(
     request: Request,
-    purpose: Literal["study", "rest", "convenience", "food", "parking"],
+    purpose: Literal["study", "rest", "convenience", "convenience_store", "cafe", "food", "parking"],
     q: str = Query(default="", max_length=100),
     limit: int = Query(default=30, ge=1, le=50),
 ):

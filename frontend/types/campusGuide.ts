@@ -8,7 +8,7 @@ export type GuidePlaceCategory =
   | "cafeteria"
   | "rest";
 
-export type GuidePurpose = "study" | "rest" | "convenience" | "food" | "parking";
+export type GuidePurpose = "study" | "rest" | "convenience" | "convenience_store" | "cafe" | "food" | "parking";
 
 export type GuideFacilityInsight = {
   id: string;

@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, Pause, Play, Volume2, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp } from "lucide-react";
 import { motion, AnimatePresence, animate as animateValue, useDragControls, useMotionValue } from "framer-motion";
 import { Button } from "@/components/Common";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
-import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import type { CampusTourNearbySpot, CampusTourStop } from "@/types";
 
 type AiTourSheetProps = {
@@ -26,28 +24,7 @@ type AiTourSheetProps = {
   remainingDistanceMeters?: number | null;
   onRecenterMap?: () => void;
   canRecenter?: boolean;
-  onListenNearby?: (spot: CampusTourNearbySpot) => void;
 };
-
-function getPlaceIcon(name: string, category: string, description: string) {
-  const text = `${name} ${category} ${description}`;
-  const keywordIcons: Array<[RegExp, string]> = [
-    [/벚꽃|꽃|계절/, "🌸"],
-    [/도서관|책|열람|학습|공부/, "📚"],
-    [/카페|커피|식당|편의점|학생타운|후생관|밥|간식/, "☕"],
-    [/농구|운동장|체육|러닝|스포츠/, "🏀"],
-    [/비행기|항공|공대|공과/, "✈️"],
-    [/AI|XR|디지털|로봇|스마트/, "🤖"],
-    [/박물관|문화|역사|전통|한옥/, "🏛️"],
-    [/광장|공원|잔디|쉼|휴식|산책|정자/, "🌳"],
-    [/셔틀|버스|승강장|정류장/, "🚌"],
-    [/정문|구정문|문|입구|게이트/, "🚪"],
-    [/주차|parking/i, "🅿️"],
-  ];
-  const matched = keywordIcons.find(([pattern]) => pattern.test(text));
-  if (matched) return matched[1];
-  return "📍";
-}
 
 const insightIcons: Record<string, string> = {
   history: "🏛️",
@@ -63,12 +40,11 @@ const insightIcons: Record<string, string> = {
   "hidden-place": "🔎",
 };
 
-export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
+export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t, pn } = useAppSettings();
-  const { status: audioStatus, pause, resume } = useAudioGuide();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [selectedNearby, setSelectedNearby] = useState<CampusTourNearbySpot | null>(null);
   const sheetRef = useRef<HTMLElement | null>(null);
+  const contentScrollRef = useRef<HTMLDivElement | null>(null);
   const sheetY = useMotionValue(0);
   const dragControls = useDragControls();
   const [maxDragY, setMaxDragY] = useState(0);
@@ -98,25 +74,6 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
     animateValue(sheetY, nextExpanded ? 0 : maxDragY, { type: "spring", bounce: 0, duration: 0.35 });
   };
 
-  useEffect(() => {
-    setSelectedNearby(null);
-  }, [currentStop?.id]);
-
-  useEffect(() => {
-    if (!selectedNearby) return;
-
-    const previousOverflow = document.body.style.overflow;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setSelectedNearby(null);
-    };
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", closeOnEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [selectedNearby]);
-
   if (!currentStop) {
     return (
       <section className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
@@ -144,6 +101,11 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       ? `${(remainingDistanceMeters / 1000).toFixed(1)}km`
       : `${remainingDistanceMeters}m`
     : null;
+  useEffect(() => {
+    contentScrollRef.current?.scrollTo({ top: 0 });
+    contentScrollRef.current?.querySelectorAll<HTMLElement>("[data-tour-slider]")
+      .forEach((slider) => slider.scrollTo({ left: 0 }));
+  }, [displayStop.id]);
   return (
     <>
     <motion.section
@@ -201,8 +163,9 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       </div>
 
       <AnimatePresence initial={false}>
-        {(
+        {isExpanded && (
           <motion.div
+            ref={contentScrollRef}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -219,7 +182,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
               </div>
 
               {isSegmentLoading && destinationInsights.length === 0 ? (
-                <div className="flex gap-3 overflow-x-auto pb-4 snap-x no-scrollbar">
+                <div data-tour-slider className="flex gap-3 overflow-x-auto pb-4 snap-x no-scrollbar">
                   <div className="shrink-0 w-[240px] rounded-card border border-primary/20 bg-primary-soft p-4 h-[120px] snap-center animate-pulse" />
                   <div className="shrink-0 w-[240px] rounded-card border border-primary/20 bg-primary-soft p-4 h-[120px] snap-center animate-pulse" />
                 </div>
@@ -251,7 +214,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
               {isNearbyLoading ? (
                 <div className="h-[104px] animate-pulse rounded-card bg-line/70" />
               ) : nearbySpots.length > 0 ? (
-                <div className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 no-scrollbar">
+                <div data-tour-slider className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-2 no-scrollbar">
                   {nearbySpots.map((spot) => (
                     <article
                       key={spot.id}
@@ -272,31 +235,14 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                       <div className="mt-3 flex w-full items-center gap-2">
                         <Button
                           type="button"
-                          variant="secondary"
-                          size="sm"
-                          className="h-9 min-w-0 flex-1 rounded-full px-3 text-xs"
-                          onClick={() => setSelectedNearby(spot)}
-                        >
-                          {t("sheet.nearbyDetails")}
-                        </Button>
-                        <Button
-                          type="button"
                           variant="primary"
                           size="sm"
-                          className="h-9 min-w-0 flex-1 rounded-full px-3 text-xs"
+                          className="h-9 w-full rounded-full px-3 text-xs"
                           disabled={Boolean(addingSpotId)}
                           onClick={() => onAddWaypoint?.(spot)}
                         >
                           {addingSpotId === spot.id ? t("sheet.adding") : t("sheet.detour")}
                         </Button>
-                        <button
-                          type="button"
-                          aria-label={`${pn(spot.name)} ${t("audio.listen")}`}
-                          className="grid size-9 shrink-0 place-items-center rounded-full border border-primary/20 bg-primary-soft text-primary"
-                          onClick={() => onListenNearby?.(spot)}
-                        >
-                          <Volume2 size={16} />
-                        </button>
                       </div>
                     </article>
                   ))}
@@ -337,78 +283,6 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
         )}
       </AnimatePresence>
     </motion.section>
-    {typeof document !== "undefined" && createPortal(
-      <AnimatePresence>
-        {selectedNearby && (
-          <motion.div
-            className="fixed inset-0 z-[80] flex items-end justify-center bg-ink/45 px-4 pb-[calc(18px+env(safe-area-inset-bottom))] pt-16 backdrop-blur-sm sm:items-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedNearby(null)}
-          >
-            <motion.article
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="nearby-place-dialog-title"
-              initial={{ opacity: 0, y: 24, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 24, scale: 0.96 }}
-              transition={{ duration: 0.2 }}
-              className="max-h-[75dvh] w-full max-w-[390px] overflow-y-auto rounded-[24px] bg-surface p-5 shadow-sheet"
-              onClick={(event) => event.stopPropagation()}
-            >
-              <div className="flex items-start gap-3">
-                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary-soft text-xl" aria-hidden="true">
-                  {getPlaceIcon(selectedNearby.name, selectedNearby.category, selectedNearby.description)}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs font-bold text-primary">{t("sheet.nearbyDetails")}</p>
-                  <h2 id="nearby-place-dialog-title" className="mt-1 text-xl font-extrabold leading-7 text-ink">
-                    {pn(selectedNearby.name)}
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  aria-label={t("sheet.closeDetails")}
-                  className="grid size-9 shrink-0 place-items-center rounded-full bg-line/70 text-ink"
-                  onClick={() => setSelectedNearby(null)}
-                >
-                  <X size={19} />
-                </button>
-              </div>
-              <span className="mt-4 inline-flex rounded-full bg-primary-soft px-3 py-1 text-xs font-bold text-primary">
-                {selectedNearby.category} · {selectedNearby.distanceMeters}m
-              </span>
-              <p className="mt-4 whitespace-pre-wrap text-[15px] font-medium leading-7 text-ink/85">
-                {selectedNearby.description}
-              </p>
-              <Button
-                type="button"
-                className="mt-5 h-12 w-full"
-                onClick={() => {
-                  const nearbyText = selectedNearby.docentText || selectedNearby.description;
-                  const isCurrentNearby = audioStatus.request?.text === nearbyText;
-                  if (isCurrentNearby && audioStatus.playback === "playing") pause();
-                  else if (isCurrentNearby && audioStatus.playback === "paused") resume();
-                  else onListenNearby?.(selectedNearby);
-                }}
-              >
-                {audioStatus.request?.text === (selectedNearby.docentText || selectedNearby.description) && audioStatus.playback === "playing"
-                  ? <Pause size={18} />
-                  : <Play size={18} />}
-                {audioStatus.request?.text === (selectedNearby.docentText || selectedNearby.description) && audioStatus.playback === "playing"
-                  ? t("audio.pause")
-                  : audioStatus.request?.text === (selectedNearby.docentText || selectedNearby.description) && audioStatus.playback === "paused"
-                    ? t("audio.resume")
-                    : t("audio.listen")}
-              </Button>
-            </motion.article>
-          </motion.div>
-        )}
-      </AnimatePresence>,
-      document.body,
-    )}
     </>
   );
 }

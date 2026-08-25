@@ -38,7 +38,7 @@ def test_missing_config_uses_importance_fallback():
     assert context["targetDurationSeconds"] == 45
 
 
-def test_stop_presentation_uses_verified_identity_as_overview():
+def test_stop_presentation_uses_pre_generated_overview_and_useful_tips():
     context = {
         "description": "긴 장소 설명",
         "requiredFacts": [
@@ -64,10 +64,14 @@ def test_stop_presentation_uses_verified_identity_as_overview():
         "optionalFacts": [],
     }
 
-    overview, insights = build_stop_presentation(context, "기본 설명")
+    overview, insights = build_stop_presentation(
+        context,
+        "기본 설명",
+        "이곳은 대표 학습 공간입니다. 열람과 휴식을 함께 할 수 있습니다. 이용 전에 좌석을 확인해보세요. 네 번째 문장은 제외됩니다.",
+    )
 
-    assert overview == "대표적인 캠퍼스 학습 공간이다. 2층 열람실도 이용해 볼 만하다."
-    assert [fact["factId"] for fact in insights] == ["place:extra"]
+    assert overview == "이곳은 대표 학습 공간입니다. 열람과 휴식을 함께 할 수 있습니다. 이용 전에 좌석을 확인해보세요."
+    assert [fact["factId"] for fact in insights] == ["place:tip", "place:extra"]
 
 
 def test_stop_presentation_has_safe_fallback():

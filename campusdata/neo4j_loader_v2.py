@@ -414,6 +414,19 @@ def load_tour_stops(driver) -> int:
         MERGE (first)-[:NEXT_STOP]->(second)
         """,
     )
+    run(
+        driver,
+        """
+        MATCH (spot:DocentSpot {source: 'campus_places.csv'})
+        OPTIONAL MATCH (old_parent)-[old:HAS_PLACE]->(spot)
+        WHERE old_parent:Building OR old_parent:TourStop
+        DELETE old
+        WITH DISTINCT spot
+        MATCH (parent {name: spot.nearby_area})
+        WHERE parent:Building OR parent:TourStop
+        MERGE (parent)-[:HAS_PLACE]->(spot)
+        """,
+    )
     return len(batch)
 
 

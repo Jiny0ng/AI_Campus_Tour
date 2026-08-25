@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
 def build_stop_presentation(
     docent_context: dict[str, Any] | None,
     fallback: str,
+    generated_docent: str = "",
 ) -> tuple[str, list[dict[str, Any]]]:
-    """Select a short overview and non-duplicating insight cards from reviewed facts."""
+    """Build a holistic overview and useful cards from pre-generated copy and graph context."""
     if not docent_context:
         return fallback, []
 
@@ -17,32 +19,34 @@ def build_stop_presentation(
         *docent_context.get("requiredFacts", []),
         *docent_context.get("optionalFacts", []),
     ]
-    identity_fact = next(
-        (
-            fact for fact in facts
-            if fact.get("category") == "identity" and fact.get("verified") is not False
-        ),
-        facts[0] if facts else None,
-    )
-    overview_facts = [identity_fact] if identity_fact else []
-    supporting_fact = next(
-        (
-            fact for fact in facts
-            if fact is not identity_fact
-            and fact.get("verified") is not False
-            and fact.get("content")
-        ),
-        None,
-    )
-    if supporting_fact:
-        overview_facts.append(supporting_fact)
+    generated_sentences = [
+        sentence.strip() for sentence in re.split(r"(?<=[.!?])\s+", generated_docent.strip())
+        if sentence.strip()
+    ]
+    overview = " ".join(generated_sentences[:3])
+    if not overview:
+        overview = " ".join(
+            str(fact.get("content", "")).strip() for fact in facts[:3]
+            if fact.get("content")
+        ) or docent_context.get("description") or fallback
 
-    overview = " ".join(
-        str(fact.get("content", "")).strip() for fact in overview_facts
-        if fact and fact.get("content")
-    ) or docent_context.get("description") or fallback
-    used_fact_ids = {id(fact) for fact in overview_facts}
-    return overview, [fact for fact in facts if id(fact) not in used_fact_ids]
+    tips: list[dict[str, Any]] = []
+    for facility in docent_context.get("facilities", [])[:3]:
+        detail = facility.get("features") or facility.get("note") or facility.get("type")
+        location = " ".join(value for value in (facility.get("floor"), facility.get("name")) if value)
+        if location and detail:
+            tips.append({
+                "factId": f"facility:{facility.get('id', location)}",
+                "category": "facility",
+                "content": f"{location}에서 {detail} 서비스를 이용할 수 있어요.",
+                "importance": 80,
+                "verified": True,
+            })
+    useful_categories = {"recommendation", "usage", "experience", "seasonal", "hidden_place", "hidden-place"}
+    tips.extend(fact for fact in facts if fact.get("category") in useful_categories)
+    if not tips:
+        tips = facts[1:4] if len(facts) > 1 else facts[:1]
+    return overview, tips[:6]
 
 
 def assemble_docent_context(
@@ -131,10 +135,26 @@ def get_docent_context(driver: Any, entity_id: str) -> dict[str, Any] | None:
             """,
             entity_id=entity_id,
         )
-        return assemble_docent_context(
+        facilities = session.run(
+            """
+            MATCH (entity)
+            WHERE entity.place_id = $entity_id OR entity.spot_id = $entity_id
+               OR entity.building_id = $entity_id OR entity.facility_id = $entity_id
+            OPTIONAL MATCH (building:Building)
+            WHERE building = entity OR building.name = entity.name
+            OPTIONAL MATCH (facility:Facility)-[:LOCATED_IN]->(building)
+            RETURN DISTINCT facility.facility_id AS id, facility.name AS name,
+                   facility.type AS type, facility.floor AS floor,
+                   facility.features AS features, facility.note AS note
+            """,
+            entity_id=entity_id,
+        )
+        context = assemble_docent_context(
             entity_id,
             entity["label"],
             entity["description"],
             entity["config"],
             [dict(fact) for fact in facts],
         )
+        context["facilities"] = [dict(facility) for facility in facilities if facility["id"]]
+        return context

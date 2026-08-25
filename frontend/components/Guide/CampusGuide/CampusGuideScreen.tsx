@@ -112,11 +112,10 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   }
 
   const purposeOptions: Array<{ id: GuidePurpose; label: string }> = [
-    { id: "study", label: t("guide.purpose.study") },
-    { id: "rest", label: t("guide.purpose.rest") },
-    { id: "convenience", label: t("guide.purpose.convenience") },
-    { id: "food", label: t("guide.purpose.food") },
+    { id: "convenience_store", label: t("guide.purpose.convenience_store") },
+    { id: "cafe", label: t("guide.purpose.cafe") },
     { id: "parking", label: t("guide.purpose.parking") },
+    { id: "study", label: t("guide.purpose.study") },
   ];
 
   return (
@@ -146,7 +145,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
               containerClassName="h-[38px] flex-1 bg-surface/95"
             />
           </div>
-          <div className="mt-2 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="ml-[46px] mt-2 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             {purposeOptions.map((purpose) => {
               const selected = selectedPurpose === purpose.id;
               return (
@@ -167,7 +166,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
               );
             })}
           </div>
-          <GuideSearchResults places={searchResults} onSelectPlace={handleSelectPlace} />
+          {keyword.trim() ? <GuideSearchResults places={searchResults} onSelectPlace={handleSelectPlace} /> : null}
         </div>
 
         <div className="pointer-events-auto absolute right-4 top-[74px] z-30 flex flex-col items-end gap-3">
@@ -187,13 +186,15 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
           </div>
         ) : null}
 
-        <NearbyFacilitySheet
-          places={filteredPlaces}
-          selectedPlace={selectedPlace}
-          selectedPurpose={selectedPurpose}
-          onSelectPlace={handleSelectPlace}
-          onGuidePlace={handleGuidePlace}
-        />
+        {selectedPurpose && !selectedPlace ? null : (
+          <NearbyFacilitySheet
+            places={filteredPlaces}
+            selectedPlace={selectedPlace}
+            selectedPurpose={selectedPurpose}
+            onSelectPlace={handleSelectPlace}
+            onGuidePlace={handleGuidePlace}
+          />
+        )}
       </main>
     </MobileShell>
   );

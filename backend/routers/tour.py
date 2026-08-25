@@ -167,6 +167,12 @@ def get_nearby_places(
               AND place.name IS NOT NULL
               AND place.latitude IS NOT NULL
               AND place.longitude IS NOT NULL
+              AND NOT place:Parking
+              AND NOT toLower(coalesce(place.type, '')) CONTAINS '주차'
+              AND NOT toLower(coalesce(place.category, '')) CONTAINS '주차'
+              AND NOT toLower(coalesce(place.subcategory, '')) CONTAINS '버스 승강장'
+              AND NOT toLower(coalesce(place.subcategory, '')) CONTAINS '버스승강장'
+              AND NOT toLower(place.name) CONTAINS '승강장'
             OPTIONAL MATCH (place)-[:HAS_FACT]->(fact:Fact)
             WITH place, near, fact
             ORDER BY fact.importance DESC
@@ -291,14 +297,19 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
     for i, route_stop in enumerate(route_stops):
         name = route_stop["name"]
         docent_context = get_docent_context(driver, route_stop["place_id"])
-        overview, insights = build_stop_presentation(docent_context, f"{name}입니다.")
+        generated_docent = reviewed_docents.get(route_stop["place_id"], "")
+        overview, insights = build_stop_presentation(
+            docent_context,
+            f"{name}입니다.",
+            generated_docent,
+        )
         stops_data.append({
             "id": route_stop["place_id"],
             "name": name,
             "description": overview,
             "overview": overview,
             "insights": insights,
-            "docentText": reviewed_docents.get(route_stop["place_id"], ""),
+            "docentText": generated_docent,
             "docentContext": docent_context,
             "tags": [],
             "studentTip": [],

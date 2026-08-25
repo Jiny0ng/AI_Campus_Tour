@@ -627,25 +627,6 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     setCurrentStopIndex((index) => Math.max(index - 1, 0));
   }
 
-  function handleListenNearby(spot: CampusTourNearbySpot) {
-    const text = spot.docentText || spot.description;
-    if (!text) return;
-    const hasReviewedKoreanDocent = Boolean(spot.docentText) && /[가-힣]/.test(text);
-    void speak({
-      id: `tour-nearby:${spot.id}:${locale}:${Date.now()}`,
-      text,
-      locale: hasReviewedKoreanDocent ? "ko" : locale,
-      category: hasReviewedKoreanDocent ? "core-docent" : "location-docent",
-      priority: 65,
-      source: hasReviewedKoreanDocent
-        ? { kind: "asset", assetId: `core-docent:${spot.id}:ko` }
-        : { kind: "tts" },
-      interruptible: true,
-      resumePolicy: "resume",
-      report: { placeId: spot.id, placeName: spot.name, include: true },
-    });
-  }
-
   useEffect(() => () => {
     clearCategory("core-docent");
     clearCategory("location-docent");
@@ -703,7 +684,6 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           isNearbyLoading={isNearbyLoading}
           addingSpotId={addingSpotId}
           onAddWaypoint={handleAddWaypoint}
-          onListenNearby={handleListenNearby}
           isSegmentLoading={isSegmentLoading}
           hasArrived={canAdvance}
           needsArrivalConfirmation={needsArrivalConfirmation}
