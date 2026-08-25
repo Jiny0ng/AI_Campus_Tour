@@ -9,7 +9,7 @@ type NearbyFacilitySheetProps = {
 };
 
 export function NearbyFacilitySheet({ places, onSelectPlace }: NearbyFacilitySheetProps) {
-  const { t } = useAppSettings();
+  const { t, pn } = useAppSettings();
 
   return (
     <BottomSheet
@@ -29,7 +29,7 @@ export function NearbyFacilitySheet({ places, onSelectPlace }: NearbyFacilityShe
             <span className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary">
               <MapPin size={18} />
             </span>
-            <span className="mt-3 block truncate text-sm font-extrabold text-ink">{place.name}</span>
+            <span className="mt-3 block truncate text-sm font-extrabold text-ink">{pn(place.name)}</span>
             <span className="mt-1 line-clamp-2 h-8 text-xs font-medium text-muted">
               {place.description}
             </span>

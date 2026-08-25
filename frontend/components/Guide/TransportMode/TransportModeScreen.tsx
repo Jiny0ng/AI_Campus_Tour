@@ -32,7 +32,7 @@ function createTransportOptions(
 
 export function TransportModeScreen({ data }: TransportModeScreenProps) {
   const router = useRouter();
-  const { t } = useAppSettings();
+  const { t, pn } = useAppSettings();
   const searchParams = useSearchParams();
   const destination = destinationFromSearchParams(searchParams, data.places[0]);
   const [selectedMode, setSelectedMode] = useState<TransportMode>("walk");
@@ -73,7 +73,7 @@ export function TransportModeScreen({ data }: TransportModeScreenProps) {
               <ChevronLeft size={24} />
             </button>
             <SearchBar
-              value={destination.name}
+              value={pn(destination.name)}
               readOnly
               placeholder={t("guide.searchPlaceholder")}
               containerClassName="h-[38px] flex-1 bg-surface/95"
@@ -92,7 +92,7 @@ export function TransportModeScreen({ data }: TransportModeScreenProps) {
         </div>
 
         <div className="pointer-events-none absolute left-1/2 top-[320px] z-20 -translate-x-1/2 rounded-full bg-ink px-3 py-1.5 text-xs font-bold text-white shadow-floating">
-          {destination.name}
+          {pn(destination.name)}
         </div>
 
         <TransportModeSheet

@@ -2,9 +2,9 @@
 
 import { Bike, Car, Footprints, Navigation } from "lucide-react";
 import { Button } from "@/components/Common";
-import { useAppSettings } from "@/contexts/AppSettingsContext";
 import type { TransportModeValue } from "@/lib/navigation";
 import type { GuidePlace } from "@/types";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 type NavigationStatusPanelProps = {
   destination: GuidePlace;
@@ -31,10 +31,10 @@ export function NavigationStatusPanel({
   onChangeRoute,
   onEnd,
 }: NavigationStatusPanelProps) {
-  const { t } = useAppSettings();
+  const { t, pn } = useAppSettings();
   const ModeIcon = mode === "car" ? Car : mode === "bike" ? Bike : Footprints;
   const destinationSummary = t("guide.destinationSummary")
-    .replace("{destination}", destination.name)
+    .replace("{destination}", pn(destination.name))
     .replace("{mode}", modeLabel)
     .replace("{minutes}", String(minutes));
 

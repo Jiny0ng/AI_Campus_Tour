@@ -18,7 +18,7 @@ export function TourStopIndicator({
   remainingDistanceMeters,
   hasArrived = false,
 }: TourStopIndicatorProps) {
-  const { t } = useAppSettings();
+  const { t, pn } = useAppSettings();
 
   if (isLoading) {
     return (
@@ -56,8 +56,8 @@ export function TourStopIndicator({
           <div className="absolute size-5 animate-ping rounded-full bg-primary/20" />
           <div className="relative size-3.5 rounded-full border-2 border-primary bg-primary shadow-sm" />
         </div>
-        <span className="mt-6 max-w-full truncate text-sm font-extrabold leading-5 text-primary" title={currentStop.name}>
-          {currentStop.name}
+        <span className="mt-6 max-w-full truncate text-sm font-extrabold leading-5 text-primary" title={pn(currentStop.name)}>
+          {pn(currentStop.name)}
         </span>
       </div>
 
@@ -65,9 +65,9 @@ export function TourStopIndicator({
         <div className="size-3 shrink-0 rounded-full border-2 border-muted bg-surface" />
         <span
           className="mt-6 max-w-full truncate text-sm font-bold leading-5 text-muted"
-          title={nextStop?.name ?? "종점"}
+          title={nextStop ? pn(nextStop.name) : "종점"}
         >
-          {nextStop?.name ?? "종점"}
+          {nextStop ? pn(nextStop.name) : "종점"}
         </span>
       </div>
     </div>

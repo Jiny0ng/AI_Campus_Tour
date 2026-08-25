@@ -185,7 +185,7 @@ function remainingRouteDistance(
 export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const router = useRouter();
   const { locale, t } = useAppSettings();
-  const { speak, prefetch, clearCategory, beginNetworkGrace } = useAudioGuide();
+  const { speak, prefetch, stop, clearCategory, beginNetworkGrace } = useAudioGuide();
   const [tourData, setTourData] = useState(() => addCurrentLocationStart(data));
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -204,6 +204,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const lastRouteDistanceLogRef = useRef<number | null>(null);
   const narratedStopIdsRef = useRef(new Set<string>());
   const confirmedArrivalStopIdsRef = useRef(new Set<string>());
+  const previousLocaleRef = useRef(locale);
 
   useEffect(() => {
     beginNetworkGrace();
@@ -270,6 +271,21 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       || narrationStop.description;
   }, [locale, narrationStop, segmentInfo?.tips]);
   const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.docentText);
+
+  useEffect(() => {
+    if (previousLocaleRef.current === locale) return;
+    previousLocaleRef.current = locale;
+    stop("language-change");
+    clearCategory("core-docent");
+    clearCategory("location-docent");
+    if (!narrationStop) return;
+    const narrationId = `${narrationStop.id}:${locale}`;
+    if (window.confirm(t("settings.languageReplay"))) {
+      narratedStopIdsRef.current.delete(narrationId);
+    } else {
+      narratedStopIdsRef.current.add(narrationId);
+    }
+  }, [clearCategory, locale, narrationStop, stop, t]);
 
   useEffect(() => {
     // Only immutable, reviewed tour scripts are prefetched. Dynamic segment

@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { translateProperNoun } from "@/lib/properNouns";
 
 export type AppLocale = "ko" | "en" | "ja" | "zh";
 
@@ -33,6 +34,7 @@ const messages: Record<AppLocale, Record<string, string>> = {
     "settings.sound": "음소거",
     "settings.soundOn": "소리 켜기",
     "settings.language": "언어 설정",
+    "settings.languageReplay": "언어가 변경되었습니다. 현재 장소의 설명을 선택한 언어로 다시 들으시겠어요?",
     "sheet.loading": "AI 도슨트가 주변 정보와 꿀팁을 탐색 중입니다...",
     "sheet.open": "눌러서 주변 정보 및 꿀팁 보기",
     "sheet.tips": "경로 꿀팁 & 주변 정보",
@@ -114,6 +116,7 @@ const messages: Record<AppLocale, Record<string, string>> = {
     "settings.sound": "Mute",
     "settings.soundOn": "Turn sound on",
     "settings.language": "Language",
+    "settings.languageReplay": "The language has changed. Would you like to replay the current place description in English?",
     "sheet.loading": "The AI docent is finding nearby information and tips...",
     "sheet.open": "Tap to view nearby information and tips",
     "sheet.tips": "Route tips & nearby information",
@@ -195,6 +198,7 @@ const messages: Record<AppLocale, Record<string, string>> = {
     "settings.sound": "ミュート",
     "settings.soundOn": "音をオンにする",
     "settings.language": "言語設定",
+    "settings.languageReplay": "言語が変更されました。現在の場所の説明を日本語でもう一度聞きますか？",
     "sheet.loading": "AIドーセントが周辺情報とヒントを検索しています...",
     "sheet.open": "タップして周辺情報とヒントを見る",
     "sheet.tips": "ルートのヒント・周辺情報",
@@ -276,6 +280,7 @@ const messages: Record<AppLocale, Record<string, string>> = {
     "settings.sound": "静音",
     "settings.soundOn": "开启声音",
     "settings.language": "语言设置",
+    "settings.languageReplay": "语言已更改。是否使用简体中文重新播放当前地点的讲解？",
     "sheet.loading": "AI讲解员正在查找周边信息和提示...",
     "sheet.open": "点击查看周边信息和提示",
     "sheet.tips": "路线提示与周边信息",
@@ -354,6 +359,7 @@ type AppSettingsValue = {
   isMuted: boolean;
   toggleMute: () => void;
   t: (key: string) => string;
+  pn: (value: string) => string;
 };
 
 const AppSettingsContext = createContext<AppSettingsValue | null>(null);
@@ -429,9 +435,14 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     [locale],
   );
 
+  const pn = useCallback(
+    (value: string) => translateProperNoun(locale, value),
+    [locale],
+  );
+
   const value = useMemo(
-    () => ({ locale, setLocale, volume, isMuted: volume === 0, toggleMute, t }),
-    [locale, setLocale, toggleMute, t, volume],
+    () => ({ locale, setLocale, volume, isMuted: volume === 0, toggleMute, t, pn }),
+    [locale, setLocale, toggleMute, t, pn, volume],
   );
 
   return <AppSettingsContext.Provider value={value}>{children}</AppSettingsContext.Provider>;

@@ -18,7 +18,7 @@ type TourSummaryScreenProps = {
 
 export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
   const router = useRouter();
-  const { t } = useAppSettings();
+  const { t, pn } = useAppSettings();
   const [narrations, setNarrations] = useState<TourNarrationEvent[]>([]);
   const [visitedPlaces, setVisitedPlaces] = useState<string[]>(data.visitedPlaces);
 
@@ -48,7 +48,7 @@ export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
                   className="inline-flex h-[31px] items-center gap-1.5 rounded-full border border-primary bg-primary-soft/40 px-3 text-xs font-extrabold text-primary"
                 >
                   <MapPin size={13} />
-                  {place}
+                  {pn(place)}
                 </span>
               ))}
             </div>
@@ -77,7 +77,7 @@ export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
                 {narrations.map((event) => (
                   <article key={event.id} className="rounded-card border border-line bg-primary-soft/40 p-4">
                     {event.placeName ? (
-                      <h3 className="text-sm font-extrabold text-primary">{event.placeName}</h3>
+                      <h3 className="text-sm font-extrabold text-primary">{pn(event.placeName)}</h3>
                     ) : null}
                     <p className="mt-1 line-clamp-3 text-sm leading-6 text-ink/80">{event.text}</p>
                   </article>

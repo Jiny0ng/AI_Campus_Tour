@@ -55,7 +55,7 @@ function formatMessage(template: string, values: Record<string, string | number>
 export function NavigationScreen({ data }: NavigationScreenProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { locale, t } = useAppSettings();
+  const { locale, t, pn } = useAppSettings();
   const { speak, prefetch, clearCategory } = useAudioGuide();
   const mode = normalizeMode(searchParams.get("mode"));
   const destination = destinationFromSearchParams(searchParams, data.places[0]);
@@ -235,7 +235,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   useEffect(() => {
     if (!drivingRoute || destinationSpokenRef.current === destination.id) return;
     destinationSpokenRef.current = destination.id;
-    const message = `${destination.name}. ${destination.description}`;
+    const message = `${pn(destination.name)}. ${destination.description}`;
     lastDocentAtRef.current = Date.now();
 
     const timer = window.setTimeout(() => {
@@ -251,7 +251,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
       });
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [destination.description, destination.id, destination.name, drivingRoute, locale, speak]);
+  }, [destination.description, destination.id, destination.name, drivingRoute, locale, pn, speak]);
 
   useEffect(() => {
     if (!drivingRoute) return;
@@ -280,7 +280,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
         ));
         if (!facility) return;
         announcedFacilityIdsRef.current.add(facility.id);
-        const message = `주변 ${facility.distanceMeters}미터 이내에 ${facility.name}이 있습니다. ${facility.description}`;
+        const message = `주변 ${facility.distanceMeters}미터 이내에 ${pn(facility.name)}이 있습니다. ${facility.description}`;
 
         const canSpeak = mode !== "car"
           && Date.now() - lastDocentAtRef.current >= 60_000
@@ -371,7 +371,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
               <ChevronLeft size={24} />
             </button>
             <SearchBar
-              value={destination.name}
+              value={pn(destination.name)}
               readOnly
               placeholder={t("guide.searchPlaceholder")}
               containerClassName="h-[38px] flex-1 bg-surface/95"

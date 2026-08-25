@@ -54,8 +54,8 @@ function getTourTipIcon(tip: TourTip) {
   return tip.icon?.trim() || "📍";
 }
 
-export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenTip, onOpenTip, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
-  const { t } = useAppSettings();
+export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenTip, onOpenTip, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
+  const { t, pn } = useAppSettings();
   const { status: audioStatus, pause, resume } = useAudioGuide();
   const [isExpanded, setIsExpanded] = useState(false);
   const [selectedTip, setSelectedTip] = useState<TourTip | null>(null);
@@ -132,7 +132,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                   : isLastStop ? t("tour.finish") : t("tour.next")}
               </p>
             )}
-            <h1 className="truncate text-xl font-extrabold text-ink">{displayStop.name}</h1>
+            <h1 className="truncate text-xl font-extrabold text-ink">{pn(displayStop.name)}</h1>
           </div>
           <button
             type="button"
@@ -191,7 +191,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                         <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-lg" aria-hidden="true">
                           {getTourTipIcon(tipInfo)}
                         </span>
-                        <span className="font-bold text-ink text-sm truncate">{tipInfo.name}</span>
+                        <span className="font-bold text-ink text-sm truncate">{pn(tipInfo.name)}</span>
                       </div>
                       <p className="text-xs text-muted font-medium mb-1">{tipInfo.category}</p>
                       <p className="text-sm text-ink line-clamp-3">{tipInfo.tip}</p>
@@ -223,7 +223,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-extrabold text-ink">{spot.name}</span>
+                          <span className="truncate text-sm font-extrabold text-ink">{pn(spot.name)}</span>
                           <span className="shrink-0 text-[10px] font-bold text-primary">
                             {spot.distanceMeters}m
                           </span>
@@ -245,7 +245,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                       </Button>
                       <button
                         type="button"
-                        aria-label={`${spot.name} ${t("audio.listen")}`}
+                        aria-label={`${pn(spot.name)} ${t("audio.listen")}`}
                         className="grid size-9 shrink-0 place-items-center rounded-full border border-primary/20 bg-primary-soft text-primary"
                         onClick={() => onListenNearby?.(spot)}
                       >
@@ -318,7 +318,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-primary">{t("sheet.tipDetails")}</p>
                   <h2 id="tour-tip-dialog-title" className="mt-1 text-xl font-extrabold leading-7 text-ink">
-                    {selectedTip.name}
+                    {pn(selectedTip.name)}
                   </h2>
                 </div>
                 <button

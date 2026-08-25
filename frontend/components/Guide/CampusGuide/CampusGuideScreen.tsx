@@ -21,7 +21,7 @@ type CampusGuideScreenProps = {
 
 export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   const router = useRouter();
-  const { t } = useAppSettings();
+  const { t, pn } = useAppSettings();
   const [keyword, setKeyword] = useState("");
   const [selectedPlace, setSelectedPlace] = useState<GuidePlace | null>(null);
   const [currentLocation, setCurrentLocation] = useState<CampusCoordinate>(data.currentLocation);
@@ -146,7 +146,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
 
         {selectedPlace ? (
           <div className="pointer-events-none absolute left-1/2 top-[360px] z-20 -translate-x-1/2 rounded-full bg-ink px-3 py-1.5 text-xs font-bold text-white shadow-floating">
-            {selectedPlace.name}
+            {pn(selectedPlace.name)}
           </div>
         ) : null}
 
