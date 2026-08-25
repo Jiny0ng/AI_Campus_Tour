@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { ArrowRight, ChevronLeft, Lightbulb, LocateFixed, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, Pause, Play, Volume2, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, Pause, Play, Volume2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/Common";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -34,7 +34,27 @@ type AiTourSheetProps = {
 
 type TourTip = CampusTourSegmentInfo["tips"][number];
 
-export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenTip, onOpenTip, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
+function getTourTipIcon(tip: TourTip) {
+  const text = `${tip.name} ${tip.category} ${tip.tip}`;
+  const keywordIcons: Array<[RegExp, string]> = [
+    [/벚꽃|꽃|계절/, "🌸"],
+    [/도서관|책|열람|학습|공부/, "📚"],
+    [/카페|커피|식당|편의점|학생타운|후생관|밥|간식/, "☕"],
+    [/농구|운동장|체육|러닝|스포츠/, "🏀"],
+    [/비행기|항공|공대|공과/, "✈️"],
+    [/AI|XR|디지털|로봇|스마트/, "🤖"],
+    [/박물관|문화|역사|전통|한옥/, "🏛️"],
+    [/광장|공원|잔디|쉼|휴식|산책|정자/, "🌳"],
+    [/셔틀|버스|승강장|정류장/, "🚌"],
+    [/정문|구정문|문|입구|게이트/, "🚪"],
+    [/주차|parking/i, "🅿️"],
+  ];
+  const matched = keywordIcons.find(([pattern]) => pattern.test(text));
+  if (matched) return matched[1];
+  return tip.icon?.trim() || "📍";
+}
+
+export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, onListenTip, onOpenTip, onListenNearby, nearbySpots = [], isNearbyLoading = false, addingSpotId, segmentInfo, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t } = useAppSettings();
   const { status: audioStatus, pause, resume } = useAudioGuide();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -63,7 +83,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   if (!currentStop) {
     return (
       <section className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
-        <div className="mx-auto mb-6 h-1 w-9 rounded-full bg-handle" />
+        <div className="mx-auto -mt-1 mb-6 h-1 w-9 rounded-full bg-handle" />
         <div className="flex items-center gap-3">
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-soft text-primary animate-pulse" />
           <h1 className="h-6 w-3/4 rounded bg-line animate-pulse" />
@@ -86,29 +106,11 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       || displayStop.name.includes(tipInfo.name),
   )?.tip;
   const destinationDescription = destinationTip || displayStop.description;
-  const formattedDistance = typeof remainingDistanceMeters === "number"
-    ? remainingDistanceMeters >= 1000
-      ? `${(remainingDistanceMeters / 1000).toFixed(1)}km`
-      : `${remainingDistanceMeters}m`
-    : null;
-
   return (
     <>
     <section className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] rounded-t-[22px] bg-surface px-8 pb-[calc(18px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
-      {onRecenterMap && (
-        <button
-          type="button"
-          aria-label={t("map.recenter")}
-          title={t("map.recenter")}
-          disabled={!canRecenter}
-          onClick={onRecenterMap}
-          className="absolute -top-14 right-4 grid size-11 place-items-center rounded-full bg-surface/95 text-primary shadow-card backdrop-blur-sm transition active:scale-95 disabled:opacity-45"
-        >
-          <LocateFixed size={21} />
-        </button>
-      )}
       <div
-        className="mx-auto mb-2 flex h-8 w-full cursor-pointer items-center justify-center"
+        className="mx-auto -mt-2 mb-2 flex h-8 w-full cursor-pointer items-center justify-center"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="h-1.5 w-10 rounded-full bg-handle" />
@@ -134,7 +136,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
           </div>
           <button
             type="button"
-            aria-label={isExpanded ? t("settings.close") : t("sheet.tips")}
+            aria-label={isExpanded ? t("settings.close") : t("sheet.placeTips")}
             className="text-muted hover:text-ink transition-colors"
             onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
           >
@@ -143,20 +145,9 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
         </div>
 
         {!isExpanded && (
-          <div className="mt-3 rounded-card border border-primary/15 bg-primary-soft/70 p-3.5">
-            <div className="flex items-center justify-between gap-3">
-              <p className="line-clamp-2 text-sm font-medium leading-5 text-ink/80">
-                {destinationDescription || (isSegmentLoading ? t("sheet.loading") : t("sheet.noTips"))}
-              </p>
-              <span className="shrink-0 rounded-full bg-surface px-2.5 py-1 text-xs font-extrabold text-primary shadow-sm">
-                {hasArrived
-                  ? t("tour.arrived")
-                  : formattedDistance
-                    ? `${t("tour.remaining")} ${formattedDistance}`
-                    : t("tour.remaining")}
-              </span>
-            </div>
-          </div>
+          <p className="mt-3 line-clamp-2 text-sm font-medium leading-5 text-ink/80">
+            {destinationDescription || (isSegmentLoading ? t("sheet.loading") : t("sheet.noTips"))}
+          </p>
         )}
       </div>
 
@@ -169,10 +160,13 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="max-h-[62dvh] overflow-y-auto overscroll-contain"
           >
+            <p className="mt-4 text-sm font-medium leading-5 text-ink/80">
+              {destinationDescription || (isSegmentLoading ? t("sheet.loading") : t("sheet.noTips"))}
+            </p>
             <div className="mt-5 rounded-card border border-primary/20 bg-primary-soft p-4">
-              <div className="flex items-center gap-2 text-sm font-extrabold text-primary mb-3">
-                <Lightbulb size={18} />
-                <span>{t("sheet.tips")}</span>
+              <div className="mb-3 flex items-center gap-2">
+                <MessageCirclePlus size={18} className="text-primary" />
+                <h2 className="text-sm font-extrabold text-ink">{t("sheet.placeTips")}</h2>
               </div>
 
               {isSegmentLoading ? (
@@ -193,8 +187,10 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                       }}
                       className="flex w-[240px] shrink-0 snap-center flex-col rounded-card border border-primary/20 bg-white p-4 text-left shadow-sm transition active:scale-[0.98]"
                     >
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xl">{tipInfo.icon}</span>
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-lg" aria-hidden="true">
+                          {getTourTipIcon(tipInfo)}
+                        </span>
                         <span className="font-bold text-ink text-sm truncate">{tipInfo.name}</span>
                       </div>
                       <p className="text-xs text-muted font-medium mb-1">{tipInfo.category}</p>
@@ -271,19 +267,23 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                   variant="secondary"
                   onClick={onPrev}
                   aria-label={t("tour.previous")}
-                  className="h-14 shrink-0 px-3 text-sm"
+                  className="relative h-14 min-w-0 flex-1 basis-0 px-3 text-[15px] font-extrabold"
                 >
-                  <ChevronLeft size={21} />
-                  {t("tour.previous")}
+                  <ChevronLeft size={20} className="absolute left-3 shrink-0" />
+                  <span className="absolute left-1/2 max-w-[calc(100%-48px)] -translate-x-1/2 truncate">
+                    {t("tour.previous")}
+                  </span>
                 </Button>
               )}
               <Button
                 variant={isLastStop || !hasArrived ? "secondary" : "primary"}
-                className={`h-14 flex-1 text-lg font-bold ${hasArrived ? "arrival-ready" : ""}`}
+                className={`relative h-14 min-w-0 flex-1 basis-0 px-3 text-[15px] font-extrabold ${hasArrived ? "arrival-ready" : ""}`}
                 onClick={onNext}
               >
-                {isLastStop ? t("tour.finish") : t("tour.next")}
-                {!isLastStop && <ArrowRight size={20} className="ml-2" />}
+                <span className="absolute left-1/2 max-w-[calc(100%-48px)] -translate-x-1/2 truncate">
+                  {isLastStop ? t("tour.finish") : t("tour.next")}
+                </span>
+                {!isLastStop && <ArrowRight size={20} className="absolute right-3 shrink-0" />}
               </Button>
             </div>
           </motion.div>
@@ -312,8 +312,8 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-start gap-3">
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary-soft text-2xl">
-                  {selectedTip.icon}
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary-soft text-xl" aria-hidden="true">
+                  {getTourTipIcon(selectedTip)}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-bold text-primary">{t("sheet.tipDetails")}</p>

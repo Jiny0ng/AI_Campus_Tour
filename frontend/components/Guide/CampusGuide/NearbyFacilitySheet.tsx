@@ -1,5 +1,6 @@
 import { MapPin, Navigation } from "lucide-react";
 import { BottomSheet } from "@/components/Common";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 import type { GuidePlace } from "@/types";
 
 type NearbyFacilitySheetProps = {
@@ -8,13 +9,15 @@ type NearbyFacilitySheetProps = {
 };
 
 export function NearbyFacilitySheet({ places, onSelectPlace }: NearbyFacilitySheetProps) {
+  const { t } = useAppSettings();
+
   return (
     <BottomSheet
       showHandle={false}
       className="pointer-events-auto rounded-t-[18px] px-4 pb-[calc(16px+env(safe-area-inset-bottom))] pt-4"
     >
-      <h2 className="text-lg font-extrabold text-ink">많이 찾는 장소</h2>
-      <p className="mt-1 text-xs font-medium text-muted">학생들이 자주 이용하는 목적지예요.</p>
+      <h2 className="text-lg font-extrabold text-ink">{t("guide.popular.title")}</h2>
+      <p className="mt-1 text-xs font-medium text-muted">{t("guide.popular.description")}</p>
       <div className="-mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1">
         {places.map((place) => (
           <button
@@ -31,7 +34,7 @@ export function NearbyFacilitySheet({ places, onSelectPlace }: NearbyFacilityShe
               {place.description}
             </span>
             <span className="mt-3 flex items-center gap-1 text-xs font-bold text-primary">
-              <Navigation size={13} /> 약 {place.distanceMeters}m
+              <Navigation size={13} /> {t("guide.distanceApprox")} {place.distanceMeters}m
             </span>
           </button>
         ))}

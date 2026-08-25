@@ -2,6 +2,7 @@
 
 import { Bike, Car, Footprints } from "lucide-react";
 import { cn } from "@/lib/cn";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 
 export type TransportMode = "walk" | "bike" | "car";
 
@@ -28,6 +29,8 @@ export function TransportOptionGroup({
   selectedMode,
   onSelectMode,
 }: TransportOptionGroupProps) {
+  const { t } = useAppSettings();
+
   return (
     <div className="grid grid-cols-3 gap-3">
       {options.map((option) => {
@@ -48,7 +51,9 @@ export function TransportOptionGroup({
           >
             <Icon size={24} className={selected ? "text-primary" : "text-muted"} />
             <span className="mt-2 text-sm font-extrabold">{option.label}</span>
-            <span className="mt-0.5 text-xs font-bold">{option.minutes}분</span>
+            <span className="mt-0.5 text-xs font-bold">
+              {option.minutes}{t("guide.minutes")}
+            </span>
           </button>
         );
       })}

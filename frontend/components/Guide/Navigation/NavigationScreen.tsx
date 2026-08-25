@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { SearchBar } from "@/components/Common";
+import { ChevronLeft, Compass, LocateFixed } from "lucide-react";
+import { AppSettingsMenu, FloatingButton, SearchBar } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import { APP_ROUTES } from "@/constants/routes";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -17,8 +18,7 @@ import { destinationFromSearchParams } from "@/lib/guideDestination";
 import { trackedFetch } from "@/lib/networkFetch";
 import {
   getArrivalTime,
-  getRouteSummary,
-  getTransportLabel,
+  getTransportMinutes,
   TransportModeValue,
 } from "@/lib/navigation";
 import type {
@@ -45,14 +45,22 @@ function normalizeMode(value: string | null): TransportModeValue {
   return "walk";
 }
 
+function formatMessage(template: string, values: Record<string, string | number>) {
+  return Object.entries(values).reduce(
+    (message, [key, value]) => message.replace(`{${key}}`, String(value)),
+    template,
+  );
+}
+
 export function NavigationScreen({ data }: NavigationScreenProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { locale } = useAppSettings();
+  const { locale, t } = useAppSettings();
   const { speak, prefetch, clearCategory } = useAudioGuide();
   const mode = normalizeMode(searchParams.get("mode"));
   const destination = destinationFromSearchParams(searchParams, data.places[0]);
-  const fallbackSummary = getRouteSummary(destination, mode);
+  const modeLabel = t(`guide.modeLabel.${mode}`);
+  const fallbackMinutes = getTransportMinutes(destination.distanceMeters, mode);
   const [currentLocation, setCurrentLocation] = useState<CampusCoordinate>(data.currentLocation);
   const [routeOrigin, setRouteOrigin] = useState<CampusCoordinate>(data.currentLocation);
   const [drivingRoute, setDrivingRoute] = useState<DrivingRoute | null>(null);
@@ -60,7 +68,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   const [routeLoading, setRouteLoading] = useState(false);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [locationWarning, setLocationWarning] = useState<string | null>(null);
-  const [docentMessage, setDocentMessage] = useState<string | null>(null);
+  const [recenterUserLocationToken, setRecenterUserLocationToken] = useState(0);
   const receivedLiveLocationRef = useRef(false);
   const lastRerouteAtRef = useRef(0);
   const spokenGuideRef = useRef<string | null>(null);
@@ -95,7 +103,7 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
       })
       .catch((error: Error) => {
         if (error.name !== "AbortError") {
-          setRouteError(`${getTransportLabel(mode)} 경로를 불러오지 못했습니다.`);
+          setRouteError(formatMessage(t("guide.routeError"), { mode: modeLabel }));
         }
       })
       .finally(() => {
@@ -106,9 +114,11 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   }, [
     destination.coordinate.lat,
     destination.coordinate.lng,
+    modeLabel,
     mode,
     routeOrigin.lat,
     routeOrigin.lng,
+    t,
   ]);
 
   useEffect(() => {
@@ -116,12 +126,11 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
     spokenGuideRef.current = null;
     destinationSpokenRef.current = null;
     announcedFacilityIdsRef.current.clear();
-    setDocentMessage(null);
   }, [destination.id, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setLocationWarning("GPS를 사용할 수 없어 마지막 위치로 안내합니다.");
+      setLocationWarning(t("guide.gpsUnavailable"));
       return;
     }
 
@@ -142,13 +151,13 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
         }
       },
       () => {
-        setLocationWarning("GPS 권한을 허용하면 실시간 재탐색을 사용할 수 있습니다.");
+        setLocationWarning(t("guide.gpsPermission"));
       },
       { enableHighAccuracy: true, maximumAge: 3000, timeout: 10_000 },
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [mode]);
+  }, [mode, t]);
 
   const drivingProgress = useMemo(
     () => drivingRoute ? getDrivingProgress(drivingRoute, currentLocation) : null,
@@ -227,7 +236,6 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
     if (!drivingRoute || destinationSpokenRef.current === destination.id) return;
     destinationSpokenRef.current = destination.id;
     const message = `${destination.name}. ${destination.description}`;
-    setDocentMessage(message);
     lastDocentAtRef.current = Date.now();
 
     const timer = window.setTimeout(() => {
@@ -273,7 +281,6 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
         if (!facility) return;
         announcedFacilityIdsRef.current.add(facility.id);
         const message = `주변 ${facility.distanceMeters}미터 이내에 ${facility.name}이 있습니다. ${facility.description}`;
-        setDocentMessage(message);
 
         const canSpeak = mode !== "car"
           && Date.now() - lastDocentAtRef.current >= 60_000
@@ -312,22 +319,35 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
     ? remainingDistance !== undefined && remainingDistance <= 25
       ? 0
       : Math.max(1, Math.ceil(remainingDuration / 60000))
-    : fallbackSummary.minutes;
+    : fallbackMinutes;
   const summary = drivingRoute && remainingDistance !== undefined
     ? {
         minutes: drivingMinutes,
-        modeLabel: getTransportLabel(mode),
+        modeLabel,
         arrivalTime: getArrivalTime(drivingMinutes),
-        remainingDistance: `${formatNavigationDistance(remainingDistance)} 남음`,
+        remainingDistance: formatMessage(t("guide.remaining"), {
+          distance: formatNavigationDistance(remainingDistance),
+        }),
       }
-    : fallbackSummary;
+    : {
+        minutes: fallbackMinutes,
+        modeLabel,
+        arrivalTime: getArrivalTime(fallbackMinutes),
+        remainingDistance: formatMessage(t("guide.remaining"), {
+          distance: `${Math.max(destination.distanceMeters, 120)}m`,
+        }),
+      };
   const nextInstruction = drivingProgress?.nextGuide?.instruction
-    ?? (routeLoading ? "자동차 경로를 찾는 중입니다" : "경로를 따라 진행하세요");
+    ?? (routeLoading
+      ? formatMessage(t("guide.routeLoading"), { mode: modeLabel })
+      : t("guide.routeFollow"));
   const nextInstructionDistance = drivingProgress?.nextGuide
     ? drivingProgress.nextGuide.type === 88
-      ? "목적지 도착"
-      : `${formatNavigationDistance(drivingProgress.distanceToNextGuideMeters)} 앞`
-    : routeLoading ? "잠시만 기다려 주세요" : "GPS 위치 확인 중";
+      ? t("guide.arrived")
+      : formatMessage(t("guide.ahead"), {
+          distance: formatNavigationDistance(drivingProgress.distanceToNextGuideMeters),
+        })
+    : routeLoading ? t("guide.wait") : t("guide.gpsChecking");
   const bannerMessage = routeError ?? locationWarning;
 
   return (
@@ -337,31 +357,43 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
           currentLocation={currentLocation}
           destination={destination}
           drivingRoute={drivingRoute}
+          recenterUserLocationToken={recenterUserLocationToken}
         />
 
-        <div className="pointer-events-auto absolute left-4 right-4 top-[57px] z-30">
-          <SearchBar
-            value={destination.name}
-            readOnly
-            placeholder="건물, 시설, 편의점 검색..."
-            containerClassName="h-[38px] bg-surface/95"
-          />
+        <div className="pointer-events-auto absolute left-4 right-4 top-6 z-30">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => router.push(APP_ROUTES.guide)}
+              className="grid size-[38px] shrink-0 place-items-center rounded-full bg-surface text-ink shadow-card"
+              aria-label={t("guide.back")}
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <SearchBar
+              value={destination.name}
+              readOnly
+              placeholder={t("guide.searchPlaceholder")}
+              containerClassName="h-[38px] flex-1 bg-surface/95"
+            />
+          </div>
         </div>
 
         {bannerMessage ? (
-          <div className="absolute left-4 right-4 top-[150px] z-30 rounded-card bg-surface/95 px-3 py-2 text-center text-xs font-bold text-red-600 shadow-card">
+          <div className="pointer-events-auto fixed left-[max(62px,calc(50%_-_153px))] top-[108px] z-[89] w-[min(220px,calc(100vw_-_154px))] rounded-full bg-surface/95 px-3 py-2 text-center text-xs font-bold text-red-600 shadow-card backdrop-blur-md">
             {bannerMessage}
           </div>
         ) : null}
 
-        {docentMessage ? (
-          <div className={`absolute left-4 right-4 ${bannerMessage ? "top-[194px]" : "top-[150px]"} z-20 rounded-card bg-primary-soft/95 px-4 py-3 shadow-card`}>
-            <p className="text-[11px] font-extrabold text-primary">CAMPUS DOCENT</p>
-            <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-ink">
-              {docentMessage}
-            </p>
-          </div>
-        ) : null}
+        <div className="pointer-events-auto absolute right-4 top-[74px] z-30 flex flex-col items-end gap-3">
+          <AppSettingsMenu />
+          <FloatingButton icon={<Compass size={21} />} label={t("map.orientation")} />
+          <FloatingButton
+            icon={<LocateFixed size={21} />}
+            label={t("map.recenter")}
+            onClick={() => setRecenterUserLocationToken((token) => token + 1)}
+          />
+        </div>
 
         <NavigationStatusPanel
           destination={destination}

@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, LocateFixed } from "lucide-react";
+import { FloatingButton } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import { campusCenter } from "@/constants/campus";
 import { APP_ROUTES } from "@/constants/routes";
@@ -671,7 +672,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           remainingSegments={currentSegment}
           recenterUserLocationToken={recenterUserLocationToken}
         />
-        <div className="absolute inset-x-4 top-[57px] z-20">
+        <div className="absolute inset-x-4 top-6 z-20">
           <div className="flex items-start gap-2.5">
             <button
               type="button"
@@ -690,8 +691,16 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
               />
             </div>
           </div>
-          <div className="mt-2 flex justify-end">
+          <div className="mt-3 flex flex-col items-end gap-3">
             <TourSettingsMenu />
+            <FloatingButton
+              icon={<LocateFixed size={21} />}
+              label={t("map.recenter")}
+              variant="soft"
+              disabled={!userLocation}
+              onClick={() => setRecenterUserLocationToken((token) => token + 1)}
+              className="disabled:opacity-45"
+            />
           </div>
         </div>
         <AiTourSheet
@@ -715,8 +724,6 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           hasArrived={canAdvance}
           needsArrivalConfirmation={needsArrivalConfirmation}
           remainingDistanceMeters={remainingDistance}
-          onRecenterMap={() => setRecenterUserLocationToken((token) => token + 1)}
-          canRecenter={Boolean(userLocation)}
         />
         {isOffRouteDialogOpen && (
           <div

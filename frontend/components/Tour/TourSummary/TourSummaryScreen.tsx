@@ -30,7 +30,7 @@ export function TourSummaryScreen({ data }: TourSummaryScreenProps) {
 
   return (
     <MobileShell className="bg-surface">
-      <main className="flex min-h-dvh flex-col bg-surface px-5 pb-[calc(26px+env(safe-area-inset-bottom))] pt-[63px]">
+      <main className="flex min-h-dvh flex-col bg-surface px-5 pb-[calc(26px+env(safe-area-inset-bottom))] pt-8">
         <section className="flex-1">
           <div className="flex items-center gap-3">
             <Sparkles size={18} className="text-primary" />

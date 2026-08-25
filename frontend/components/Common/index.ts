@@ -1,4 +1,5 @@
 export * from "./AppHeader";
+export * from "./AppSettingsMenu";
 export * from "./BottomSheet";
 export * from "./Button";
 export * from "./Card";

@@ -2,6 +2,7 @@
 
 import { Bike, Car, Footprints, Navigation } from "lucide-react";
 import { Button } from "@/components/Common";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 import type { TransportModeValue } from "@/lib/navigation";
 import type { GuidePlace } from "@/types";
 
@@ -30,12 +31,17 @@ export function NavigationStatusPanel({
   onChangeRoute,
   onEnd,
 }: NavigationStatusPanelProps) {
+  const { t } = useAppSettings();
   const ModeIcon = mode === "car" ? Car : mode === "bike" ? Bike : Footprints;
+  const destinationSummary = t("guide.destinationSummary")
+    .replace("{destination}", destination.name)
+    .replace("{mode}", modeLabel)
+    .replace("{minutes}", String(minutes));
 
   return (
-    <section className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] bg-surface pb-[calc(36px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
-      <div className="px-4">
-        <div className="flex min-h-[64px] max-w-[268px] items-center gap-3 rounded-card bg-surface px-3 py-3 shadow-floating">
+    <section className="pointer-events-none absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px]">
+      <div className="pointer-events-auto px-4 pb-3">
+        <div className="flex min-h-[64px] max-w-[268px] items-center gap-3 rounded-card bg-surface/95 px-3 py-3 shadow-floating backdrop-blur-sm">
           <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-primary text-white">
             <Navigation size={20} />
           </span>
@@ -44,40 +50,44 @@ export function NavigationStatusPanel({
             <p className="mt-0.5 text-xs font-medium text-muted">{nextInstructionDistance}</p>
           </div>
         </div>
+      </div>
 
-        <div className="mt-7 flex items-center gap-3">
+      <div className="pointer-events-auto bg-surface pb-[calc(36px+env(safe-area-inset-bottom))] pt-4 shadow-sheet">
+        <div className="flex items-center gap-3 px-4">
           <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-white">
             <ModeIcon size={21} />
           </span>
           <div className="min-w-0">
             <h3 className="truncate text-lg font-extrabold text-ink">
-              {destination.name}까지 {modeLabel} {minutes}분
+              {destinationSummary}
             </h3>
             <p className="mt-1 text-sm font-medium text-muted">
-              {remainingDistance} · <span className="font-extrabold text-primary">도착 {arrivalTime}</span>
+              {remainingDistance} · <span className="font-extrabold text-primary">
+                {t("guide.arrival").replace("{time}", arrivalTime)}
+              </span>
             </p>
           </div>
         </div>
-      </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-2 border-t border-line px-4 pt-3">
-        <Button
-          type="button"
-          variant="outline"
-          size="lg"
-          className="h-12 rounded-card text-base"
-          onClick={onChangeRoute}
-        >
-          목적지 변경
-        </Button>
-        <Button
-          type="button"
-          size="lg"
-          className="h-12 rounded-card text-base"
-          onClick={onEnd}
-        >
-          안내 종료
-        </Button>
+        <div className="mt-6 grid grid-cols-2 gap-2 border-t border-line px-4 pt-3">
+          <Button
+            type="button"
+            variant="outline"
+            size="lg"
+            className="h-12 rounded-card text-base"
+            onClick={onChangeRoute}
+          >
+          {t("guide.changeDestination")}
+          </Button>
+          <Button
+            type="button"
+            size="lg"
+            className="h-12 rounded-card text-base"
+            onClick={onEnd}
+          >
+          {t("guide.end")}
+          </Button>
+        </div>
       </div>
     </section>
   );

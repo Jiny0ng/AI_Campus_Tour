@@ -3,8 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft, Compass, LocateFixed } from "lucide-react";
-import { FloatingButton, SearchBar } from "@/components/Common";
+import { AppSettingsMenu, FloatingButton, SearchBar } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
+import { APP_ROUTES } from "@/constants/routes";
+import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { distanceMeters } from "@/lib/drivingNavigation";
 import { destinationToPlace, destinationToSearchParams } from "@/lib/guideDestination";
 import { trackedFetch } from "@/lib/networkFetch";
@@ -19,11 +21,13 @@ type CampusGuideScreenProps = {
 
 export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   const router = useRouter();
+  const { t } = useAppSettings();
   const [keyword, setKeyword] = useState("");
   const [selectedPlace, setSelectedPlace] = useState<GuidePlace | null>(null);
   const [currentLocation, setCurrentLocation] = useState<CampusCoordinate>(data.currentLocation);
   const [popularDestinations, setPopularDestinations] = useState<GuideDestination[]>([]);
   const [matchedDestinations, setMatchedDestinations] = useState<GuideDestination[]>([]);
+  const [recenterUserLocationToken, setRecenterUserLocationToken] = useState(0);
 
   useEffect(() => {
     void trackedFetch("/api/guide/popular")
@@ -106,35 +110,37 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
           places={visiblePlaces}
           selectedPlaceId={selectedPlace?.id}
           onSelectPlace={handleSelectPlace}
+          recenterUserLocationToken={recenterUserLocationToken}
         />
 
-        <div className="pointer-events-auto absolute left-4 right-4 top-[57px] z-30">
+        <div className="pointer-events-auto absolute left-4 right-4 top-6 z-30">
           <div className="flex gap-2">
             <button
               type="button"
-              onClick={() => router.back()}
+              onClick={() => router.push(APP_ROUTES.home)}
               className="grid size-[38px] shrink-0 place-items-center rounded-full bg-surface text-ink shadow-card"
-              aria-label="뒤로가기"
+              aria-label={t("guide.back")}
             >
               <ChevronLeft size={24} />
             </button>
             <SearchBar
               value={keyword}
               onChange={(event) => setKeyword(event.target.value)}
-              placeholder="건물, 시설, 편의점 검색..."
+              placeholder={t("guide.searchPlaceholder")}
               containerClassName="h-[38px] flex-1 bg-surface/95"
             />
           </div>
           <GuideSearchResults places={searchResults} onSelectPlace={handleSelectPlace} />
         </div>
 
-        <div className="pointer-events-auto absolute right-4 top-[181px] z-20 flex flex-col gap-3">
-          <FloatingButton icon={<Compass size={21} />} label="지도 방향" />
+        <div className="pointer-events-auto absolute right-4 top-[74px] z-30 flex flex-col items-end gap-3">
+          <AppSettingsMenu />
+          <FloatingButton icon={<Compass size={21} />} label={t("map.orientation")} />
           <FloatingButton
             icon={<LocateFixed size={21} />}
-            label="현재 위치"
+            label={t("map.recenter")}
             variant="soft"
-            onClick={() => window.dispatchEvent(new Event("campus-map-request-orientation"))}
+            onClick={() => setRecenterUserLocationToken((token) => token + 1)}
           />
         </div>
 

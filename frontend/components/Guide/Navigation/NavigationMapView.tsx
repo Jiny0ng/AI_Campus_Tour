@@ -5,15 +5,16 @@ type NavigationMapViewProps = {
   currentLocation: CampusCoordinate;
   destination: GuidePlace;
   drivingRoute?: DrivingRoute | null;
+  recenterUserLocationToken?: number;
 };
 
 export function NavigationMapView({
   currentLocation,
   destination,
   drivingRoute,
+  recenterUserLocationToken = 0,
 }: NavigationMapViewProps) {
   const markers = [
-    { id: "current", position: currentLocation, type: "current" as const },
     { id: destination.id, position: destination.coordinate, type: "destination" as const },
   ];
   const routes = drivingRoute
@@ -33,7 +34,8 @@ export function NavigationMapView({
         zoom={17}
         markers={markers}
         routes={routes}
-        showUserLocation={false}
+        showUserLocation
+        recenterUserLocationToken={recenterUserLocationToken}
       />
     </div>
   );
