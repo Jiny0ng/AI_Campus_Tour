@@ -5,6 +5,7 @@ import { ArrowRight, Map, MapPin } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { HomeServiceOption } from "@/types";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { useAudioGuide } from "@/contexts/AudioGuideContext";
 
 type HomeServiceOptionCardProps = {
   option: HomeServiceOption;
@@ -17,12 +18,16 @@ const serviceIcon = {
 
 export function HomeServiceOptionCard({ option }: HomeServiceOptionCardProps) {
   const { t } = useAppSettings();
+  const { unlock } = useAudioGuide();
   const active = option.id === "tour";
   const Icon = serviceIcon[option.id];
 
   return (
     <Link
       href={option.href}
+      onPointerDown={() => {
+        if (active) void unlock();
+      }}
       className={cn(
         "flex h-[57px] items-center gap-3 rounded-card border bg-surface px-3 transition active:scale-[0.99]",
         active ? "border-primary bg-primary-soft" : "border-line",

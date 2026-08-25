@@ -77,6 +77,7 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
   const networkRef = useRef<NetworkQuality>("online");
   const samplesRef = useRef<NetworkSample[]>([]);
   const unlockedRef = useRef(false);
+  const unlockingRef = useRef<Promise<boolean> | null>(null);
   const networkMessagePlayedRef = useRef(false);
   const networkGraceUntilRef = useRef(0);
   const localSystemFilesRef = useRef(new Set<string>());
@@ -400,25 +401,35 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       .catch(() => setStatus((current) => ({ ...current, playback: "blocked" })));
   }, []);
 
-  const unlock = useCallback(async () => {
-    if (unlockedRef.current) return true;
+  const unlock = useCallback(() => {
+    if (unlockedRef.current) return Promise.resolve(true);
+    if (unlockingRef.current) return unlockingRef.current;
     const audio = audioRef.current;
-    if (!audio || activeRef.current) return false;
+    if (!audio || activeRef.current) return Promise.resolve(false);
     const url = silentWavUrl();
-    try {
-      audio.src = url;
-      audio.muted = true;
-      await audio.play();
-      audio.pause();
-      audio.muted = isMuted;
-      unlockedRef.current = true;
-      return true;
-    } catch {
-      return false;
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }, [isMuted]);
+    const operation = (async () => {
+      try {
+        audio.src = url;
+        // The WAV contains silence. Play it as an unmuted media gesture so
+        // mobile browsers unlock later docent playback reliably.
+        audio.muted = false;
+        audio.volume = 1;
+        await audio.play();
+        audio.pause();
+        unlockedRef.current = true;
+        return true;
+      } catch {
+        return false;
+      } finally {
+        audio.volume = volume;
+        audio.muted = isMuted;
+        URL.revokeObjectURL(url);
+        unlockingRef.current = null;
+      }
+    })();
+    unlockingRef.current = operation;
+    return operation;
+  }, [isMuted, volume]);
 
   const beginNetworkGrace = useCallback((durationMs = 10_000) => {
     networkGraceUntilRef.current = Math.max(

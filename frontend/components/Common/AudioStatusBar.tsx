@@ -7,7 +7,7 @@ import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { cn } from "@/lib/cn";
 
 export function AudioStatusBar() {
-  const { status, pause, resume, stop, unlock } = useAudioGuide();
+  const { status, pause, resume, stop } = useAudioGuide();
   const { t } = useAppSettings();
   const pathname = usePathname();
   if (!status.request && status.network === "online") return null;
@@ -38,7 +38,7 @@ export function AudioStatusBar() {
           className="grid size-8 place-items-center rounded-full bg-primary-soft text-primary"
           aria-label={blocked ? t("audio.start") : paused ? t("audio.resume") : t("audio.pause")}
           onClick={() => {
-            if (blocked) void unlock().then((ok) => { if (ok) resume(); });
+            if (blocked) resume();
             else if (paused) resume();
             else pause();
           }}

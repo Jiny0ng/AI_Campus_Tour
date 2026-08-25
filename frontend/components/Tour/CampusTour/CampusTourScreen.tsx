@@ -204,6 +204,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const narratedStopIdsRef = useRef(new Set<string>());
   const confirmedArrivalStopIdsRef = useRef(new Set<string>());
   const previousLocaleRef = useRef(locale);
+  const tourSessionIdRef = useRef(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
 
   useEffect(() => {
     beginNetworkGrace();
@@ -308,14 +309,11 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
 
   useEffect(() => {
     if (!narrationStop || !narrationText) return;
-    const arrived = nextStop ? hasArrived : canAdvance;
-    const manuallyConfirmed = confirmedArrivalStopIdsRef.current.has(narrationStop.id);
-    if (!arrived || (locationAccuracy !== null && locationAccuracy > 30 && !manuallyConfirmed)) return;
     const narrationId = `${narrationStop.id}:${locale}`;
     if (narratedStopIdsRef.current.has(narrationId)) return;
     narratedStopIdsRef.current.add(narrationId);
     void speak({
-      id: `tour-stop:${narrationId}`,
+      id: `tour-stop:${tourSessionIdRef.current}:${narrationId}`,
       text: narrationText,
       locale,
       category: hasReviewedNarration ? "core-docent" : "location-docent",
@@ -327,7 +325,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
     });
-  }, [canAdvance, hasArrived, hasReviewedNarration, locale, locationAccuracy, narrationStop, narrationText, nextStop, speak]);
+  }, [hasReviewedNarration, locale, narrationStop, narrationText, speak]);
 
   useEffect(() => {
     if (distanceFromRoute === null) return;
