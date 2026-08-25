@@ -1604,6 +1604,111 @@
       "locale": "ko-KR",
       "style": "core-docent",
       "contentVersion": "v1"
+    },
+    "core-docent:tour_01_new_gate:ko": {
+      "audioId": "7f17a28ea8a9596d12b55e32f2b87597ae989994eb928cdad6c285afb5de6036",
+      "objectName": "assets/core-docent/ko-KR/Kore/7f17a28ea8a9596d12b55e32f2b87597ae989994eb928cdad6c285afb5de6036.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "95652fb44994f755"
+    },
+    "core-docent:tour_02_international_center:ko": {
+      "audioId": "7425d25bc281fbb6bc59fea89025e98e6c7abc2151cb5929b2362e542842d97b",
+      "objectName": "assets/core-docent/ko-KR/Kore/7425d25bc281fbb6bc59fea89025e98e6c7abc2151cb5929b2362e542842d97b.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "fc526472d7c1a16e"
+    },
+    "core-docent:tour_03_university_headquarters:ko": {
+      "audioId": "db17052cde8b9ae74aea50cfe639d5d292282501fbda90e6fb0854e21ec11dbe",
+      "objectName": "assets/core-docent/ko-KR/Kore/db17052cde8b9ae74aea50cfe639d5d292282501fbda90e6fb0854e21ec11dbe.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "2128eeea34cace18"
+    },
+    "core-docent:tour_04_jinsudang:ko": {
+      "audioId": "129d7c3a97278c37ee5fe6c75732d491143d370d0c842d75084675200edac41f",
+      "objectName": "assets/core-docent/ko-KR/Kore/129d7c3a97278c37ee5fe6c75732d491143d370d0c842d75084675200edac41f.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "aed8aa89b71f3a23"
+    },
+    "core-docent:tour_05_engineering_entrance:ko": {
+      "audioId": "85937315e4f6100871ea9e489f83bed7cc7516d03f112290eb14d2ac082568a3",
+      "objectName": "assets/core-docent/ko-KR/Kore/85937315e4f6100871ea9e489f83bed7cc7516d03f112290eb14d2ac082568a3.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "fbe639a3697ff48e"
+    },
+    "core-docent:tour_06_central_library:ko": {
+      "audioId": "05f5691d3f054a4e33f29aecabaf50bfcad52a067c41dfb09ea95dc536882f2c",
+      "objectName": "assets/core-docent/ko-KR/Kore/05f5691d3f054a4e33f29aecabaf50bfcad52a067c41dfb09ea95dc536882f2c.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "e3b9907919152c25"
+    },
+    "core-docent:tour_07_geonji_plaza:ko": {
+      "audioId": "99f5d36d1603520ff91ab32265f4a38c63e55e192b97066289b64e394a256eef",
+      "objectName": "assets/core-docent/ko-KR/Kore/99f5d36d1603520ff91ab32265f4a38c63e55e192b97066289b64e394a256eef.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "356be3549c9a3342"
+    },
+    "core-docent:tour_08_stadium_swing:ko": {
+      "audioId": "4ec9a08cc4d69c8bce7ee3c98d260571f2d75e82e3c34bdec1f70041e91ee2f9",
+      "objectName": "assets/core-docent/ko-KR/Kore/4ec9a08cc4d69c8bce7ee3c98d260571f2d75e82e3c34bdec1f70041e91ee2f9.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "9f41a606a2ec5f3c"
+    },
+    "core-docent:tour_09_basketball_court:ko": {
+      "audioId": "672a029e80ece95d87c18c8e344ff59bb54f31e79f065510c0749dfff7779705",
+      "objectName": "assets/core-docent/ko-KR/Kore/672a029e80ece95d87c18c8e344ff59bb54f31e79f065510c0749dfff7779705.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "9b2c623444525617"
+    },
+    "core-docent:tour_10_museum:ko": {
+      "audioId": "4e011e4e75f2d93fef662e3302dc957182991fd68ef176e2db5fd907d49ed9b4",
+      "objectName": "assets/core-docent/ko-KR/Kore/4e011e4e75f2d93fef662e3302dc957182991fd68ef176e2db5fd907d49ed9b4.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "269a2590ae641120"
+    },
+    "core-docent:tour_11_student_town:ko": {
+      "audioId": "c5a01e98b0fb1de75b81fa1f5954c681dc81c5d4aef4baa83461a22fdfd90936",
+      "objectName": "assets/core-docent/ko-KR/Kore/c5a01e98b0fb1de75b81fa1f5954c681dc81c5d4aef4baa83461a22fdfd90936.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "da16ad9e2d617977"
+    },
+    "core-docent:tour_12_old_gate:ko": {
+      "audioId": "56be83e33e2ff843189d06a475f388bd141fa452d2c5f0df756fce625b19aa7d",
+      "objectName": "assets/core-docent/ko-KR/Kore/56be83e33e2ff843189d06a475f388bd141fa452d2c5f0df756fce625b19aa7d.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "7392d19494f7ec24"
+    },
+    "core-docent:docent_art_college_3_workshop:ko": {
+      "audioId": "4a81d705563485c02e6ad3999ce10e7c0e0b51ef87690003a58883f96942cb5f",
+      "objectName": "assets/core-docent/ko-KR/Kore/4a81d705563485c02e6ad3999ce10e7c0e0b51ef87690003a58883f96942cb5f.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "8a4e0627b7ee546f"
+    },
+    "core-docent:docent_stadium_swing:ko": {
+      "audioId": "709c0a96e11a14c261a7dced82f1fc8089b0ab36f576467c98dd4c2f9528960b",
+      "objectName": "assets/core-docent/ko-KR/Kore/709c0a96e11a14c261a7dced82f1fc8089b0ab36f576467c98dd4c2f9528960b.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
+    },
+    "core-docent:docent_old_gate_busking_zone:ko": {
+      "audioId": "884b60ca32755e7cd7f29307ac1eccfd4d7dd7f3451f4e011de3598850269084",
+      "objectName": "assets/core-docent/ko-KR/Kore/884b60ca32755e7cd7f29307ac1eccfd4d7dd7f3451f4e011de3598850269084.mp3",
+      "locale": "ko-KR",
+      "style": "core-docent",
+      "contentVersion": "v1"
     }
   }
 }

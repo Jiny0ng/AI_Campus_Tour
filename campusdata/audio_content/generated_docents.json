@@ -1,4 +1,230 @@
 {
   "version": 1,
-  "scripts": {}
+  "scripts": {
+    "tour_01_new_gate": {
+      "status": "active",
+      "text": "지금 보고 계신 곳은 전북대학교의 신정문입니다. 이곳은 전북대학교의 정문이며 가장 한국적인 캠퍼스를 상징하는 공간입니다. 2019년에 완공되었으며 총사업비는 53억 원입니다. 정문은 전통 한옥 형태로 설계되었습니다. 정문 중앙의 전북대학교 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼습니다.",
+      "contentFingerprint": "95652fb44994f7559c8a7f72cf80d00a749d9c5fa99ee9dae1f6c78a9bbd06b3",
+      "contentVersion": "95652fb44994f755",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_01_new_gate:identity",
+        "tour_01_new_gate:architecture",
+        "tour_01_new_gate:symbolism",
+        "tour_01_new_gate:signage",
+        "tour_01_new_gate:completion-year",
+        "tour_01_new_gate:project-cost"
+      ],
+      "targetDurationSeconds": 60,
+      "validatedAt": "2026-08-25T14:42:58.757068+00:00"
+    },
+    "tour_02_international_center": {
+      "status": "active",
+      "text": "이곳은 전북대학교의 국제교류를 담당하는 인터내셔널센터입니다. 이 건물은 전북대학교의 국제교류와 외국인 학생 지원 업무를 담당합니다. 과거 명칭은 실크로드센터였으나 교내 명칭 공모를 통해 JBNU 인터내셔널센터로 이름을 변경했습니다. 이곳은 학생들의 학습과 휴식 공간으로도 이용됩니다. 1층에 넓은 학습 공간이 있으며 4층에 스카이라운지라는 테라스가 있습니다.",
+      "contentFingerprint": "fc526472d7c1a16e5e10683ac918216b300f69b8d3a613b74cd18f67e70a2b25",
+      "contentVersion": "fc526472d7c1a16e",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_02_international_center:role",
+        "tour_02_international_center:renaming",
+        "tour_02_international_center:student-space",
+        "tour_02_international_center:sky-lounge",
+        "tour_02_international_center:former-name",
+        "tour_02_international_center:first-floor-study"
+      ],
+      "targetDurationSeconds": 60,
+      "validatedAt": "2026-08-25T14:43:17.676771+00:00"
+    },
+    "tour_03_university_headquarters": {
+      "status": "active",
+      "text": "이곳은 전북대학교의 행정 중심인 대학본부입니다. 이곳에는 총장실과 주요 행정부서가 위치해 있습니다. 건물 앞에는 전북대학교의 상징동물인 표범상이 서 있습니다. 표범의 지혜로움과 용감함 그리고 과감한 전진은 전북대인의 품성과 기상을 상징합니다. 표범은 1981년 약 6천 명의 구성원과 동문을 대상으로 한 설문조사 및 투표를 통해 상징동물로 선정되었습니다. 그리고 개교 30주년인 1982년 5월에 지금의 표범상이 건립되었습니다.",
+      "contentFingerprint": "2128eeea34cace184790c1864f96f3b7da4b68f2703ec6b1c56d7882cc62be0d",
+      "contentVersion": "2128eeea34cace18",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_03_university_headquarters:role",
+        "tour_03_university_headquarters:leopard-location",
+        "tour_03_university_headquarters:leopard-symbol",
+        "tour_03_university_headquarters:leopard-meaning",
+        "tour_03_university_headquarters:leopard-selection",
+        "tour_03_university_headquarters:statue-established"
+      ],
+      "targetDurationSeconds": 70,
+      "validatedAt": "2026-08-25T14:43:35.875635+00:00"
+    },
+    "tour_04_jinsudang": {
+      "status": "active",
+      "text": "지금 보고 계신 진수당은 다양한 활동이 모이는 복합 공간입니다. 이곳에서는 강연과 행사 및 세미나 등이 열립니다. 건물 1층에는 편의점과 카페 등의 편의시설이 있습니다. 그리고 교내식당인 진수원이 위치합니다. 2층에는 AI Space가 있습니다. AI Space는 AI와 XR 기술을 체험하고 활용하는 공간입니다. 이곳에서는 ChatGPT와 Gemini 및 Adobe 등 다양한 AI·디지털 도구를 활용할 수 있는 환경을 제공합니다.",
+      "contentFingerprint": "aed8aa89b71f3a23501765e356cf46dc706188dfc9253a0000f3f014166aa47a",
+      "contentVersion": "aed8aa89b71f3a23",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_04_jinsudang:role",
+        "tour_04_jinsudang:restaurant",
+        "tour_04_jinsudang:ai-space-location",
+        "tour_04_jinsudang:ai-space-role",
+        "tour_04_jinsudang:first-floor",
+        "tour_04_jinsudang:digital-tools"
+      ],
+      "targetDurationSeconds": 65,
+      "validatedAt": "2026-08-25T14:43:54.560543+00:00"
+    },
+    "tour_05_engineering_entrance": {
+      "status": "active",
+      "text": "이곳부터 전북대학교 공과대학 권역이 시작됩니다. 이곳은 공과대학 1호관 앞에 위치하며, 공과대학 권역으로 들어가는 주요 지점입니다. 공과대학 건물을 찾아갈 때 기준점으로 활용하기 좋은 위치입니다. 근처의 비행기 전시물은 공과대학 권역의 대표적인 랜드마크입니다. 이 전시물은 단순한 모형이나 조형물이 아니라 실제 사용되었던 항공기입니다. 전시된 비행기는 실제 한국전쟁에서 사용된 전투기입니다.",
+      "contentFingerprint": "fbe639a3697ff48ebb03bfcf63b33f90392029e22d822f9e9df50a4fb7798001",
+      "contentVersion": "fbe639a3697ff48e",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_05_engineering_entrance:role",
+        "tour_05_engineering_entrance:wayfinding",
+        "tour_05_engineering_entrance:aircraft-history",
+        "tour_05_engineering_entrance:aircraft-authenticity",
+        "tour_05_engineering_entrance:location",
+        "tour_05_engineering_entrance:landmark"
+      ],
+      "targetDurationSeconds": 65,
+      "validatedAt": "2026-08-25T14:44:16.179471+00:00"
+    },
+    "tour_06_central_library": {
+      "status": "active",
+      "text": "이곳은 전북대학교의 대표 학습 공간인 중앙도서관입니다. 이곳은 대표적인 학습 및 자료 이용 공간입니다. 2026년 2월 리모델링 이후 1층 열람실 시설이 개선되었습니다. 쾌적한 환경에서 공부하고 싶다면 1층 열람실을 이용하기 좋습니다. 다만 시험기간에는 1층 이용자가 많아 혼잡할 수 있습니다. 시험기간에 콘센트 좌석이 필요하다면 1층보다 2층이나 3층 열람실을 고려할 수 있습니다. 또한 날씨가 좋은 날에는 야외 테라스에서 공부하는 학생들도 많습니다.",
+      "contentFingerprint": "e3b9907919152c250ed5bd7a11f23c8b1b8e17cf1643a76959be0261b14c511e",
+      "contentVersion": "e3b9907919152c25",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_06_central_library:role",
+        "tour_06_central_library:remodeling",
+        "tour_06_central_library:first-floor-tip",
+        "tour_06_central_library:exam-crowding",
+        "tour_06_central_library:outlet-tip",
+        "tour_06_central_library:terrace"
+      ],
+      "targetDurationSeconds": 65,
+      "validatedAt": "2026-08-25T14:44:35.508127+00:00"
+    },
+    "tour_07_geonji_plaza": {
+      "status": "active",
+      "text": "지금 도착한 곳은 캠퍼스 중심부의 건지광장입니다. 이곳은 전북대학교 캠퍼스 중심부에 위치한 대표적인 광장입니다. 여러 주요 건물과 이동 동선이 연결되어 캠퍼스 이동의 기준점 역할을 합니다. 넓은 광장과 주변 녹지 공간이 있어 학생들의 만남과 휴식 장소로 자주 활용됩니다. 중앙도서관에서 건지광장으로 이동하는 길 주변에는 넓은 잔디밭과 녹지 공간이 조성되어 있습니다. 봄철 벚꽃이 피는 시기에는 중앙도서관 주변 길과 잔디밭이 산책하거나 사진을 찍기 좋은 장소가 됩니다.",
+      "contentFingerprint": "356be3549c9a334286c102f5b6af0a09e538d95546b806479591d05370d28b1a",
+      "contentVersion": "356be3549c9a3342",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_07_geonji_plaza:role",
+        "tour_07_geonji_plaza:wayfinding",
+        "tour_07_geonji_plaza:rest",
+        "tour_07_geonji_plaza:library-route",
+        "tour_07_geonji_plaza:cherry-blossoms"
+      ],
+      "targetDurationSeconds": 55,
+      "validatedAt": "2026-08-25T14:44:47.729988+00:00"
+    },
+    "tour_08_stadium_swing": {
+      "status": "active",
+      "text": "이곳은 전북대학교의 대표 야외 공간인 대운동장입니다. 이곳은 전북대학교의 대표적인 대규모 야외 행사 및 체육 공간입니다. 대동제와 동아리 홍보행사 및 공과대학 체전 등 교내 주요 대형 행사가 열립니다. 행사 기간에는 공연과 부스 등 다양한 프로그램이 운영되어 많은 학생들이 모입니다. 평소에는 운동과 러닝을 위한 공간으로 활발하게 이용됩니다. 큰 행사가 없는 날에는 비교적 자유롭게 운동하거나 산책하기 좋습니다.",
+      "contentFingerprint": "9f41a606a2ec5f3c78c14a8607510013ca49b3ba07e9dc57a29f8408595ac2e9",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_08_stadium_swing:role",
+        "tour_08_stadium_swing:events",
+        "tour_08_stadium_swing:event-programs",
+        "tour_08_stadium_swing:exercise",
+        "tour_08_stadium_swing:free-use"
+      ],
+      "targetDurationSeconds": 60,
+      "validatedAt": "2026-08-25T14:45:04.092730+00:00"
+    },
+    "tour_09_basketball_court": {
+      "status": "active",
+      "text": "이곳은 학생들이 자유롭게 이용하는 농구장입니다. 과거에는 소운동장으로 사용되던 공간입니다. 리모델링을 거쳐 현재는 정비된 농구장 및 체육 공간으로 활용되고 있습니다. 대운동장이 대규모 행사와 러닝 중심이라면 이곳은 친구들과 부담 없이 운동을 즐기기 좋은 공간입니다. 수업이 없는 시간이나 날씨가 좋은 날에는 농구와 운동을 즐기는 학생들을 자주 볼 수 있습니다. 학생들이 자유롭게 이용할 수 있어 공을 준비하면 친구들과 농구를 즐길 수 있습니다.",
+      "contentFingerprint": "9b2c623444525617a05f34a4151399de8383129d3dd69bb847c3875dcaa41c02",
+      "contentVersion": "9b2c623444525617",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_09_basketball_court:history",
+        "tour_09_basketball_court:remodeling",
+        "tour_09_basketball_court:free-use",
+        "tour_09_basketball_court:popular-time",
+        "tour_09_basketball_court:comparison"
+      ],
+      "targetDurationSeconds": 55,
+      "validatedAt": "2026-08-25T14:45:22.282592+00:00"
+    },
+    "tour_10_museum": {
+      "status": "active",
+      "text": "이곳은 전북대학교의 대표 문화공간인 박물관입니다. 박물관은 전북대학교의 역사와 문화, 학술 자료를 전시하고 있습니다. 다양한 유물과 전시를 통해 전북 지역의 역사와 문화를 살펴볼 수 있습니다. 이곳은 학생뿐만 아니라 일반 시민과 외부 방문객도 관람할 수 있습니다. 박물관 2층 복도에는 공부할 수 있는 공간이 마련되어 있습니다. 또한 주변에 정자와 녹지 공간이 있어 산책하거나 쉬어가기 좋습니다.",
+      "contentFingerprint": "269a2590ae641120e5603fe23b29be076a437536dbdbc567387e633ed16ba598",
+      "contentVersion": "269a2590ae641120",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_10_museum:role",
+        "tour_10_museum:exhibits",
+        "tour_10_museum:public-access",
+        "tour_10_museum:study-space",
+        "tour_10_museum:green-space"
+      ],
+      "targetDurationSeconds": 60,
+      "validatedAt": "2026-08-25T14:45:37.856670+00:00"
+    },
+    "tour_11_student_town": {
+      "status": "active",
+      "text": "이곳은 다양한 학생 편의시설이 모여 있는 학생타운입니다. 학생들을 위한 생활 및 편의시설이 한곳에 모여 있는 공간입니다. 기존에는 학생타운 1과 2로 나뉘어 있었지만 최근 공사를 통해 하나의 학생타운으로 통합되었습니다. 이곳에서는 편의점과 카페뿐 아니라 서점, 미용실, 우체국, 안경점도 이용할 수 있습니다. 전북대학교 기념품샵에서 학교 굿즈나 방문객을 위한 선물을 구매할 수도 있습니다. 또한 AI 모의면접실이 마련되어 있어 취업 준비에 활용할 수 있습니다.",
+      "contentFingerprint": "da16ad9e2d6179778338a212dd1542936c5a71136f975cba65c965c22bd9f8a8",
+      "contentVersion": "da16ad9e2d617977",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_11_student_town:role",
+        "tour_11_student_town:facilities",
+        "tour_11_student_town:ai-interview",
+        "tour_11_student_town:integration",
+        "tour_11_student_town:gift-shop"
+      ],
+      "targetDurationSeconds": 55,
+      "validatedAt": "2026-08-25T14:45:53.264932+00:00"
+    },
+    "tour_12_old_gate": {
+      "status": "active",
+      "text": "이곳은 전북대생들의 대표적인 약속 장소인 구정문입니다. 이곳은 전북대생들이 대표적인 만남의 장소이자 약속 지점으로 이용하는 곳입니다. 구정문을 나서면 음식점과 카페 및 술집 등이 밀집한 전북대 대표 상권이 이어집니다. 이곳은 전북대의 대학로 역할을 하며 특히 저녁 시간에 학생들이 많이 찾습니다. 학생들이 약속을 잡을 때 구정문에서 만나라고 할 만큼 자주 이용됩니다.",
+      "contentFingerprint": "7392d19494f7ec241ad79f5c64d7aab98ae459654302eebd72a710b343916a85",
+      "contentVersion": "7392d19494f7ec24",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "tour_12_old_gate:meeting-place",
+        "tour_12_old_gate:commercial-area",
+        "tour_12_old_gate:college-street",
+        "tour_12_old_gate:student-expression"
+      ],
+      "targetDurationSeconds": 50,
+      "validatedAt": "2026-08-25T14:46:08.444907+00:00"
+    },
+    "docent_art_college_3_workshop": {
+      "status": "active",
+      "text": "예술대학 3호관 앞에는 아는 사람만 아는 작업 공간이 있습니다. 이곳은 예술대학 대학원생들의 작업 공간으로 알려져 있습니다. 건물 앞에는 학생들이 직접 제작한 것으로 보이는 조형 작품들이 전시되어 있습니다. 오후부터 밤 사이 작업할 때 K-POP 노래가 자주 흘러나오는 것으로 알려져 있습니다. 근처를 지날 때 어떤 노래가 나오는지 귀 기울여 보는 것도 좋습니다.",
+      "contentFingerprint": "8a4e0627b7ee546f1cff985fe7f3e1717d0b5cecb01f997b7c0ed79db21cd163",
+      "contentVersion": "8a4e0627b7ee546f",
+      "model": "gemini-3.6-flash",
+      "promptVersion": "v1",
+      "usedFactIds": [
+        "docent_art_college_3_workshop:graduate-workspace",
+        "docent_art_college_3_workshop:student-artworks",
+        "docent_art_college_3_workshop:kpop",
+        "docent_art_college_3_workshop:listening-tip"
+      ],
+      "targetDurationSeconds": 45,
+      "validatedAt": "2026-08-25T14:46:24.523713+00:00"
+    }
+  }
 }
