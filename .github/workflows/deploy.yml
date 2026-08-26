@@ -72,6 +72,9 @@ jobs:
               CAMPUS_DOMAIN="$GCP_DEPLOY_HOST"
             fi
             export CAMPUS_SITE_ADDRESS="$CAMPUS_DOMAIN"
+            # The deployed code owns the active docent prompt schema. Do not
+            # let a stale value in the VM's persistent .env reuse old scripts.
+            export DOCENT_SCRIPT_PROMPT_VERSION="v2"
             echo "DEPLOY_URL=https://$CAMPUS_DOMAIN"
             docker-compose config --services
             
