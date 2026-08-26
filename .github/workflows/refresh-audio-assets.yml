@@ -29,7 +29,7 @@ jobs:
             cd ~/AI_Campus_Tour
             # Override any legacy value left in the VM's persistent .env so a
             # prompt rollout invalidates and regenerates every docent script.
-            export DOCENT_SCRIPT_PROMPT_VERSION="v2"
+            export DOCENT_SCRIPT_PROMPT_VERSION="v3"
             # The deployed revision is the content source of truth. The script
             # compares content hashes and synthesizes/uploads only changed rows.
             docker-compose --profile audio run --rm audio-asset-generator \

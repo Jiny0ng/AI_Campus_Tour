@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, MessageCircleQuestion, Mic, Pause, Play, Send, Square, X } from "lucide-react";
+import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, Mic, Pause, Play, Send, Square, X } from "lucide-react";
 import { motion, AnimatePresence, animate as animateValue, useDragControls, useMotionValue } from "framer-motion";
 import { Button } from "@/components/Common";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
@@ -41,6 +41,17 @@ const insightIcons: Record<string, string> = {
   "hidden-place": "🔎",
 };
 
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((event: { resultIndex: number; results: ArrayLike<{ isFinal: boolean; 0: { transcript: string } }> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+
 export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t, pn } = useAppSettings();
   const { locale } = useAppSettings();
@@ -53,6 +64,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   const [maxDragY, setMaxDragY] = useState(0);
   const initializedDragRef = useRef(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
   const [questionOpen, setQuestionOpen] = useState(false);
   const [question, setQuestion] = useState("");
@@ -91,6 +103,8 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   };
 
   const closeQuestion = () => {
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
     recorderRef.current?.stop();
     recorderRef.current = null;
     setQuestionOpen(false);
@@ -99,11 +113,45 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   };
 
   const toggleRecording = async () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      return;
+    }
     if (recorderRef.current?.state === "recording") {
       recorderRef.current.stop();
       return;
     }
     try {
+      const speechWindow = window as typeof window & {
+        SpeechRecognition?: new () => BrowserSpeechRecognition;
+        webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+      };
+      const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+      if (Recognition) {
+        const recognition = new Recognition();
+        let finalTranscript = "";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = ({ ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" })[locale];
+        recognition.onresult = (event) => {
+          let interimTranscript = "";
+          for (let index = event.resultIndex; index < event.results.length; index += 1) {
+            const result = event.results[index];
+            if (result.isFinal) finalTranscript += `${result[0].transcript} `;
+            else interimTranscript += result[0].transcript;
+          }
+          setQuestion(`${finalTranscript}${interimTranscript}`.trim());
+        };
+        recognition.onerror = () => setQuestionState("error");
+        recognition.onend = () => {
+          recognitionRef.current = null;
+          setQuestionState((state) => state === "listening" ? "idle" : state);
+        };
+        recognitionRef.current = recognition;
+        recognition.start();
+        setQuestionState("listening");
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
       recordingChunksRef.current = [];
@@ -147,8 +195,8 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
         body: JSON.stringify({
           question: normalized,
           language: locale,
-          current_stop_id: currentStop?.id ?? "",
-          current_place_name: currentStop?.name ?? "",
+          current_stop_id: nextStop?.id ?? currentStop?.id ?? "",
+          current_place_name: nextStop?.name ?? currentStop?.name ?? "",
           next_stop_id: nextStop?.id ?? "",
         }),
       });
@@ -260,7 +308,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary"
             onClick={(event) => { event.stopPropagation(); openQuestion(); }}
           >
-            <MessageCircleQuestion size={18} />
+            <Mic size={18} />
           </button>
           <button
             type="button"

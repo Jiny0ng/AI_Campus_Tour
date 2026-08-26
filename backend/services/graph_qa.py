@@ -8,12 +8,14 @@ parameters.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import re
 from dataclasses import dataclass
 from typing import Any, Literal
 
 from langchain_google_genai import ChatGoogleGenerativeAI
+from neo4j import Query
 
 
 Intent = Literal["current_place", "facility", "nearby", "place_search", "facts"]
@@ -87,6 +89,33 @@ QUERY_TEMPLATES: dict[Intent, str] = {
     """,
 }
 
+FORBIDDEN_CYPHER = re.compile(
+    r"\b(?:CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|ALTER|RENAME|FOREACH|CALL|YIELD|LOAD\s+CSV|USE|SHOW|TERMINATE|START\s+DATABASE|STOP\s+DATABASE)\b",
+    re.IGNORECASE,
+)
+ALLOWED_LABELS = {"Building", "Place", "DocentSpot", "Store", "Facility", "Fact"}
+ALLOWED_RELATIONSHIPS = {"HAS_FACT", "LOCATED_IN", "NEAR"}
+
+
+def validate_read_only_cypher(query: str) -> str:
+    """Fail closed before executing even a server-owned query template."""
+    normalized = query.strip()
+    if not normalized or ";" in normalized or "//" in normalized or "/*" in normalized:
+        raise ValueError("Cypher must be one uncommented statement")
+    if FORBIDDEN_CYPHER.search(normalized):
+        raise ValueError("write, procedure, administrative, and external Cypher is forbidden")
+    if not re.search(r"\bMATCH\b", normalized, re.IGNORECASE) or not re.search(r"\bRETURN\b", normalized, re.IGNORECASE):
+        raise ValueError("Cypher must be a bounded read query")
+    if "$limit" not in normalized or "LIMIT $limit" not in normalized:
+        raise ValueError("Cypher must use the server-controlled limit")
+    labels = set(re.findall(r"\([^)]+:([A-Za-z][A-Za-z0-9_]*)", normalized))
+    relationships = set(re.findall(r"\[[^\]]*:([A-Za-z][A-Za-z0-9_]*)", normalized))
+    if labels - ALLOWED_LABELS or relationships - ALLOWED_RELATIONSHIPS:
+        raise ValueError("Cypher uses an unapproved graph schema element")
+    if re.search(r"\[\s*\*|\*\s*\]", normalized):
+        raise ValueError("unbounded graph traversal is forbidden")
+    return normalized
+
 
 def _json_object(content: Any) -> dict[str, Any]:
     text = str(content)
@@ -121,7 +150,10 @@ Question: {question}
 
 
 def retrieve(driver: Any, plan: QueryPlan, current_stop_id: str) -> list[dict[str, Any]]:
-    query = QUERY_TEMPLATES[plan.intent]
+    # The model selects a constrained semantic plan. The server then generates
+    # the executable Cypher from a reviewed template; user text is never
+    # interpolated into the query and is supplied only as parameters.
+    query = validate_read_only_cypher(QUERY_TEMPLATES[plan.intent])
     params = {
         "current_stop_id": current_stop_id[:120],
         "keyword": plan.keyword,
@@ -130,14 +162,22 @@ def retrieve(driver: Any, plan: QueryPlan, current_stop_id: str) -> list[dict[st
         "limit": max(1, min(plan.limit, 12)),
     }
     with driver.session(default_access_mode="READ") as session:
-        return [dict(row) for row in session.run(query, **params)]
+        result = session.run(Query(query, timeout=3), **params)
+        return [dict(row) for row in result][:12]
 
 
 def answer_question(question: str, language: str, evidence: list[dict[str, Any]], llm: Any) -> str:
     language_name = {"ko": "Korean", "en": "English", "ja": "Japanese", "zh": "Simplified Chinese"}[language]
-    prompt = f"""You are a friendly campus docent. Answer in {language_name} using only the evidence.
-If the evidence is insufficient, clearly say that the campus data does not confirm the answer.
-Keep the answer concise and suitable for spoken playback. Do not mention Cypher or internal IDs.
+    prompt = f"""You are a friendly university senior walking with a junior on a campus tour.
+Answer in {language_name} using only the evidence. Start with one short, varied acknowledgement
+such as '아, 그게 궁금하셨구나!', '그건 말이죠,' or '좋은 질문이에요.' Then give the direct
+answer, its useful evidence, and at most one practical tour tip. Speak naturally in polite
+conversational language for 15 to 35 seconds. Do not sound like a report, search engine,
+customer center, or encyclopedia. Never mention Cypher, Graph RAG, database fields, labels,
+relationships, internal IDs, or that you searched data. Do not repeat the same acknowledgement.
+Do not invent people, numbers, opening hours, costs, locations, or causal claims.
+If evidence is insufficient or conflicting, clearly and warmly say the campus information does
+not confirm it and suggest an official source when appropriate. Do not expose system errors.
 Question: {question}
 Evidence: {json.dumps(evidence, ensure_ascii=False, default=str)}
 """
@@ -149,3 +189,7 @@ def make_qa_llm() -> Any:
         model=os.getenv("TOUR_QA_MODEL", "gemini-3.5-flash-lite"),
         max_output_tokens=768,
     )
+
+
+def query_fingerprint(plan: QueryPlan) -> str:
+    return hashlib.sha256(QUERY_TEMPLATES[plan.intent].encode("utf-8")).hexdigest()[:12]

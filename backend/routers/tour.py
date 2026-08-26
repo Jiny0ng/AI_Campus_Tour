@@ -250,7 +250,7 @@ _tour_data_cache: Optional[Dict[str, Any]] = None
 
 
 @lru_cache(maxsize=1)
-def active_generated_docent_texts() -> Dict[str, str]:
+def active_generated_docents() -> Dict[str, Dict[str, Any]]:
     path = os.path.join(
         os.path.dirname(__file__), "..", "..", "campusdata", "audio_content",
         "generated_docents.json",
@@ -261,12 +261,11 @@ def active_generated_docent_texts() -> Dict[str, str]:
         with open(path, "r", encoding="utf-8") as file:
             scripts = json.load(file).get("scripts", {})
         return {
-            entity_id: entry["text"].strip()
+            entity_id: entry
             for entity_id, entry in scripts.items()
             if isinstance(entry, dict)
             and entry.get("status") == "active"
-            and isinstance(entry.get("text"), str)
-            and entry["text"].strip()
+            and isinstance(entry.get("enRouteText", entry.get("text")), str)
         }
     except (OSError, ValueError, AttributeError):
         return {}
@@ -285,7 +284,10 @@ def tour_stop_docent_texts() -> Dict[str, str]:
             for row in csv.DictReader(file)
             if row.get("entity_type") == "tour_stop" and row.get("docent_text", "").strip()
         }
-    reviewed.update(active_generated_docent_texts())
+    reviewed.update({
+        entity_id: str(entry.get("enRouteText", entry.get("text", ""))).strip()
+        for entity_id, entry in active_generated_docents().items()
+    })
     return reviewed
 
 
@@ -300,10 +302,12 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
 
     stops_data = []
     reviewed_docents = tour_stop_docent_texts()
+    generated_docents = active_generated_docents()
     for i, route_stop in enumerate(route_stops):
         name = route_stop["name"]
         docent_context = get_docent_context(driver, route_stop["place_id"])
         generated_docent = reviewed_docents.get(route_stop["place_id"], "")
+        generated_entry = generated_docents.get(route_stop["place_id"], {})
         overview, insights = build_stop_presentation(
             docent_context,
             f"{name}입니다.",
@@ -316,6 +320,9 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
             "overview": overview,
             "insights": insights,
             "docentText": generated_docent,
+            "enRouteDocentText": str(generated_entry.get("enRouteText", generated_docent)),
+            "arrivalDocentText": str(generated_entry.get("arrivalText", "")),
+            "arrivalDocentEnabled": bool(generated_entry.get("arrivalEnabled", False)),
             "docentContext": docent_context,
             "tags": [],
             "studentTip": [],

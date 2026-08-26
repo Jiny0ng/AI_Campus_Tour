@@ -6,7 +6,7 @@ from typing import Literal
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
-from services.graph_qa import answer_question, make_qa_llm, plan_question, retrieve
+from services.graph_qa import answer_question, make_qa_llm, plan_question, query_fingerprint, retrieve
 
 
 router = APIRouter(tags=["캠퍼스 질문"])
@@ -31,6 +31,7 @@ def ask_question(payload: QuestionRequest, request: Request):
             "answer": answer,
             "evidence": evidence,
             "queryType": plan.intent,
+            "queryFingerprint": query_fingerprint(plan),
         }
     except Exception as error:
         raise HTTPException(status_code=503, detail="질문에 답변할 수 없습니다.") from error

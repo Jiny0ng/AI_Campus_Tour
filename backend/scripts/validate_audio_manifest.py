@@ -35,12 +35,16 @@ def main() -> int:
             for entity_id, script in scripts.items():
                 if not isinstance(script, dict) or script.get("status") != "active":
                     continue
-                asset_id = f"core-docent:{entity_id}:ko"
-                asset = assets.get(asset_id)
-                if not isinstance(asset, dict):
-                    errors.append(f"{asset_id}:missing-for-active-script")
-                elif asset.get("contentVersion") != script.get("contentVersion"):
-                    errors.append(f"{asset_id}:content-version-mismatch")
+                expected = ["en-route-docent"]
+                if script.get("arrivalEnabled"):
+                    expected.append("arrival-docent")
+                for style in expected:
+                    asset_id = f"{style}:{entity_id}:ko"
+                    asset = assets.get(asset_id)
+                    if not isinstance(asset, dict):
+                        errors.append(f"{asset_id}:missing-for-active-script")
+                    elif asset.get("contentVersion") != script.get("contentVersion"):
+                        errors.append(f"{asset_id}:content-version-mismatch")
     print(json.dumps({"assets": len(assets), "invalid": errors}, ensure_ascii=False))
     return 1 if errors else 0
 

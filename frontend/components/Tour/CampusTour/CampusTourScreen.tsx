@@ -243,12 +243,20 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       lng: nextStop.mapPoint.x,
     });
   }, [nextStop, userLocation]);
+  const segmentDistanceMeters = useMemo(() => currentSegment.reduce((total, segment) => (
+    total + segment.points.slice(1).reduce((subtotal, point, index) => (
+      subtotal + distanceMeters(
+        { lat: segment.points[index].y, lng: segment.points[index].x },
+        { lat: point.y, lng: point.x },
+      )
+    ), 0)
+  ), 0), [currentSegment]);
 
   const hasArrived = Boolean(nextStop && arrivedStopId === nextStop.id);
   const needsArrivalConfirmation = Boolean(
     nextStop
     && directDistanceToNext !== null
-    && directDistanceToNext <= 10
+    && directDistanceToNext <= 20
     && locationAccuracy !== null
     && locationAccuracy > 30
     && !hasArrived,
@@ -264,16 +272,16 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     return distanceToRouteMeters(userLocation, currentSegment);
   }, [currentSegment, userLocation]);
   const narrationStop = nextStop ?? currentStop;
-  const narrationText = useMemo(() => {
+  const enRouteNarrationText = useMemo(() => {
     if (!narrationStop) return "";
-    return (locale === "ko" ? narrationStop.docentText : "")
+    return (locale === "ko" ? narrationStop.enRouteDocentText || narrationStop.docentText : "")
       || segmentInfo?.tips.find((tipInfo) => (
         tipInfo.name.includes(narrationStop.name)
         || narrationStop.name.includes(tipInfo.name)
       ))?.tip
       || narrationStop.description;
   }, [locale, narrationStop, segmentInfo?.tips]);
-  const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.docentText);
+  const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.enRouteDocentText || narrationStop?.docentText);
 
   useEffect(() => {
     if (!needsIdleDocentFallback || status.playback !== "idle" || status.request || isNearbyLoading) return;
@@ -319,47 +327,83 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     // Only immutable, reviewed tour scripts are prefetched. Dynamic segment
     // tips may need model synthesis and should never delay or colour the tour
     // start as a network problem.
-    if (!narrationStop || !narrationText || !hasReviewedNarration) return;
+    if (!narrationStop || !enRouteNarrationText || !hasReviewedNarration) return;
     void prefetch({
       id: `prefetch:tour-stop:${narrationStop.id}:${locale}`,
-      text: narrationText,
+      text: enRouteNarrationText,
       locale,
       category: hasReviewedNarration ? "core-docent" : "location-docent",
       priority: hasReviewedNarration ? 50 : 30,
       source: hasReviewedNarration
-        ? { kind: "asset", assetId: `core-docent:${narrationStop.id}:${locale}` }
+        ? { kind: "asset", assetId: `en-route-docent:${narrationStop.id}:${locale}` }
         : { kind: "tts" },
       interruptible: true,
       resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
     });
-  }, [hasReviewedNarration, locale, narrationStop, narrationText, prefetch]);
+  }, [enRouteNarrationText, hasReviewedNarration, locale, narrationStop, prefetch]);
 
   useEffect(() => {
-    if (!narrationStop || !narrationText) {
+    if (!narrationStop || !enRouteNarrationText) {
       setNeedsIdleDocentFallback(Boolean(narrationStop));
       return;
     }
-    const narrationId = `${narrationStop.id}:${locale}`;
+    const narrationId = `en-route:${narrationStop.id}:${locale}`;
     if (narratedStopIdsRef.current.has(narrationId)) return;
     narratedStopIdsRef.current.add(narrationId);
     setNeedsIdleDocentFallback(false);
     void speak({
       id: `tour-stop:${tourSessionIdRef.current}:${narrationId}`,
-      text: narrationText,
+      text: enRouteNarrationText,
       locale,
       category: hasReviewedNarration ? "core-docent" : "location-docent",
       priority: hasReviewedNarration ? 50 : 30,
       source: hasReviewedNarration
-        ? { kind: "asset", assetId: `core-docent:${narrationStop.id}:${locale}` }
+        ? { kind: "asset", assetId: `en-route-docent:${narrationStop.id}:${locale}` }
         : { kind: "tts" },
       interruptible: true,
       resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
-    }).then((outcome) => {
+    }).then(async (outcome) => {
       if (outcome === "skipped") setNeedsIdleDocentFallback(true);
+      if (
+        outcome === "completed"
+        && narrationStop.id === "tour_01_new_gate"
+        && locale === "ko"
+      ) {
+        await speak({
+          id: `first-stop-microphone-tip:${tourSessionIdRef.current}`,
+          text: "이동하는 중에 궁금한 게 있다면 화면 중간의 마이크 버튼을 눌러 물어봐 주세요. 제가 대답해 드릴게요.",
+          locale: "ko",
+          category: "system",
+          priority: 45,
+          source: { kind: "tts" },
+          interruptible: true,
+          resumePolicy: "discard",
+        });
+      }
     });
-  }, [hasReviewedNarration, locale, narrationStop, narrationText, speak]);
+  }, [enRouteNarrationText, hasReviewedNarration, locale, narrationStop, speak]);
+
+  useEffect(() => {
+    if (!nextStop || arrivedStopId !== nextStop.id || locale !== "ko") return;
+    if (!nextStop.arrivalDocentEnabled || !nextStop.arrivalDocentText) return;
+    if (segmentDistanceMeters > 0 && segmentDistanceMeters <= 50) return;
+    const narrationId = `arrival:${nextStop.id}:${locale}`;
+    if (narratedStopIdsRef.current.has(narrationId)) return;
+    narratedStopIdsRef.current.add(narrationId);
+    void speak({
+      id: `arrival:${tourSessionIdRef.current}:${nextStop.id}:${locale}`,
+      text: nextStop.arrivalDocentText,
+      locale,
+      category: "core-docent",
+      priority: 65,
+      source: { kind: "asset", assetId: `arrival-docent:${nextStop.id}:${locale}` },
+      interruptible: true,
+      resumePolicy: "discard",
+      report: { placeId: nextStop.id, placeName: nextStop.name, include: true },
+    });
+  }, [arrivedStopId, locale, nextStop, segmentDistanceMeters, speak]);
 
   useEffect(() => {
     if (distanceFromRoute === null) return;
@@ -392,7 +436,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
     if (
       nextStop
       && directDistanceToNext !== null
-      && directDistanceToNext <= 10
+      && directDistanceToNext <= 20
       && (locationAccuracy === null || locationAccuracy <= 30)
     ) {
       setArrivedStopId(nextStop.id);

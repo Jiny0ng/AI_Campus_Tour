@@ -114,15 +114,28 @@ def _fact_payload(facts: tuple[dict[str, Any], ...]) -> list[dict[str, Any]]:
     ]
 
 
-def generation_prompt(spec: DocentSpec) -> str:
+def generation_prompt(spec: DocentSpec, phase: str = "arrival") -> str:
+    if phase not in {"en_route", "arrival"}:
+        raise ValueError(f"unsupported docent phase: {phase}")
+    phase_direction = (
+        """이동 중 대본입니다. 청자는 아직 목적지에 도착하지 않았습니다.
+'지금 가고 있는 곳은', '도착하기 전에 먼저 소개해 드리면'처럼 이동 중임을 분명히 하세요.
+'눈앞에', '지금 보이는', '도착한 곳은', '여기에서'처럼 이미 현장에 있는 표현은 쓰지 마세요.
+첫 장소인 신정문이라면 첫 문장을 반드시 '전북대학교에 오신 여러분, 환영합니다.'로 시작하세요."""
+        if phase == "en_route"
+        else f"""현장 대본입니다. 청자는 목적지 20미터 안에 도착했습니다.
+눈앞의 형태나 주변을 직접 살펴보도록 유도하고, 이동 중이라고 말하지 마세요.
+반드시 첫 문장을 그대로 사용하세요: {spec.opening_line}"""
+    )
     return f"""당신은 전북대학교 캠퍼스의 한국어 음성 도슨트 대본을 작성합니다.
 아래 데이터만 사실의 근거로 사용하고 제공되지 않은 수치·인물·시설·인과관계를 추가하지 마세요.
 이 작업의 목적은 사실 목록을 읽어 주는 것이 아니라, 처음 온 후배와 캠퍼스를 함께
 걸으며 장소를 보여 주고 다음 경험으로 이끄는 실제 투어를 진행하는 것입니다.
 
 장소: {spec.label}
+대본 단계: {phase}
+{phase_direction}
 목표 낭독 시간: {spec.target_duration_seconds}초
-반드시 첫 문장 그대로 사용: {spec.opening_line}
 필수 사실: {json.dumps(_fact_payload(spec.required_facts), ensure_ascii=False)}
 선택 사실: {json.dumps(_fact_payload(spec.optional_facts), ensure_ascii=False)}
 
@@ -131,9 +144,9 @@ def generation_prompt(spec: DocentSpec) -> str:
 2. 선택 사실은 흐름에 맞는 항목을 최대 2개만 사용하세요.
 3. 개별 fact를 한 문장씩 순서대로 옮기지 마세요. 서로 관련된 사실을 묶고 자연스러운
    연결어를 사용해 하나의 이야기처럼 이어 말하세요.
-4. 눈앞의 장소를 함께 보는 듯한 관찰 유도, 짧은 질문, 공감 표현, 방문·사진·산책·이용
-   제안 중 어울리는 표현을 1~2회 넣어 후배의 호응을 유도하세요. 단, 새로운 사실을
-   만들지 말고 제공된 사실에서 자연스럽게 도출할 수 있는 표현만 사용하세요.
+4. 이동 중에는 도착 후 해 볼 일을 기대하게 하고, 현장에서는 눈앞의 장소를 관찰하도록
+   유도하세요. 짧은 질문, 공감 표현, 방문·사진·산책·이용 제안 중 어울리는 표현을
+   1~2회 넣어 후배의 호응을 유도하되 새로운 사실을 만들지 마세요.
 5. 학교를 좋아하는 선배의 애정과 설렘이 느껴지는 해요체를 사용하세요. 안내방송,
    백과사전, 보고서처럼 딱딱하게 쓰거나 과한 광고 문구를 반복하지 마세요.
 6. 마지막에는 방금 본 장소의 인상을 정리하거나 다음 이동을 기대하게 하는 짧은 연결
@@ -149,7 +162,7 @@ def generation_prompt(spec: DocentSpec) -> str:
 """
 
 
-def review_prompt(spec: DocentSpec, script: str) -> str:
+def review_prompt(spec: DocentSpec, script: str, phase: str = "arrival") -> str:
     return f"""다음 캠퍼스 도슨트 대본을 제공된 사실만으로 엄격히 검수하세요.
 단순한 연결 표현은 허용하지만 제공되지 않은 구체적인 사실·수치·인물·시설은 허용하지 않습니다.
 `verified=false`는 학생 경험·추천·감상처럼 외부 출처 검증 대상이 아닌 편집
@@ -160,12 +173,13 @@ unsupported claim으로 판정하지 마세요.
 예산 또는 구체적인 건설 금액이 들어 있으면 승인하지 마세요.
 
 장소: {spec.label}
+대본 단계: {phase}
 대본: {script}
 허용된 사실: {json.dumps(_fact_payload(spec.all_facts), ensure_ascii=False)}
 필수 factId: {json.dumps([fact['factId'] for fact in spec.required_facts], ensure_ascii=False)}
 
 JSON만 반환하세요:
-{{"approved":true, "coveredRequiredFactIds":["대본에 의미상 포함된 필수 factId"], "unsupportedClaims":[], "tourLike":true, "engagementPresent":true, "financialDetailPresent":false}}
+{{"approved":true, "coveredRequiredFactIds":["대본에 의미상 포함된 필수 factId"], "unsupportedClaims":[], "tourLike":true, "engagementPresent":true, "phaseCompatible":true, "financialDetailPresent":false}}
 """
 
 
@@ -173,14 +187,21 @@ def deterministic_errors(
     spec: DocentSpec,
     script: str,
     used_fact_ids: list[str],
+    phase: str = "arrival",
 ) -> list[str]:
     errors: list[str] = []
     clean_script = normalize_text(script)
     required_ids = {fact["factId"] for fact in spec.required_facts}
     optional_ids = {fact["factId"] for fact in spec.optional_facts}
     used_ids = set(used_fact_ids)
-    if not clean_script.startswith(normalize_text(spec.opening_line)):
+    if phase == "arrival" and not clean_script.startswith(normalize_text(spec.opening_line)):
         errors.append("opening line is missing or changed")
+    if phase == "en_route" and re.search(r"눈앞에|지금\s*보이|도착한\s*곳|지금\s*도착", clean_script):
+        errors.append("en-route script speaks as if already at the destination")
+    if phase == "en_route" and spec.entity_id == "tour_01_new_gate" and not clean_script.startswith(
+        "전북대학교에 오신 여러분, 환영합니다."
+    ):
+        errors.append("first en-route script is missing the welcome line")
     if not required_ids.issubset(used_ids):
         errors.append(f"required facts omitted from usedFactIds: {sorted(required_ids - used_ids)}")
     if used_ids - required_ids - optional_ids:
@@ -202,17 +223,21 @@ def deterministic_errors(
     return errors
 
 
-def generate_and_validate(spec: DocentSpec, llm: Any) -> tuple[str, list[str]]:
-    generated = _json_content(llm.invoke(generation_prompt(spec)))
+def generate_and_validate(
+    spec: DocentSpec,
+    llm: Any,
+    phase: str = "arrival",
+) -> tuple[str, list[str]]:
+    generated = _json_content(llm.invoke(generation_prompt(spec, phase)))
     script = normalize_text(str(generated.get("script", "")))
     used_fact_ids = generated.get("usedFactIds", [])
     if not isinstance(used_fact_ids, list) or not all(isinstance(value, str) for value in used_fact_ids):
         raise ValueError("usedFactIds must be an array of strings")
-    errors = deterministic_errors(spec, script, used_fact_ids)
+    errors = deterministic_errors(spec, script, used_fact_ids, phase)
     if errors:
         raise ValueError("; ".join(errors))
 
-    review = _json_content(llm.invoke(review_prompt(spec, script)))
+    review = _json_content(llm.invoke(review_prompt(spec, script, phase)))
     covered = review.get("coveredRequiredFactIds", [])
     required_ids = {fact["factId"] for fact in spec.required_facts}
     if review.get("approved") is not True:
@@ -221,6 +246,8 @@ def generate_and_validate(spec: DocentSpec, llm: Any) -> tuple[str, list[str]]:
         errors.append("semantic reviewer found the script is not tour-like")
     if review.get("engagementPresent") is not True:
         errors.append("semantic reviewer found no engagement expression")
+    if review.get("phaseCompatible") is not True:
+        errors.append("semantic reviewer found the script incompatible with its tour phase")
     if review.get("financialDetailPresent") is not False:
         errors.append("semantic reviewer found financial detail")
     if not isinstance(covered, list) or not required_ids.issubset(set(covered)):

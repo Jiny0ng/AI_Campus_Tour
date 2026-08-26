@@ -37,6 +37,9 @@ export type CampusTourStop = {
   overview?: string;
   insights?: CampusTourFact[];
   docentText?: string;
+  enRouteDocentText?: string;
+  arrivalDocentText?: string;
+  arrivalDocentEnabled?: boolean;
   docentContext?: CampusTourDocentContext;
   tags: CampusTourTag[];
   studentTip: string[];

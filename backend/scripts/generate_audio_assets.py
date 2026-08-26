@@ -114,6 +114,10 @@ def core_docent_rows() -> tuple[list[dict[str, str]], list[str]]:
         if entity_type not in {"tour_stop", "docent_spot"}:
             continue
         generated_script = generated_scripts.get(row.get("id", ""), {})
+        # v3 docent assets are managed atomically by generate_docent_assets.py
+        # as separate en-route and arrival recordings.
+        if isinstance(generated_script, dict) and generated_script.get("enRouteText"):
+            continue
         generated_text = (
             generated_script.get("text", "")
             if isinstance(generated_script, dict) and generated_script.get("status") == "active"

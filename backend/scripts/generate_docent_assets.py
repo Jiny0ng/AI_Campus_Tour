@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import math
 import os
 import sys
 import time
@@ -132,6 +133,27 @@ def make_llm(model: str):
     return ChatGoogleGenerativeAI(model=model, max_output_tokens=4096)
 
 
+def arrival_enabled_by_entity(specs) -> dict[str, bool]:
+    """Skip an arrival narration when the preceding tour stop is within 50 m."""
+    import csv
+
+    with (DATA_DIR / "campus_places.csv").open("r", encoding="utf-8-sig") as file:
+        places = {row["id"]: row for row in csv.DictReader(file)}
+    ordered = [spec for spec in specs if places.get(spec.entity_id, {}).get("tour_order")]
+    ordered.sort(key=lambda spec: int(places[spec.entity_id]["tour_order"]))
+    enabled = {spec.entity_id: True for spec in specs}
+    for previous, current in zip(ordered, ordered[1:]):
+        first = places[previous.entity_id]
+        second = places[current.entity_id]
+        lat1, lon1 = math.radians(float(first["latitude"])), math.radians(float(first["longitude"]))
+        lat2, lon2 = math.radians(float(second["latitude"])), math.radians(float(second["longitude"]))
+        dlat, dlon = lat2 - lat1, lon2 - lon1
+        value = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        straight_line_meters = 6_371_000 * 2 * math.atan2(math.sqrt(value), math.sqrt(1 - value))
+        enabled[current.entity_id] = straight_line_meters > 50
+    return enabled
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -142,8 +164,9 @@ def main() -> int:
     args = parser.parse_args()
 
     model = os.getenv("DOCENT_SCRIPT_MODEL", "gemini-3.6-flash")
-    prompt_version = os.getenv("DOCENT_SCRIPT_PROMPT_VERSION", "v2")
+    prompt_version = os.getenv("DOCENT_SCRIPT_PROMPT_VERSION", "v3")
     specs = load_docent_specs(DATA_DIR)
+    arrival_enabled = arrival_enabled_by_entity(specs)
     registry = load_json(REGISTRY_PATH, {"version": 1, "scripts": {}})
     pending_registry = load_json(PENDING_REGISTRY_PATH, {"version": 1, "scripts": {}})
     manifest = load_json(MANIFEST_PATH, {"version": 1, "assets": {}})
@@ -160,13 +183,15 @@ def main() -> int:
             isinstance(existing, dict)
             and existing.get("status") == "active"
             and existing.get("contentFingerprint") == fingerprint
-            and isinstance(existing.get("text"), str)
+            and isinstance(existing.get("enRouteText"), str)
+            and (not arrival_enabled[spec.entity_id] or isinstance(existing.get("arrivalText"), str))
         ):
             reusable[spec.entity_id] = existing
         elif (
             isinstance(pending, dict)
             and pending.get("contentFingerprint") == fingerprint
-            and isinstance(pending.get("text"), str)
+            and isinstance(pending.get("enRouteText"), str)
+            and (not arrival_enabled[spec.entity_id] or isinstance(pending.get("arrivalText"), str))
         ):
             reusable[spec.entity_id] = {**pending, "status": "active"}
         else:
@@ -196,7 +221,11 @@ def main() -> int:
             last_error: Exception | None = None
             for attempt in range(2):
                 try:
-                    text, used_fact_ids = generate_and_validate(spec, llm)
+                    en_route_text, en_route_fact_ids = generate_and_validate(spec, llm, "en_route")
+                    if arrival_enabled[spec.entity_id]:
+                        arrival_text, arrival_fact_ids = generate_and_validate(spec, llm, "arrival")
+                    else:
+                        arrival_text, arrival_fact_ids = "", []
                     break
                 except Exception as error:
                     last_error = error
@@ -210,19 +239,25 @@ def main() -> int:
                 raise AssertionError(last_error)
             candidates[spec.entity_id] = {
                 "status": "active",
-                "text": text,
+                "text": en_route_text,
+                "enRouteText": en_route_text,
+                "arrivalText": arrival_text,
+                "arrivalEnabled": arrival_enabled[spec.entity_id],
                 "contentFingerprint": fingerprint,
                 "contentVersion": fingerprint[:16],
                 "model": model,
                 "promptVersion": prompt_version,
-                "usedFactIds": used_fact_ids,
+                "usedFactIds": en_route_fact_ids,
+                "enRouteUsedFactIds": en_route_fact_ids,
+                "arrivalUsedFactIds": arrival_fact_ids,
                 "targetDurationSeconds": spec.target_duration_seconds,
                 "validatedAt": datetime.now(timezone.utc).isoformat(),
             }
             print(json.dumps({
                 "generated": spec.entity_id,
-                "characters": len(text),
-                "usedFacts": len(used_fact_ids),
+                "enRouteCharacters": len(en_route_text),
+                "arrivalCharacters": len(arrival_text),
+                "arrivalEnabled": arrival_enabled[spec.entity_id],
             }, ensure_ascii=False), flush=True)
 
     # Persist validated scripts before the slower TTS phase. This file is not
@@ -235,12 +270,18 @@ def main() -> int:
     next_registry["scripts"].update(candidates)
     uploaded = 0
     reused_audio = 0
-    total_specs = len(specs)
-    for position, spec in enumerate(specs, start=1):
+    assets_to_activate = [
+        (spec, "en-route-docent", candidates[spec.entity_id]["enRouteText"])
+        for spec in specs
+    ] + [
+        (spec, "arrival-docent", candidates[spec.entity_id]["arrivalText"])
+        for spec in specs if candidates[spec.entity_id].get("arrivalEnabled")
+    ]
+    total_specs = len(assets_to_activate)
+    for position, (spec, asset_style, text) in enumerate(assets_to_activate, start=1):
         script = candidates[spec.entity_id]
-        text = script["text"]
         content_version = script["contentVersion"]
-        audio_id = audio_id_for(text, "ko-KR", "core-docent", content_version)
+        audio_id = audio_id_for(text, "ko-KR", "core-docent", f"{content_version}:{asset_style}")
         object_name = object_name_for(audio_id, "ko-KR", "core-docent")
         print(json.dumps({
             "ttsCheckingStorage": spec.entity_id,
@@ -288,11 +329,11 @@ def main() -> int:
                 "progress": f"{position}/{total_specs}",
                 "objectName": object_name,
             }, ensure_ascii=False), flush=True)
-        next_manifest["assets"][f"core-docent:{spec.entity_id}:ko"] = {
+        next_manifest["assets"][f"{asset_style}:{spec.entity_id}:ko"] = {
             "audioId": audio_id,
             "objectName": object_name,
             "locale": "ko-KR",
-            "style": "core-docent",
+            "style": asset_style,
             "contentVersion": content_version,
             "mediaType": preset_for("core-docent", "ko-KR").media_type,
             "preset": preset_for("core-docent", "ko-KR").id,
@@ -304,7 +345,7 @@ def main() -> int:
     atomic_save(MANIFEST_PATH, next_manifest)
     PENDING_REGISTRY_PATH.unlink(missing_ok=True)
     print(json.dumps({
-        "activatedDocents": len(specs),
+        "activatedDocents": len(assets_to_activate),
         "uploadedAudio": uploaded,
         "reusedAudio": reused_audio,
     }, ensure_ascii=False, indent=2))

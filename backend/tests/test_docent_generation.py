@@ -107,6 +107,7 @@ class DocentGenerationTests(unittest.TestCase):
                 "unsupportedClaims": [],
                 "tourLike": True,
                 "engagementPresent": True,
+                "phaseCompatible": True,
                 "financialDetailPresent": False,
             },
         ])
