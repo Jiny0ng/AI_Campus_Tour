@@ -45,7 +45,6 @@ def audio_id_for(text: str, locale: str, style: str, content_version: str) -> st
         style,
         preset.model,
         preset.id,
-        preset.prompt,
         str(preset.speaking_rate),
         str(preset.pitch),
         str(preset.volume_gain_db),

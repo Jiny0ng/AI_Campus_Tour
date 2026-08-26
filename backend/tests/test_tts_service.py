@@ -38,7 +38,7 @@ class TtsServiceTests(unittest.TestCase):
         second = audio_id_for("테스트", "ko-KR", "system", "v2")
         self.assertNotEqual(first, second)
 
-    def test_selected_prompt_and_parameters_change_the_cache_identity(self):
+    def test_style_keeps_separate_selected_preset_cache_identity(self):
         navigation = audio_id_for("100미터 앞에서 왼쪽으로 이동하세요.", "ko-KR", "navigation", "v1")
         docent = audio_id_for("100미터 앞에서 왼쪽으로 이동하세요.", "ko-KR", "core-docent", "v1")
         self.assertNotEqual(navigation, docent)
