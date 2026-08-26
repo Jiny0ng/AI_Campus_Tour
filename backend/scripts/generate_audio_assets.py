@@ -226,6 +226,9 @@ def main() -> int:
                     "content_version": version,
                     "media_type": preset.media_type,
                     "preset": preset.id,
+                    "model": preset.model,
+                    "voice": preset.voice,
+                    "encoding": preset.encoding,
                 },
             )
         manifest["assets"][row["id"]] = {
@@ -241,7 +244,7 @@ def main() -> int:
             parts = row["id"].split(":")
             if len(parts) == 3:
                 SYSTEM_PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
-                local_path = SYSTEM_PUBLIC_DIR / f"{parts[1]}-{parts[2]}.mp3"
+                local_path = SYSTEM_PUBLIC_DIR / f"{parts[1]}-{parts[2]}.{preset.extension}"
                 local_path.write_bytes(content)
                 local_system_files.add(local_path.name)
                 manifest["assets"][row["id"]]["localPath"] = str(
@@ -257,7 +260,7 @@ def main() -> int:
 
     system_manifest_path = SYSTEM_PUBLIC_DIR / "manifest.json"
     existing_local_files = {
-        path.name for path in system_manifest_path.parent.glob("*.mp3")
+        path.name for path in system_manifest_path.parent.glob("*.wav")
     }
     system_manifest_path.write_text(
         json.dumps({"available": sorted(existing_local_files | local_system_files)}, indent=2) + "\n",

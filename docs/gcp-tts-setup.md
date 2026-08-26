@@ -17,7 +17,7 @@
 
 ## 환경변수
 
-`.env.example`의 `GCP_PROJECT_ID`, `TTS_BUCKET_NAME`, `TTS_MODEL`, `TTS_VOICE_NAME`, `TTS_PROMPT_VERSION`, `DOCENT_SCRIPT_MODEL`, `DOCENT_SCRIPT_PROMPT_VERSION`, `TTS_REALTIME_ENABLED`를 운영 값으로 설정한다. 도슨트 대본 생성에는 `GOOGLE_API_KEY`도 필요하다.
+`.env.example`의 `GCP_PROJECT_ID`, `TTS_BUCKET_NAME`, `DOCENT_SCRIPT_MODEL`, `DOCENT_SCRIPT_PROMPT_VERSION`, `TTS_REALTIME_ENABLED`를 운영 값으로 설정한다. 음성은 코드에 고정된 검증 프리셋(`gemini-2.5-pro-tts`, `Sulafat`)만 사용한다. 도슨트 대본 생성에는 `GOOGLE_API_KEY`도 필요하다.
 
 ## 콘텐츠 검증과 생성
 

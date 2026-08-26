@@ -14,10 +14,6 @@ import re
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from langchain_google_genai import ChatGoogleGenerativeAI
-from neo4j import Query
-
-
 Intent = Literal["current_place", "facility", "nearby", "place_search", "facts"]
 ALLOWED_INTENTS: set[str] = {"current_place", "facility", "nearby", "place_search", "facts"}
 
@@ -43,13 +39,18 @@ QUERY_TEMPLATES: dict[Intent, str] = {
         ORDER BY fact.importance DESC LIMIT $limit
     """,
     "facility": """
-        MATCH (facility:Facility)-[:LOCATED_IN]->(building:Building)
-        WHERE ($entity_name = '' OR building.name CONTAINS $entity_name)
-          AND ($keyword = '' OR facility.name CONTAINS $keyword OR facility.type CONTAINS $keyword
-               OR facility.features CONTAINS $keyword OR facility.note CONTAINS $keyword)
-          AND ($floor = '' OR facility.floor = $floor)
+        MATCH (facility:Facility)
+        OPTIONAL MATCH (facility)-[:LOCATED_IN]->(directBuilding:Building)
+        OPTIONAL MATCH (storeBuilding:Building)-[:HAS_STORE]->(facility)
+        OPTIONAL MATCH (floorBuilding:Building)-[:HAS_FLOOR]->(:Floor)-[:HAS_FACILITY|HAS_ROOM]->(facility)
+        WITH facility, coalesce(directBuilding, storeBuilding, floorBuilding) AS building
+        WHERE building IS NOT NULL
+          AND ($entity_name = '' OR building.name CONTAINS $entity_name)
+          AND ($keyword = '' OR facility.name CONTAINS $keyword OR coalesce(facility.type, '') CONTAINS $keyword
+               OR coalesce(facility.features, '') CONTAINS $keyword OR coalesce(facility.note, '') CONTAINS $keyword)
+          AND ($floor = '' OR coalesce(facility.floor, facility.location, '') CONTAINS $floor)
         RETURN facility.facility_id AS id, facility.name AS name, facility.type AS type,
-               facility.floor AS floor, facility.features AS description,
+               coalesce(facility.floor, facility.location, '') AS floor, facility.features AS description,
                facility.note AS note, building.name AS building
         LIMIT $limit
     """,
@@ -80,8 +81,6 @@ QUERY_TEMPLATES: dict[Intent, str] = {
         WHERE ($current_stop_id <> '' AND (entity.place_id = $current_stop_id OR entity.spot_id = $current_stop_id
                OR entity.building_id = $current_stop_id))
            OR ($entity_name <> '' AND entity.name CONTAINS $entity_name)
-        WITH entity, fact
-        WHERE $keyword = '' OR fact.content CONTAINS $keyword OR fact.category CONTAINS $keyword
         RETURN coalesce(entity.name, $entity_name) AS name, fact.fact_id AS factId,
                fact.category AS category, fact.content AS fact, fact.source_url AS sourceUrl,
                fact.verified AS verified
@@ -93,8 +92,10 @@ FORBIDDEN_CYPHER = re.compile(
     r"\b(?:CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|ALTER|RENAME|FOREACH|CALL|YIELD|LOAD\s+CSV|USE|SHOW|TERMINATE|START\s+DATABASE|STOP\s+DATABASE)\b",
     re.IGNORECASE,
 )
-ALLOWED_LABELS = {"Building", "Place", "DocentSpot", "Store", "Facility", "Fact"}
-ALLOWED_RELATIONSHIPS = {"HAS_FACT", "LOCATED_IN", "NEAR"}
+ALLOWED_LABELS = {"Building", "Place", "DocentSpot", "Store", "Facility", "Floor", "Fact"}
+ALLOWED_RELATIONSHIPS = {
+    "HAS_FACT", "LOCATED_IN", "HAS_STORE", "HAS_FLOOR", "HAS_FACILITY", "HAS_ROOM", "NEAR",
+}
 
 
 def validate_read_only_cypher(query: str) -> str:
@@ -134,6 +135,8 @@ def plan_question(question: str, current_place_name: str, llm: Any) -> QueryPlan
 Return JSON only with keys intent, keyword, entity_name, floor.
 Allowed intent: current_place, facility, nearby, place_search, facts.
 Use an empty string for an unknown field. Never write Cypher.
+For keyword, extract only a short literal campus entity or facility term likely to appear in stored data.
+Do not use abstract question words such as history, story, information, introduction, or recommendation as keyword.
 Current place: {current_place_name}
 Question: {question}
 """
@@ -150,6 +153,8 @@ Question: {question}
 
 
 def retrieve(driver: Any, plan: QueryPlan, current_stop_id: str) -> list[dict[str, Any]]:
+    from neo4j import Query
+
     # The model selects a constrained semantic plan. The server then generates
     # the executable Cypher from a reviewed template; user text is never
     # interpolated into the query and is supplied only as parameters.
@@ -185,6 +190,8 @@ Evidence: {json.dumps(evidence, ensure_ascii=False, default=str)}
 
 
 def make_qa_llm() -> Any:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+
     return ChatGoogleGenerativeAI(
         model=os.getenv("TOUR_QA_MODEL", "gemini-3.5-flash-lite"),
         max_output_tokens=768,

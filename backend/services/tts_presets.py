@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass
 
 from services.tts_prompt_catalog import build_docent_prompt
@@ -48,18 +47,8 @@ BUBBLY_DOCENT = TtsPreset(
 
 
 def preset_for(style: str, locale: str) -> TtsPreset:
-    if locale == "ko-KR" and style in {"core-docent", "location-docent"}:
-        return BUBBLY_DOCENT
-    return TtsPreset(
-        id=f"legacy-{os.getenv('TTS_PROMPT_VERSION', 'v1')}",
-        model=os.getenv("TTS_MODEL", "gemini-2.5-flash-tts"),
-        voice=os.getenv("TTS_VOICE_NAME", "Kore"),
-        prompt="",
-        speaking_rate=1.0,
-        pitch=0.0,
-        volume_gain_db=0.0,
-        sample_rate_hertz=None,
-        encoding="MP3",
-        extension="mp3",
-        media_type="audio/mpeg",
-    )
+    # Every runtime and generated asset uses the single listening-tested
+    # Gemini-TTS configuration. Keep the arguments for the shared service API,
+    # but never select a legacy voice or a style-specific TTS provider.
+    del style, locale
+    return BUBBLY_DOCENT

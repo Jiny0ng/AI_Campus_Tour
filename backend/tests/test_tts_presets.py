@@ -23,14 +23,14 @@ class TtsPresetTests(unittest.TestCase):
         self.assertIn("경쾌하고 통통 튀되", preset.prompt)
         self.assertIn("마지막 모음을 늘이지 않는다", preset.prompt)
 
-    def test_non_docent_audio_keeps_legacy_mp3_behavior(self):
-        preset = preset_for("navigation", "ko-KR")
-        self.assertEqual(preset.encoding, "MP3")
-        self.assertEqual(preset.media_type, "audio/mpeg")
+    def test_navigation_uses_the_same_selected_gemini_preset(self):
+        self.assertEqual(preset_for("navigation", "ko-KR"), BUBBLY_DOCENT)
 
-    def test_non_korean_docent_keeps_legacy_behavior(self):
-        preset = preset_for("location-docent", "en-US")
-        self.assertEqual(preset.encoding, "MP3")
+    def test_user_answers_use_the_same_selected_gemini_preset(self):
+        self.assertEqual(preset_for("user-answer", "ko-KR"), BUBBLY_DOCENT)
+
+    def test_other_locales_do_not_switch_to_a_legacy_provider(self):
+        self.assertEqual(preset_for("location-docent", "en-US"), BUBBLY_DOCENT)
 
 
 if __name__ == "__main__":

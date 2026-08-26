@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from typing import Literal
 
@@ -10,6 +11,7 @@ from services.graph_qa import answer_question, make_qa_llm, plan_question, query
 
 
 router = APIRouter(tags=["캠퍼스 질문"])
+logger = logging.getLogger(__name__)
 
 
 class QuestionRequest(BaseModel):
@@ -34,6 +36,7 @@ def ask_question(payload: QuestionRequest, request: Request):
             "queryFingerprint": query_fingerprint(plan),
         }
     except Exception as error:
+        logger.exception("Tour question retrieval failed")
         raise HTTPException(status_code=503, detail="질문에 답변할 수 없습니다.") from error
 
 

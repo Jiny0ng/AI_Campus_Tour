@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import hashlib
-import os
 import sys
 import unittest
 from pathlib import Path
@@ -33,32 +31,17 @@ class TtsServiceTests(unittest.TestCase):
         self.assertTrue(location.startswith("cache/location-docent/"))
         self.assertTrue(location.endswith(".wav"))
         self.assertTrue(navigation.startswith("assets/navigation/"))
-        self.assertTrue(navigation.endswith(".mp3"))
+        self.assertTrue(navigation.endswith(".wav"))
 
     def test_content_version_changes_hash(self):
-        os.environ["TTS_PROMPT_VERSION"] = "test-v1"
         first = audio_id_for("테스트", "ko-KR", "system", "v1")
         second = audio_id_for("테스트", "ko-KR", "system", "v2")
         self.assertNotEqual(first, second)
 
-    def test_navigation_keeps_the_original_deployed_cache_hash(self):
-        os.environ["TTS_VOICE_NAME"] = "Kore"
-        os.environ["TTS_MODEL"] = "gemini-2.5-flash-tts"
-        os.environ["TTS_PROMPT_VERSION"] = "v1"
-        expected_parts = (
-            "100미터 앞에서 왼쪽으로 이동하세요.",
-            "ko-KR",
-            "Kore",
-            "navigation",
-            "gemini-2.5-flash-tts",
-            "v1",
-            "v1",
-        )
-        expected = hashlib.sha256("|".join(expected_parts).encode("utf-8")).hexdigest()
-        self.assertEqual(
-            audio_id_for(expected_parts[0], "ko-KR", "navigation", "v1"),
-            expected,
-        )
+    def test_selected_prompt_and_parameters_change_the_cache_identity(self):
+        navigation = audio_id_for("100미터 앞에서 왼쪽으로 이동하세요.", "ko-KR", "navigation", "v1")
+        docent = audio_id_for("100미터 앞에서 왼쪽으로 이동하세요.", "ko-KR", "core-docent", "v1")
+        self.assertNotEqual(navigation, docent)
 
     @patch("services.tts_service._synthesize_with_google")
     @patch("services.tts_service.read_object")

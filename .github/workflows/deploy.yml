@@ -5,6 +5,12 @@ on:
     branches:
       - main # main 브랜치에 코드가 푸시되면 실행됩니다.
   workflow_dispatch:
+    inputs:
+      regenerate_audio:
+        description: Regenerate every audio asset with the selected Pro/WAV preset and delete legacy Flash/MP3 objects
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: production-deploy
@@ -13,7 +19,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     
     steps:
       - name: Checkout Code
@@ -24,13 +30,14 @@ jobs:
         env:
           GCP_DEPLOY_HOST: ${{ secrets.GCP_VM_HOST }}
           CAMPUS_DOMAIN: ${{ vars.CAMPUS_DOMAIN || 'gabokka.duckdns.org' }}
+          REGENERATE_ALL_AUDIO: ${{ github.event_name == 'workflow_dispatch' && inputs.regenerate_audio || false }}
         with:
           host: ${{ secrets.GCP_VM_HOST }}
           username: ${{ secrets.GCP_VM_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
-          command_timeout: 25m
-          envs: GCP_DEPLOY_HOST,CAMPUS_DOMAIN
+          command_timeout: 110m
+          envs: GCP_DEPLOY_HOST,CAMPUS_DOMAIN,REGENERATE_ALL_AUDIO
           script: |
             set -Eeuo pipefail
 
@@ -84,6 +91,18 @@ jobs:
             docker-compose --profile seed run --rm data-loader
             docker-compose up -d --remove-orphans
             docker-compose ps
+
+            if [[ "$REGENERATE_ALL_AUDIO" == "true" ]]; then
+              echo "::group::Regenerate all Pro/WAV audio"
+              docker-compose --profile audio run --rm audio-asset-generator \
+                python /app/scripts/generate_docent_assets.py --apply
+              docker-compose --profile audio run --rm audio-asset-generator
+              docker-compose --profile audio run --rm audio-asset-generator \
+                python /app/scripts/validate_audio_manifest.py
+              docker-compose --profile audio run --rm audio-asset-generator \
+                python /app/scripts/delete_legacy_tts_assets.py --apply
+              echo "::endgroup::"
+            fi
 
             # 4. 백엔드가 준비될 때까지 대기
             ready=0

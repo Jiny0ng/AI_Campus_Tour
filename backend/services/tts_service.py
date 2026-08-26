@@ -16,17 +16,6 @@ CONTROL_CHARACTERS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 HTML_TAGS = re.compile(r"<[^>]*>")
 WHITESPACE = re.compile(r"\s+")
 
-STYLE_PROMPTS = {
-    "navigation": "Speak clearly, briefly, and calmly like a navigation assistant.",
-    "arrival": "Speak clearly with a warm but restrained arrival tone.",
-    "system": "Speak clearly and neutrally as a short system notification.",
-    "filler": "Speak naturally and briefly in a friendly campus guide tone.",
-    "core-docent": "Narrate warmly and clearly like a knowledgeable campus docent.",
-    "location-docent": "Narrate warmly, concisely, and clearly like a campus docent.",
-    "user-answer": "Answer naturally and clearly in a friendly campus guide tone.",
-}
-
-
 class TtsUnavailable(RuntimeError):
     pass
 
@@ -49,34 +38,21 @@ def normalize_text(text: str) -> str:
 
 def audio_id_for(text: str, locale: str, style: str, content_version: str) -> str:
     preset = preset_for(style, locale)
-    if preset.id.startswith("legacy-"):
-        # Preserve the deployed cache key exactly for navigation, arrival,
-        # system, filler, user answers, and non-Korean docents.  Changing the
-        # selected Korean docent preset must not regenerate every managed asset.
-        parts = (
-            normalize_text(text),
-            locale,
-            preset.voice,
-            style,
-            preset.model,
-            os.getenv("TTS_PROMPT_VERSION", "v1"),
-            content_version,
-        )
-    else:
-        parts = (
-            normalize_text(text),
-            locale,
-            preset.voice,
-            style,
-            preset.model,
-            preset.id,
-            str(preset.speaking_rate),
-            str(preset.pitch),
-            str(preset.volume_gain_db),
-            str(preset.sample_rate_hertz),
-            preset.encoding,
-            content_version,
-        )
+    parts = (
+        normalize_text(text),
+        locale,
+        preset.voice,
+        style,
+        preset.model,
+        preset.id,
+        preset.prompt,
+        str(preset.speaking_rate),
+        str(preset.pitch),
+        str(preset.volume_gain_db),
+        str(preset.sample_rate_hertz),
+        preset.encoding,
+        content_version,
+    )
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
 
 
@@ -117,10 +93,9 @@ def _synthesize_with_google(
         raise TtsUnavailable("google-cloud-texttospeech is not installed") from error
 
     preset = preset_for(style, locale)
-    prompt = preset.prompt or STYLE_PROMPTS[style]
     try:
         response = _tts_client().synthesize_speech(
-            input=texttospeech.SynthesisInput(text=text, prompt=prompt),
+            input=texttospeech.SynthesisInput(text=text, prompt=preset.prompt),
             voice=texttospeech.VoiceSelectionParams(
                 language_code=locale,
                 name=preset.voice,

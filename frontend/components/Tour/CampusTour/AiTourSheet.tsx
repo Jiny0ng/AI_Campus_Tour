@@ -66,6 +66,8 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   const recorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
+  const questionRef = useRef("");
+  const speechOperationRef = useRef(0);
   const [questionOpen, setQuestionOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
@@ -103,6 +105,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   };
 
   const closeQuestion = () => {
+    speechOperationRef.current += 1;
     recognitionRef.current?.stop();
     recognitionRef.current = null;
     recorderRef.current?.stop();
@@ -110,6 +113,23 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
     setQuestionOpen(false);
     setQuestionState("idle");
     resumeAfterQuestion();
+  };
+
+  const updateQuestion = (value: string) => {
+    questionRef.current = value;
+    setQuestion(value);
+  };
+
+  const editQuestion = (value: string) => {
+    // Browser speech callbacks may arrive after the textarea was edited or
+    // cleared. Invalidate that recording so stale transcripts cannot restore
+    // text the user deliberately removed.
+    speechOperationRef.current += 1;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
+    if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+    updateQuestion(value);
+    setQuestionState("idle");
   };
 
   const toggleRecording = async () => {
@@ -128,22 +148,25 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       };
       const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
       if (Recognition) {
+        const operation = ++speechOperationRef.current;
+        const questionBeforeRecording = questionRef.current.trim();
         const recognition = new Recognition();
-        let finalTranscript = "";
         recognition.continuous = true;
         recognition.interimResults = true;
         recognition.lang = ({ ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" })[locale];
         recognition.onresult = (event) => {
-          let interimTranscript = "";
-          for (let index = event.resultIndex; index < event.results.length; index += 1) {
-            const result = event.results[index];
-            if (result.isFinal) finalTranscript += `${result[0].transcript} `;
-            else interimTranscript += result[0].transcript;
+          if (speechOperationRef.current !== operation) return;
+          let sessionTranscript = "";
+          for (let index = 0; index < event.results.length; index += 1) {
+            sessionTranscript += `${event.results[index][0].transcript} `;
           }
-          setQuestion(`${finalTranscript}${interimTranscript}`.trim());
+          updateQuestion([questionBeforeRecording, sessionTranscript.trim()].filter(Boolean).join(" "));
         };
-        recognition.onerror = () => setQuestionState("error");
+        recognition.onerror = () => {
+          if (speechOperationRef.current === operation) setQuestionState("error");
+        };
         recognition.onend = () => {
+          if (speechOperationRef.current !== operation) return;
           recognitionRef.current = null;
           setQuestionState((state) => state === "listening" ? "idle" : state);
         };
@@ -153,6 +176,8 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
         return;
       }
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const operation = ++speechOperationRef.current;
+      const questionBeforeRecording = questionRef.current.trim();
       const recorder = new MediaRecorder(stream);
       recordingChunksRef.current = [];
       recorder.ondataavailable = (event) => {
@@ -161,6 +186,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
       recorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
         recorderRef.current = null;
+        if (speechOperationRef.current !== operation) return;
         setQuestionState("transcribing");
         const form = new FormData();
         form.append("audio", new Blob(recordingChunksRef.current, { type: recorder.mimeType }), "question.webm");
@@ -169,10 +195,11 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
           const response = await fetch("/api/speech/transcribe", { method: "POST", body: form });
           if (!response.ok) throw new Error("transcription failed");
           const payload = await response.json() as { transcript: string };
-          setQuestion(payload.transcript);
+          if (speechOperationRef.current !== operation) return;
+          updateQuestion([questionBeforeRecording, payload.transcript.trim()].filter(Boolean).join(" "));
           setQuestionState("idle");
         } catch {
-          setQuestionState("error");
+          if (speechOperationRef.current === operation) setQuestionState("error");
         }
       };
       recorderRef.current = recorder;
@@ -360,7 +387,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                 <div className="mt-2 flex items-end gap-2">
                   <textarea
                     value={question}
-                    onChange={(event) => setQuestion(event.target.value)}
+                    onChange={(event) => editQuestion(event.target.value)}
                     placeholder="궁금한 내용을 말하거나 입력해 주세요."
                     rows={2}
                     className="min-h-12 flex-1 resize-none rounded-xl border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-primary"

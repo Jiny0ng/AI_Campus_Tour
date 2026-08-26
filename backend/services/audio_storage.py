@@ -26,6 +26,13 @@ class StoredAudio:
     etag: str | None = None
 
 
+@dataclass(frozen=True)
+class StoredAudioObject:
+    name: str
+    content_type: str | None
+    metadata: dict[str, str]
+
+
 @lru_cache(maxsize=1)
 def _storage_client():
     try:
@@ -78,6 +85,36 @@ def write_object(
         raise
     except Exception as error:
         raise AudioStorageUnavailable("Cloud Storage write failed") from error
+
+
+def list_objects() -> list[StoredAudioObject]:
+    if not is_configured():
+        return []
+    try:
+        blobs = _storage_client().list_blobs(bucket_name())
+        return [
+            StoredAudioObject(
+                name=blob.name,
+                content_type=blob.content_type,
+                metadata=dict(blob.metadata or {}),
+            )
+            for blob in blobs
+        ]
+    except AudioStorageUnavailable:
+        raise
+    except Exception as error:
+        raise AudioStorageUnavailable("Cloud Storage listing failed") from error
+
+
+def delete_object(object_name: str) -> None:
+    if not is_configured():
+        return
+    try:
+        _storage_client().bucket(bucket_name()).blob(object_name).delete(timeout=10)
+    except AudioStorageUnavailable:
+        raise
+    except Exception as error:
+        raise AudioStorageUnavailable("Cloud Storage deletion failed") from error
 
 
 def load_manifest() -> dict[str, Any]:
