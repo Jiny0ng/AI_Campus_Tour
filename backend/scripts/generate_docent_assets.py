@@ -142,7 +142,7 @@ def main() -> int:
     args = parser.parse_args()
 
     model = os.getenv("DOCENT_SCRIPT_MODEL", "gemini-3.6-flash")
-    prompt_version = os.getenv("DOCENT_SCRIPT_PROMPT_VERSION", "v1")
+    prompt_version = os.getenv("DOCENT_SCRIPT_PROMPT_VERSION", "v2")
     specs = load_docent_specs(DATA_DIR)
     registry = load_json(REGISTRY_PATH, {"version": 1, "scripts": {}})
     pending_registry = load_json(PENDING_REGISTRY_PATH, {"version": 1, "scripts": {}})

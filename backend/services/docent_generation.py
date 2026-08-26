@@ -15,6 +15,9 @@ from services.tts_service import normalize_text
 
 JSON_OBJECT = re.compile(r"\{.*\}", re.DOTALL)
 NUMBER_TOKEN = re.compile(r"\d+(?:[.,]\d+)?")
+DISALLOWED_FINANCIAL_DETAIL = re.compile(
+    r"(?:총\s*)?사업비|공사비|건립비|예산|\d+(?:[.,]\d+)?\s*억\s*원"
+)
 
 
 @dataclass(frozen=True)
@@ -114,6 +117,8 @@ def _fact_payload(facts: tuple[dict[str, Any], ...]) -> list[dict[str, Any]]:
 def generation_prompt(spec: DocentSpec) -> str:
     return f"""당신은 전북대학교 캠퍼스의 한국어 음성 도슨트 대본을 작성합니다.
 아래 데이터만 사실의 근거로 사용하고 제공되지 않은 수치·인물·시설·인과관계를 추가하지 마세요.
+이 작업의 목적은 사실 목록을 읽어 주는 것이 아니라, 처음 온 후배와 캠퍼스를 함께
+걸으며 장소를 보여 주고 다음 경험으로 이끄는 실제 투어를 진행하는 것입니다.
 
 장소: {spec.label}
 목표 낭독 시간: {spec.target_duration_seconds}초
@@ -124,10 +129,20 @@ def generation_prompt(spec: DocentSpec) -> str:
 규칙:
 1. 필수 사실을 모두 자연스럽게 포함하세요.
 2. 선택 사실은 흐름에 맞는 항목을 최대 2개만 사용하세요.
-3. 목록이 아니라 정체성→특징→이야기 또는 이용 팁 순서의 하나의 대본으로 작성하세요.
-4. TTS가 읽기 쉬운 짧은 문장을 사용하고 괄호·마크다운·이모지를 쓰지 마세요.
-5. 첫 문장을 제외한 표현은 바꿀 수 있지만 숫자와 고유명사는 원문을 보존하세요.
-6. JSON만 반환하세요.
+3. 개별 fact를 한 문장씩 순서대로 옮기지 마세요. 서로 관련된 사실을 묶고 자연스러운
+   연결어를 사용해 하나의 이야기처럼 이어 말하세요.
+4. 눈앞의 장소를 함께 보는 듯한 관찰 유도, 짧은 질문, 공감 표현, 방문·사진·산책·이용
+   제안 중 어울리는 표현을 1~2회 넣어 후배의 호응을 유도하세요. 단, 새로운 사실을
+   만들지 말고 제공된 사실에서 자연스럽게 도출할 수 있는 표현만 사용하세요.
+5. 학교를 좋아하는 선배의 애정과 설렘이 느껴지는 해요체를 사용하세요. 안내방송,
+   백과사전, 보고서처럼 딱딱하게 쓰거나 과한 광고 문구를 반복하지 마세요.
+6. 마지막에는 방금 본 장소의 인상을 정리하거나 다음 이동을 기대하게 하는 짧은 연결
+   문장을 넣으세요.
+7. 사업비, 공사비, 건립비, 예산 등 금액 정보는 입력 사실에 있더라도 절대 말하지 마세요.
+8. TTS가 읽기 쉬운 짧은 문장을 사용하고 괄호·마크다운·이모지를 쓰지 마세요.
+9. 첫 문장을 제외한 표현은 바꿀 수 있지만, 실제로 사용하는 사실의 숫자와 고유명사는
+   원문을 보존하세요.
+10. JSON만 반환하세요.
 
 반환 형식:
 {{"script":"전체 대본", "usedFactIds":["실제로 사용한 모든 factId"]}}
@@ -140,6 +155,9 @@ def review_prompt(spec: DocentSpec, script: str) -> str:
 `verified=false`는 학생 경험·추천·감상처럼 외부 출처 검증 대상이 아닌 편집
 인사이트라는 뜻입니다. 제공된 사실 목록에 있다면 허용하며, 이 값만을 이유로
 unsupported claim으로 판정하지 마세요.
+대본이 사실을 하나씩 낭독하지 않고 실제 투어처럼 자연스럽게 이어지는지, 후배에게
+관찰이나 경험을 권하는 호응 유도 표현이 있는지도 검수하세요. 사업비, 공사비, 건립비,
+예산 또는 구체적인 건설 금액이 들어 있으면 승인하지 마세요.
 
 장소: {spec.label}
 대본: {script}
@@ -147,7 +165,7 @@ unsupported claim으로 판정하지 마세요.
 필수 factId: {json.dumps([fact['factId'] for fact in spec.required_facts], ensure_ascii=False)}
 
 JSON만 반환하세요:
-{{"approved":true, "coveredRequiredFactIds":["대본에 의미상 포함된 필수 factId"], "unsupportedClaims":[]}}
+{{"approved":true, "coveredRequiredFactIds":["대본에 의미상 포함된 필수 factId"], "unsupportedClaims":[], "tourLike":true, "engagementPresent":true, "financialDetailPresent":false}}
 """
 
 
@@ -175,6 +193,8 @@ def deterministic_errors(
         errors.append(
             f"script length {len(clean_script)} is outside {minimum_chars}..{maximum_chars} characters"
         )
+    if DISALLOWED_FINANCIAL_DETAIL.search(clean_script):
+        errors.append("disallowed financial detail is present")
     for fact in spec.required_facts:
         for number in NUMBER_TOKEN.findall(fact["content"]):
             if number not in clean_script:
@@ -197,6 +217,12 @@ def generate_and_validate(spec: DocentSpec, llm: Any) -> tuple[str, list[str]]:
     required_ids = {fact["factId"] for fact in spec.required_facts}
     if review.get("approved") is not True:
         errors.append("semantic reviewer did not approve the script")
+    if review.get("tourLike") is not True:
+        errors.append("semantic reviewer found the script is not tour-like")
+    if review.get("engagementPresent") is not True:
+        errors.append("semantic reviewer found no engagement expression")
+    if review.get("financialDetailPresent") is not False:
+        errors.append("semantic reviewer found financial detail")
     if not isinstance(covered, list) or not required_ids.issubset(set(covered)):
         errors.append("semantic reviewer found missing required facts")
     unsupported = review.get("unsupportedClaims", [])

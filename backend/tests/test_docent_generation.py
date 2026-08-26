@@ -12,6 +12,7 @@ from services.docent_generation import (  # noqa: E402
     DocentSpec,
     deterministic_errors,
     generate_and_validate,
+    generation_prompt,
     review_prompt,
 )
 
@@ -57,6 +58,14 @@ def sample_spec() -> DocentSpec:
 
 
 class DocentGenerationTests(unittest.TestCase):
+    def test_generation_prompt_requires_a_guided_tour_and_excludes_costs(self):
+        prompt = generation_prompt(sample_spec())
+
+        self.assertIn("실제 투어를 진행", prompt)
+        self.assertIn("호응을 유도", prompt)
+        self.assertIn("금액 정보", prompt)
+        self.assertIn("절대 말하지 마세요", prompt)
+
     def test_review_prompt_allows_supplied_editorial_insights(self):
         prompt = review_prompt(sample_spec(), "야경을 감상하기 좋습니다.")
 
@@ -72,6 +81,17 @@ class DocentGenerationTests(unittest.TestCase):
         self.assertTrue(any("opening line" in error for error in errors))
         self.assertTrue(any("2019" in error for error in errors))
 
+    def test_deterministic_validation_rejects_financial_details(self):
+        script = (
+            "이곳은 정문입니다. 이 정문은 2019년에 완공되었어요. "
+            "총사업비는 53억 원이에요. 정문의 야경도 함께 바라보실까요? "
+            "천천히 둘러본 뒤 다음 장소로 이동해 봐요."
+        )
+
+        errors = deterministic_errors(sample_spec(), script, ["gate:year"])
+
+        self.assertTrue(any("financial detail" in error for error in errors))
+
     def test_generation_requires_deterministic_and_semantic_approval(self):
         script = (
             "이곳은 정문입니다. 이 정문은 2019년에 완공되었습니다. "
@@ -85,6 +105,9 @@ class DocentGenerationTests(unittest.TestCase):
                 "approved": True,
                 "coveredRequiredFactIds": ["gate:year"],
                 "unsupportedClaims": [],
+                "tourLike": True,
+                "engagementPresent": True,
+                "financialDetailPresent": False,
             },
         ])
 
