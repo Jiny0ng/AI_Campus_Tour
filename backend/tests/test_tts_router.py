@@ -29,7 +29,7 @@ class TtsRouterTests(unittest.TestCase):
 
     @patch("routers.tts.synthesize")
     def test_valid_synthesis_returns_audio(self, synthesize):
-        synthesize.return_value = SynthesisResult(b"mp3", "audio-id", "HIT", 0, 3)
+        synthesize.return_value = SynthesisResult(b"mp3", "audio-id", "HIT", 0, 3, "audio/mpeg")
 
         response = self.client.post("/tts/synthesize", json=self.payload())
 
@@ -68,7 +68,7 @@ class TtsRouterTests(unittest.TestCase):
 
     @patch("routers.tts.synthesize")
     def test_rate_limit_returns_retry_after(self, synthesize):
-        synthesize.return_value = SynthesisResult(b"mp3", "audio-id", "HIT", 0, 0)
+        synthesize.return_value = SynthesisResult(b"mp3", "audio-id", "HIT", 0, 0, "audio/mpeg")
 
         responses = [self.client.post("/tts/synthesize", json=self.payload(text=str(index))) for index in range(6)]
 

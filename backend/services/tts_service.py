@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 from services.audio_storage import AudioStorageUnavailable, read_object, write_object
+from services.tts_presets import preset_for
 
 
 CONTROL_CHARACTERS = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
@@ -37,6 +38,7 @@ class SynthesisResult:
     cache_status: str
     synthesis_ms: int
     storage_read_ms: int
+    media_type: str
 
 
 def normalize_text(text: str) -> str:
@@ -46,13 +48,19 @@ def normalize_text(text: str) -> str:
 
 
 def audio_id_for(text: str, locale: str, style: str, content_version: str) -> str:
+    preset = preset_for(style, locale)
     parts = (
         normalize_text(text),
         locale,
-        os.getenv("TTS_VOICE_NAME", "Kore"),
+        preset.voice,
         style,
-        os.getenv("TTS_MODEL", "gemini-2.5-flash-tts"),
-        os.getenv("TTS_PROMPT_VERSION", "v1"),
+        preset.model,
+        preset.id,
+        str(preset.speaking_rate),
+        str(preset.pitch),
+        str(preset.volume_gain_db),
+        str(preset.sample_rate_hertz),
+        preset.encoding,
         content_version,
     )
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
@@ -60,8 +68,8 @@ def audio_id_for(text: str, locale: str, style: str, content_version: str) -> st
 
 def object_name_for(audio_id: str, locale: str, style: str) -> str:
     scope = "cache/location-docent" if style == "location-docent" else f"assets/{style}"
-    voice = os.getenv("TTS_VOICE_NAME", "Kore")
-    return f"{scope}/{locale}/{voice}/{audio_id}.mp3"
+    preset = preset_for(style, locale)
+    return f"{scope}/{locale}/{preset.voice}/{audio_id}.{preset.extension}"
 
 
 @lru_cache(maxsize=1)
@@ -94,17 +102,26 @@ def _synthesize_with_google(
     except ImportError as error:
         raise TtsUnavailable("google-cloud-texttospeech is not installed") from error
 
-    prompt = STYLE_PROMPTS[style]
+    preset = preset_for(style, locale)
+    prompt = preset.prompt or STYLE_PROMPTS[style]
     try:
         response = _tts_client().synthesize_speech(
             input=texttospeech.SynthesisInput(text=text, prompt=prompt),
             voice=texttospeech.VoiceSelectionParams(
                 language_code=locale,
-                name=os.getenv("TTS_VOICE_NAME", "Kore"),
-                model_name=os.getenv("TTS_MODEL", "gemini-2.5-flash-tts"),
+                name=preset.voice,
+                model_name=preset.model,
             ),
             audio_config=texttospeech.AudioConfig(
-                audio_encoding=texttospeech.AudioEncoding.MP3,
+                audio_encoding=getattr(texttospeech.AudioEncoding, preset.encoding),
+                speaking_rate=preset.speaking_rate,
+                pitch=preset.pitch,
+                volume_gain_db=preset.volume_gain_db,
+                **(
+                    {"sample_rate_hertz": preset.sample_rate_hertz}
+                    if preset.sample_rate_hertz is not None
+                    else {}
+                ),
             ),
             timeout=timeout_seconds,
         )
@@ -127,6 +144,7 @@ def synthesize(text: str, locale: str, style: str, content_version: str) -> Synt
     audio_id = audio_id_for(clean_text, locale, style, content_version)
     should_cache = style != "user-answer"
     object_name = object_name_for(audio_id, locale, style)
+    preset = preset_for(style, locale)
     storage_started = time.monotonic()
     if should_cache:
         try:
@@ -135,7 +153,7 @@ def synthesize(text: str, locale: str, style: str, content_version: str) -> Synt
             stored = None
         storage_read_ms = round((time.monotonic() - storage_started) * 1000)
         if stored is not None:
-            return SynthesisResult(stored.content, audio_id, "HIT", 0, storage_read_ms)
+            return SynthesisResult(stored.content, audio_id, "HIT", 0, storage_read_ms, preset.media_type)
     else:
         storage_read_ms = 0
 
@@ -152,9 +170,11 @@ def synthesize(text: str, locale: str, style: str, content_version: str) -> Synt
                 {
                     "content_hash": audio_id,
                     "locale": locale,
-                    "voice": os.getenv("TTS_VOICE_NAME", "Kore"),
+                    "voice": preset.voice,
                     "style": style,
-                    "model": os.getenv("TTS_MODEL", "gemini-2.5-flash-tts"),
+                    "model": preset.model,
+                    "preset": preset.id,
+                    "media_type": preset.media_type,
                     "created_at": str(int(time.time())),
                     "content_version": content_version,
                 },
@@ -162,4 +182,4 @@ def synthesize(text: str, locale: str, style: str, content_version: str) -> Synt
         except AudioStorageUnavailable:
             cache_status = "BYPASS"
 
-    return SynthesisResult(content, audio_id, cache_status, synthesis_ms, storage_read_ms)
+    return SynthesisResult(content, audio_id, cache_status, synthesis_ms, storage_read_ms, preset.media_type)

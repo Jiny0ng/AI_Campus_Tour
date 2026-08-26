@@ -96,7 +96,7 @@ async def synthesize_audio(payload: SynthesizeRequest, request: Request):
     )
     return Response(
         result.content,
-        media_type="audio/mpeg",
+        media_type=result.media_type,
         headers={
             "Cache-Control": "private, max-age=86400",
             "X-Audio-Cache": result.cache_status,
@@ -125,7 +125,9 @@ def get_audio_asset(asset_id: str):
     }
     if stored.etag:
         headers["ETag"] = stored.etag
-    return Response(stored.content, media_type="audio/mpeg", headers=headers)
+    object_name = str(asset_meta.get("objectName", ""))
+    media_type = "audio/wav" if object_name.lower().endswith(".wav") else "audio/mpeg"
+    return Response(stored.content, media_type=media_type, headers=headers)
 
 
 @router.get("/health/network")

@@ -69,7 +69,11 @@ def write_object(
     try:
         blob = _storage_client().bucket(bucket_name()).blob(object_name)
         blob.metadata = metadata
-        blob.upload_from_string(content, content_type="audio/mpeg", timeout=timeout)
+        blob.upload_from_string(
+            content,
+            content_type=metadata.get("media_type", "audio/mpeg"),
+            timeout=timeout,
+        )
     except AudioStorageUnavailable:
         raise
     except Exception as error:
@@ -94,4 +98,3 @@ def read_asset(asset_id: str) -> StoredAudio | None:
     if not isinstance(object_name, str) or not object_name:
         return None
     return read_object(object_name)
-

@@ -15,7 +15,7 @@ export async function GET(
       return NextResponse.json({ message: "음성 파일을 찾지 못했습니다." }, { status: response.status });
     }
     const headers = new Headers({
-      "Content-Type": "audio/mpeg",
+      "Content-Type": response.headers.get("content-type") ?? "audio/mpeg",
       "Cache-Control": response.headers.get("cache-control") ?? "private, max-age=604800",
     });
     const etag = response.headers.get("etag");
@@ -25,4 +25,3 @@ export async function GET(
     return NextResponse.json({ message: "음성 저장소의 응답이 지연되고 있습니다." }, { status: 504 });
   }
 }
-

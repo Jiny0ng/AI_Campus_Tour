@@ -30,7 +30,9 @@ class TtsServiceTests(unittest.TestCase):
         location = object_name_for(audio_id, "ko-KR", "location-docent")
         navigation = object_name_for(audio_id, "ko-KR", "navigation")
         self.assertTrue(location.startswith("cache/location-docent/"))
+        self.assertTrue(location.endswith(".wav"))
         self.assertTrue(navigation.startswith("assets/navigation/"))
+        self.assertTrue(navigation.endswith(".mp3"))
 
     def test_content_version_changes_hash(self):
         os.environ["TTS_PROMPT_VERSION"] = "test-v1"

@@ -23,6 +23,7 @@ MANIFEST_PATH = CONTENT_DIR / "audio_manifest.json"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from services.audio_storage import is_configured, read_object, write_object  # noqa: E402
+from services.tts_presets import preset_for  # noqa: E402
 from services.docent_generation import (  # noqa: E402
     content_fingerprint,
     generate_and_validate,
@@ -257,6 +258,7 @@ def main() -> int:
                 )
             except TtsUnavailable:
                 return 1
+            preset = preset_for("core-docent", "ko-KR")
             write_object(
                 object_name,
                 content,
@@ -266,6 +268,8 @@ def main() -> int:
                     "locale": "ko-KR",
                     "style": "core-docent",
                     "content_version": content_version,
+                    "media_type": preset.media_type,
+                    "preset": preset.id,
                     "script_model": model,
                     "script_prompt_version": prompt_version,
                 },
@@ -290,6 +294,8 @@ def main() -> int:
             "locale": "ko-KR",
             "style": "core-docent",
             "contentVersion": content_version,
+            "mediaType": preset_for("core-docent", "ko-KR").media_type,
+            "preset": preset_for("core-docent", "ko-KR").id,
         }
 
     # Activate only after every script passed both validators and every audio

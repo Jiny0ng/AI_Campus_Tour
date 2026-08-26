@@ -30,6 +30,7 @@ SYSTEM_PUBLIC_DIR = Path(
 sys.path.insert(0, str(BACKEND_DIR))
 
 from services.audio_storage import is_configured, read_object, write_object  # noqa: E402
+from services.tts_presets import preset_for  # noqa: E402
 from services.tts_service import (  # noqa: E402
     TtsUnavailable,
     _synthesize_with_google,
@@ -196,6 +197,7 @@ def main() -> int:
     local_system_files: set[str] = set()
     reused_objects = 0
     for completed, (row, text, version, audio_id, object_name) in enumerate(planned, start=1):
+        preset = preset_for(row["style"], row["locale"])
         stored = read_object(object_name)
         if stored is not None:
             content = stored.content
@@ -210,6 +212,8 @@ def main() -> int:
                     "locale": row["locale"],
                     "style": row["style"],
                     "content_version": version,
+                    "media_type": preset.media_type,
+                    "preset": preset.id,
                 },
             )
         manifest["assets"][row["id"]] = {
@@ -218,6 +222,8 @@ def main() -> int:
             "locale": row["locale"],
             "style": row["style"],
             "contentVersion": version,
+            "mediaType": preset.media_type,
+            "preset": preset.id,
         }
         if row["style"] == "system":
             parts = row["id"].split(":")

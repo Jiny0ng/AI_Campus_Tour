@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     return new Response(response.body, {
       status: 200,
       headers: {
-        "Content-Type": "audio/mpeg",
+        "Content-Type": response.headers.get("content-type") ?? "audio/mpeg",
         "Cache-Control": response.headers.get("cache-control") ?? "private, max-age=86400",
         "X-Audio-Cache": response.headers.get("x-audio-cache") ?? "BYPASS",
         "X-Audio-Id": response.headers.get("x-audio-id") ?? "",
@@ -39,4 +39,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
