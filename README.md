@@ -181,6 +181,10 @@ CAMPUS_SITE_ADDRESS=http://localhost
 
 실제 비밀값이 들어 있는 `.env`와 `frontend/.env.local`은 Git에 커밋하지 않습니다.
 
+GCP 배포에서 `GCP_VM_HOST` Secret은 SSH 접속에만 사용하고, GitHub Actions의
+`CAMPUS_DOMAIN` Repository Variable을 Caddy 공개 도메인으로 사용합니다.
+기본 공개 도메인은 `gabokka.duckdns.org`이며 Variable을 설정하면 그 값으로 대체됩니다.
+
 ### 2. 전체 서비스 실행
 
 ```bash
