@@ -76,3 +76,24 @@ def test_stop_presentation_uses_pre_generated_overview_and_useful_tips():
 
 def test_stop_presentation_has_safe_fallback():
     assert build_stop_presentation(None, "기본 설명") == ("기본 설명", [])
+
+
+def test_facility_tips_exclude_nursing_room_and_merge_numbered_reading_rooms():
+    context = {
+        "description": "도서관",
+        "requiredFacts": [],
+        "optionalFacts": [],
+        "facilities": [
+            {"id": "nursing", "name": "모유수유실", "floor": "1층", "features": "모유수유 가능"},
+            {"id": "room-1", "name": "제1열람실", "floor": "4층", "features": "독서실형 책상"},
+            {"id": "room-2", "name": "제2열람실", "floor": "4층", "features": "열람실형 학습 좌석"},
+            {"id": "room-3", "name": "제3열람실", "floor": "4층", "features": "독서실형 책상"},
+        ],
+    }
+
+    _, insights = build_stop_presentation(context, "기본 설명")
+
+    assert len(insights) == 1
+    assert insights[0]["factId"] == "facility:reading-rooms:4층"
+    assert "4층" in insights[0]["content"]
+    assert "모유수유실" not in insights[0]["content"]

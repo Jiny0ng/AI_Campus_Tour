@@ -19,4 +19,6 @@ networkx==3.3
 
 # GCP 공용 음성 안내와 private 오디오 캐시
 google-cloud-texttospeech==2.37.0
+google-cloud-speech==2.33.0
 google-cloud-storage==3.13.1
+python-multipart==0.0.20

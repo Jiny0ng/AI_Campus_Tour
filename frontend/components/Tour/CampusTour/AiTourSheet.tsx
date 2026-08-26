@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowRight, ChevronLeft, MapPin, MessageCirclePlus, ChevronDown, ChevronUp, MessageCircleQuestion, Mic, Pause, Play, Send, Square, X } from "lucide-react";
 import { motion, AnimatePresence, animate as animateValue, useDragControls, useMotionValue } from "framer-motion";
 import { Button } from "@/components/Common";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import type { CampusTourNearbySpot, CampusTourStop } from "@/types";
 
 type AiTourSheetProps = {
@@ -42,6 +43,8 @@ const insightIcons: Record<string, string> = {
 
 export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t, pn } = useAppSettings();
+  const { locale } = useAppSettings();
+  const { status, pause, resume, speak, suspendForQuestion, resumeAfterQuestion } = useAudioGuide();
   const [isExpanded, setIsExpanded] = useState(false);
   const sheetRef = useRef<HTMLElement | null>(null);
   const contentScrollRef = useRef<HTMLDivElement | null>(null);
@@ -49,6 +52,12 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   const dragControls = useDragControls();
   const [maxDragY, setMaxDragY] = useState(0);
   const initializedDragRef = useRef(false);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const recordingChunksRef = useRef<Blob[]>([]);
+  const [questionOpen, setQuestionOpen] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [questionState, setQuestionState] = useState<"idle" | "listening" | "transcribing" | "searching" | "answering" | "error">("idle");
 
   useLayoutEffect(() => {
     const updateConstraints = () => {
@@ -72,6 +81,105 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
     const nextExpanded = sheetY.get() > maxDragY / 2;
     setIsExpanded(nextExpanded);
     animateValue(sheetY, nextExpanded ? 0 : maxDragY, { type: "spring", bounce: 0, duration: 0.35 });
+  };
+
+  const openQuestion = () => {
+    suspendForQuestion();
+    setQuestionOpen(true);
+    setIsExpanded(true);
+    animateValue(sheetY, 0, { type: "spring", bounce: 0, duration: 0.35 });
+  };
+
+  const closeQuestion = () => {
+    recorderRef.current?.stop();
+    recorderRef.current = null;
+    setQuestionOpen(false);
+    setQuestionState("idle");
+    resumeAfterQuestion();
+  };
+
+  const toggleRecording = async () => {
+    if (recorderRef.current?.state === "recording") {
+      recorderRef.current.stop();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      recordingChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) recordingChunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        recorderRef.current = null;
+        setQuestionState("transcribing");
+        const form = new FormData();
+        form.append("audio", new Blob(recordingChunksRef.current, { type: recorder.mimeType }), "question.webm");
+        form.append("language", locale);
+        try {
+          const response = await fetch("/api/speech/transcribe", { method: "POST", body: form });
+          if (!response.ok) throw new Error("transcription failed");
+          const payload = await response.json() as { transcript: string };
+          setQuestion(payload.transcript);
+          setQuestionState("idle");
+        } catch {
+          setQuestionState("error");
+        }
+      };
+      recorderRef.current = recorder;
+      recorder.start();
+      setQuestionState("listening");
+    } catch {
+      setQuestionState("error");
+    }
+  };
+
+  const submitQuestion = async () => {
+    const normalized = question.trim();
+    if (!normalized || questionState === "searching" || questionState === "answering") return;
+    setQuestionState("searching");
+    setAnswer("");
+    try {
+      const response = await fetch("/api/tour/questions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: normalized,
+          language: locale,
+          current_stop_id: currentStop?.id ?? "",
+          current_place_name: currentStop?.name ?? "",
+          next_stop_id: nextStop?.id ?? "",
+        }),
+      });
+      if (!response.ok) throw new Error("question failed");
+      const payload = await response.json() as { answer: string };
+      setAnswer(payload.answer);
+      setQuestionState("answering");
+      await speak({
+        id: `user-answer:${crypto.randomUUID()}`,
+        text: payload.answer,
+        locale,
+        category: "user-answer",
+        priority: 80,
+        source: { kind: "tts" },
+        interruptible: false,
+        report: { placeId: currentStop?.id, placeName: currentStop?.name, include: true },
+      });
+      await speak({
+        id: `question-resume:${crypto.randomUUID()}`,
+        text: locale === "ko" ? "아까 하던 이야기를 마저 하자면," : "Let me continue where we left off.",
+        locale,
+        category: "user-answer",
+        priority: 80,
+        source: { kind: "tts" },
+        interruptible: false,
+      });
+      resumeAfterQuestion();
+      setQuestionState("idle");
+    } catch {
+      setQuestionState("error");
+    }
   };
 
   if (!currentStop) {
@@ -145,6 +253,26 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             )}
             <h1 className="truncate text-xl font-extrabold text-ink">{pn(displayStop.name)}</h1>
           </div>
+          <div className="ml-auto flex shrink-0 items-center gap-1">
+          <button
+            type="button"
+            aria-label="질문하기"
+            className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary"
+            onClick={(event) => { event.stopPropagation(); openQuestion(); }}
+          >
+            <MessageCircleQuestion size={18} />
+          </button>
+          <button
+            type="button"
+            aria-label={status.playback === "paused" ? t("audio.resume") : t("audio.pause")}
+            className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary"
+            onClick={(event) => {
+              event.stopPropagation();
+              if (status.playback === "paused") resume(); else pause();
+            }}
+          >
+            {status.playback === "paused" ? <Play size={18} /> : <Pause size={18} />}
+          </button>
           <button
             type="button"
             aria-label={isExpanded ? t("settings.close") : t("sheet.placeTips")}
@@ -153,6 +281,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
           >
             {isExpanded ? <ChevronDown size={24} /> : <ChevronUp size={24} />}
           </button>
+          </div>
         </div>
 
         {!isExpanded && (
@@ -172,6 +301,39 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
           >
+            {questionOpen ? (
+              <section className="mt-2 rounded-card border border-primary/20 bg-primary-soft p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h2 className="text-sm font-extrabold text-ink">도슨트에게 질문하기</h2>
+                  <button type="button" aria-label="질문 닫기" className="grid size-8 place-items-center text-muted" onClick={closeQuestion}>
+                    <X size={17} />
+                  </button>
+                </div>
+                <div className="mt-2 flex items-end gap-2">
+                  <textarea
+                    value={question}
+                    onChange={(event) => setQuestion(event.target.value)}
+                    placeholder="궁금한 내용을 말하거나 입력해 주세요."
+                    rows={2}
+                    className="min-h-12 flex-1 resize-none rounded-xl border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-primary"
+                  />
+                  <button type="button" aria-label={questionState === "listening" ? "녹음 완료" : "음성 질문"} onClick={toggleRecording} className="grid size-11 shrink-0 place-items-center rounded-full bg-white text-primary shadow-sm">
+                    {questionState === "listening" ? <Square size={17} /> : <Mic size={18} />}
+                  </button>
+                  <button type="button" aria-label="질문 전송" disabled={!question.trim() || questionState === "searching"} onClick={submitQuestion} className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-white disabled:opacity-40">
+                    <Send size={18} />
+                  </button>
+                </div>
+                <p className="mt-2 text-xs font-medium text-muted">
+                  {questionState === "listening" ? "듣고 있어요. 완료되면 정지 버튼을 눌러 주세요."
+                    : questionState === "transcribing" ? "음성을 글로 바꾸고 있어요."
+                    : questionState === "searching" ? "캠퍼스 정보를 검색하고 있어요."
+                    : questionState === "error" ? "처리하지 못했습니다. 텍스트로 다시 시도해 주세요."
+                    : "음성 인식 결과를 고친 뒤 전송할 수도 있어요."}
+                </p>
+                {answer ? <p className="mt-3 rounded-xl bg-white px-3 py-2 text-sm leading-6 text-ink">{answer}</p> : null}
+              </section>
+            ) : null}
             <p className="mt-2 text-sm font-medium leading-5 text-ink/80">
               {destinationDescription || (isSegmentLoading ? t("sheet.loading") : t("sheet.noTips"))}
             </p>

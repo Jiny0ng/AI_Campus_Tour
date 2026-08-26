@@ -233,27 +233,6 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
   }, [drivingProgress, drivingRoute?.generatedAt, locale, mode, speak]);
 
   useEffect(() => {
-    if (!drivingRoute || destinationSpokenRef.current === destination.id) return;
-    destinationSpokenRef.current = destination.id;
-    const message = `${pn(destination.name)}. ${destination.description}`;
-    lastDocentAtRef.current = Date.now();
-
-    const timer = window.setTimeout(() => {
-      void speak({
-        id: `guide-destination:${destination.id}:${locale}`,
-        text: message,
-        locale: /[가-힣]/.test(message) ? "ko" : locale,
-        category: "location-docent",
-        priority: 30,
-        source: { kind: "tts" },
-        interruptible: true,
-        resumePolicy: "resume",
-      });
-    }, 700);
-    return () => window.clearTimeout(timer);
-  }, [destination.description, destination.id, destination.name, drivingRoute, locale, pn, speak]);
-
-  useEffect(() => {
     if (!drivingRoute) return;
     if (Date.now() - lastDocentAtRef.current < 8_000) return;
     if (

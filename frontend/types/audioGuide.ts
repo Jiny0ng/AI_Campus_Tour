@@ -41,6 +41,11 @@ export type AudioGuideApi = {
   stop(reason?: string): void;
   pause(): void;
   resume(): void;
+  /** Suspend the active narration so a question and its answer can play. */
+  suspendForQuestion(): boolean;
+  /** Resume the suspended narration near the beginning of the interrupted sentence. */
+  resumeAfterQuestion(): void;
+  cancelQuestion(): void;
   unlock(): Promise<boolean>;
   /** Keep the initial tour requests from prematurely showing a degraded state. */
   beginNetworkGrace(durationMs?: number): void;

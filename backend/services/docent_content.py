@@ -67,6 +67,7 @@ def build_stop_presentation(
         facility for facility in docent_context.get("facilities", [])
         if any(keyword in " ".join(str(value or "").lower() for value in facility.values()) for keyword in useful_facility_keywords)
         and not any(keyword in str(facility.get("name") or "").lower() for keyword in excluded_facility_keywords)
+        and "모유수유실" not in str(facility.get("name") or "")
     ]
     facilities.sort(
         key=lambda facility: -sum(
@@ -74,7 +75,23 @@ def build_stop_presentation(
             for keyword in useful_facility_keywords
         )
     )
-    for facility in facilities[:3]:
+    grouped_facilities: list[dict[str, Any]] = []
+    grouped_reading_rooms: dict[str, list[dict[str, Any]]] = {}
+    for facility in facilities:
+        if re.fullmatch(r"제\s*\d+\s*열람실", str(facility.get("name") or "")):
+            grouped_reading_rooms.setdefault(str(facility.get("floor") or ""), []).append(facility)
+        else:
+            grouped_facilities.append(facility)
+    for floor, rooms in grouped_reading_rooms.items():
+        grouped_facilities.append({
+            "id": "reading-rooms:" + floor,
+            "name": "열람 공간",
+            "floor": floor,
+            "features": "독서실형 책상과 다양한 학습 좌석을 갖춘 열람",
+            "type": "학습공간",
+            "note": f"{len(rooms)}개 열람실 통합 요약",
+        })
+    for facility in grouped_facilities[:3]:
         detail = facility.get("features") or facility.get("note") or facility.get("type")
         location = " ".join(value for value in (facility.get("floor"), facility.get("name")) if value)
         if location and detail:

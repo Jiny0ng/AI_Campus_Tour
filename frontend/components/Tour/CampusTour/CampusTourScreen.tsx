@@ -185,7 +185,7 @@ function remainingRouteDistance(
 export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const router = useRouter();
   const { locale, t } = useAppSettings();
-  const { speak, prefetch, stop, clearCategory, beginNetworkGrace } = useAudioGuide();
+  const { status, speak, prefetch, stop, clearCategory, beginNetworkGrace } = useAudioGuide();
   const [tourData, setTourData] = useState(() => addCurrentLocationStart(data));
   const [currentStopIndex, setCurrentStopIndex] = useState(0);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -198,6 +198,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const [arrivedStopId, setArrivedStopId] = useState<string | null>(null);
   const [recenterUserLocationToken, setRecenterUserLocationToken] = useState(0);
   const [isOffRouteDialogOpen, setIsOffRouteDialogOpen] = useState(false);
+  const [needsIdleDocentFallback, setNeedsIdleDocentFallback] = useState(false);
   const startLocationInitializedRef = useRef(false);
   const offRouteWarningArmedRef = useRef(true);
   const lastRouteDistanceLogRef = useRef<number | null>(null);
@@ -205,6 +206,8 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const confirmedArrivalStopIdsRef = useRef(new Set<string>());
   const previousLocaleRef = useRef(locale);
   const tourSessionIdRef = useRef(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
+  const idleDocentSpotIdsRef = useRef(new Set<string>());
+  const lastIdleDocentAtRef = useRef(0);
 
   useEffect(() => {
     beginNetworkGrace();
@@ -273,6 +276,31 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.docentText);
 
   useEffect(() => {
+    if (!needsIdleDocentFallback || status.playback !== "idle" || status.request || isNearbyLoading) return;
+    if (Date.now() - lastIdleDocentAtRef.current < 20_000) return;
+    const spot = nearbySpots.find((candidate) => (
+      candidate.distanceMeters <= 60
+      && Boolean(candidate.docentText)
+      && !idleDocentSpotIdsRef.current.has(candidate.id)
+    ));
+    if (!spot?.docentText) return;
+    idleDocentSpotIdsRef.current.add(spot.id);
+    lastIdleDocentAtRef.current = Date.now();
+    setNeedsIdleDocentFallback(false);
+    void speak({
+      id: `idle-docent-spot:${tourSessionIdRef.current}:${spot.id}:${locale}`,
+      text: spot.docentText,
+      locale: /[가-힣]/.test(spot.docentText) ? "ko" : locale,
+      category: "location-docent",
+      priority: 25,
+      source: { kind: "tts" },
+      interruptible: true,
+      resumePolicy: "discard",
+      report: { placeId: spot.id, placeName: spot.name, include: true },
+    });
+  }, [isNearbyLoading, locale, nearbySpots, needsIdleDocentFallback, speak, status.playback, status.request]);
+
+  useEffect(() => {
     if (previousLocaleRef.current === locale) return;
     previousLocaleRef.current = locale;
     stop("language-change");
@@ -308,10 +336,14 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   }, [hasReviewedNarration, locale, narrationStop, narrationText, prefetch]);
 
   useEffect(() => {
-    if (!narrationStop || !narrationText) return;
+    if (!narrationStop || !narrationText) {
+      setNeedsIdleDocentFallback(Boolean(narrationStop));
+      return;
+    }
     const narrationId = `${narrationStop.id}:${locale}`;
     if (narratedStopIdsRef.current.has(narrationId)) return;
     narratedStopIdsRef.current.add(narrationId);
+    setNeedsIdleDocentFallback(false);
     void speak({
       id: `tour-stop:${tourSessionIdRef.current}:${narrationId}`,
       text: narrationText,
@@ -324,6 +356,8 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       interruptible: true,
       resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
+    }).then((outcome) => {
+      if (outcome === "skipped") setNeedsIdleDocentFallback(true);
     });
   }, [hasReviewedNarration, locale, narrationStop, narrationText, speak]);
 

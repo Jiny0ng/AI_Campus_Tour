@@ -152,7 +152,6 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
     { id: "convenience_store", label: t("guide.purpose.convenience_store") },
     { id: "cafe", label: t("guide.purpose.cafe") },
     { id: "parking", label: t("guide.purpose.parking") },
-    { id: "study", label: t("guide.purpose.study") },
   ];
 
   return (

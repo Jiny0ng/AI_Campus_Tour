@@ -30,6 +30,27 @@ const AudioGuideContext = createContext<AudioGuideApi | null>(null);
 
 type ActiveAudio = QueuedAudio & { token: number; sourceUrl?: string };
 type SuspendedAudio = ActiveAudio & { sourceUrl: string; positionSeconds: number };
+type QuestionSuspendedAudio = ActiveAudio & {
+  sourceUrl?: string;
+  positionSeconds: number;
+  sentenceStartSeconds: number;
+  wasManuallyPaused: boolean;
+};
+
+function estimatedSentenceStart(text: string, positionSeconds: number, durationSeconds: number) {
+  if (!text.trim() || !Number.isFinite(durationSeconds) || durationSeconds <= 0) {
+    return Math.max(0, positionSeconds - 4);
+  }
+  const sentences = text.match(/[^.!?。！？]+[.!?。！？]?/g)?.filter((value) => value.trim()) ?? [text];
+  const targetCharacter = Math.max(0, Math.min(text.length, Math.round((positionSeconds / durationSeconds) * text.length)));
+  let offset = 0;
+  for (const sentence of sentences) {
+    const end = offset + sentence.length;
+    if (targetCharacter <= end) return Math.max(0, durationSeconds * (offset / text.length));
+    offset = end;
+  }
+  return Math.max(0, positionSeconds - 4);
+}
 
 function silentWavUrl() {
   const sampleCount = 2_205;
@@ -69,6 +90,8 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
   const queueRef = useRef<QueuedAudio[]>([]);
   const activeRef = useRef<ActiveAudio | null>(null);
   const suspendedRef = useRef<SuspendedAudio | null>(null);
+  const questionSuspendedRef = useRef<QuestionSuspendedAudio | null>(null);
+  const manuallyPausedRef = useRef(false);
   const orderRef = useRef(0);
   const tokenRef = useRef(0);
   const seenIdsRef = useRef(new Set<string>());
@@ -227,6 +250,11 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
       audio.volume = volume;
       audio.muted = isMuted;
       await audio.play();
+      if (manuallyPausedRef.current) {
+        audio.pause();
+        setStatus((current) => ({ ...current, playback: "paused" }));
+        return;
+      }
       unlockedRef.current = true;
       setStatus((current) => ({ ...current, playback: "playing" }));
     } catch (error) {
@@ -278,13 +306,14 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
   resumeSuspendedRef.current = () => { void resumeSuspended(); };
 
   const drain = useCallback(() => {
-    if (activeRef.current) return;
+    if (activeRef.current || manuallyPausedRef.current) return;
     let next = queueRef.current[0];
     while (next && isExpired(next.request)) {
       queueRef.current.shift();
       next.resolve("skipped");
       next = queueRef.current[0];
     }
+    if (questionSuspendedRef.current && next?.request.category !== "user-answer") return;
     // A suspended docent keeps its place ahead of ordinary queued audio. Only
     // another urgent route instruction may run before it resumes.
     if (suspendedRef.current && (!next || next.request.priority < 90)) {
@@ -380,16 +409,24 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     finishSuspended("interrupted");
     queueRef.current.forEach((item) => item.resolve("skipped"));
     queueRef.current = [];
+    questionSuspendedRef.current = null;
+    manuallyPausedRef.current = false;
   }, [finishActive, finishSuspended]);
 
   const pause = useCallback(() => {
+    manuallyPausedRef.current = true;
     audioRef.current?.pause();
     if (speechUtteranceRef.current) window.speechSynthesis.pause();
-    if (activeRef.current) setStatus((current) => ({ ...current, playback: "paused" }));
+    setStatus((current) => ({ ...current, playback: "paused" }));
   }, []);
 
   const resume = useCallback(() => {
-    if (!activeRef.current) return;
+    manuallyPausedRef.current = false;
+    if (!activeRef.current) {
+      setStatus((current) => ({ ...current, playback: "idle" }));
+      drainRef.current();
+      return;
+    }
     if (speechUtteranceRef.current) {
       window.speechSynthesis.resume();
       setStatus((current) => ({ ...current, playback: "playing" }));
@@ -399,6 +436,71 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     void audioRef.current.play()
       .then(() => setStatus((current) => ({ ...current, playback: "playing" })))
       .catch(() => setStatus((current) => ({ ...current, playback: "blocked" })));
+  }, []);
+
+  const suspendForQuestion = useCallback(() => {
+    const active = activeRef.current;
+    if (!active) return false;
+    const audio = audioRef.current;
+    const positionSeconds = audio?.currentTime ?? 0;
+    const durationSeconds = audio?.duration ?? 0;
+    audio?.pause();
+    window.speechSynthesis?.pause();
+    questionSuspendedRef.current = {
+      ...active,
+      positionSeconds,
+      wasManuallyPaused: manuallyPausedRef.current,
+      sentenceStartSeconds: estimatedSentenceStart(
+        active.request.text,
+        positionSeconds,
+        durationSeconds,
+      ),
+    };
+    activeRef.current = null;
+    manuallyPausedRef.current = false;
+    tokenRef.current += 1;
+    setStatus((current) => ({ ...current, request: null, playback: "idle" }));
+    return true;
+  }, []);
+
+  const resumeAfterQuestion = useCallback(() => {
+    const suspended = questionSuspendedRef.current;
+    questionSuspendedRef.current = null;
+    if (!suspended) {
+      drainRef.current();
+      return;
+    }
+    const audio = audioRef.current;
+    if (!audio || !suspended.sourceUrl) {
+      suspended.resolve("interrupted");
+      drainRef.current();
+      return;
+    }
+    const token = ++tokenRef.current;
+    activeRef.current = { ...suspended, token };
+    audio.src = suspended.sourceUrl;
+    audio.currentTime = suspended.sentenceStartSeconds;
+    audio.volume = volume;
+    audio.muted = isMuted;
+    setStatus((current) => ({ ...current, request: suspended.request, playback: "loading" }));
+    if (suspended.wasManuallyPaused) {
+      manuallyPausedRef.current = true;
+      setStatus((current) => ({ ...current, playback: "paused" }));
+      return;
+    }
+    void audio.play()
+      .then(() => setStatus((current) => ({ ...current, playback: "playing" })))
+      .catch(() => {
+        if (activeRef.current?.token === token) finishActive("skipped");
+        drainRef.current();
+      });
+  }, [finishActive, isMuted, volume]);
+
+  const cancelQuestion = useCallback(() => {
+    const suspended = questionSuspendedRef.current;
+    questionSuspendedRef.current = null;
+    if (suspended) suspended.resolve("interrupted");
+    drainRef.current();
   }, []);
 
   const unlock = useCallback(() => {
@@ -567,10 +669,13 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
     stop,
     pause,
     resume,
+    suspendForQuestion,
+    resumeAfterQuestion,
+    cancelQuestion,
     unlock,
     beginNetworkGrace,
     clearCategory,
-  }), [beginNetworkGrace, clearCategory, pause, prefetch, resume, speak, status, stop, unlock]);
+  }), [beginNetworkGrace, cancelQuestion, clearCategory, pause, prefetch, resume, resumeAfterQuestion, speak, status, stop, suspendForQuestion, unlock]);
 
   return (
     <AudioGuideContext.Provider value={value}>

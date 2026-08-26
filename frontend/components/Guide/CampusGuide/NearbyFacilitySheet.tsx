@@ -14,6 +14,7 @@ type NearbyFacilitySheetProps = {
 export function NearbyFacilitySheet({ places, selectedPlace, selectedPurpose, onSelectPlace, onGuidePlace }: NearbyFacilitySheetProps) {
   const { t, pn } = useAppSettings();
   const title = selectedPurpose ? t(`guide.purpose.${selectedPurpose}`) : t("guide.popular.title");
+  const parkingOnly = selectedPurpose === "parking";
 
   return (
     <BottomSheet
@@ -28,9 +29,9 @@ export function NearbyFacilitySheet({ places, selectedPlace, selectedPurpose, on
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <h2 className="text-base font-extrabold text-ink">{selectedPlace ? pn(selectedPlace.name) : title}</h2>
-          <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-5 text-muted">
+          {!parkingOnly ? <p className="mt-0.5 line-clamp-2 text-xs font-medium leading-5 text-muted">
             {selectedPlace?.description || t("guide.popular.description")}
-          </p>
+          </p> : null}
         </div>
         {selectedPlace ? (
           <Button type="button" size="sm" className="h-9 shrink-0 rounded-full px-3 text-xs" onClick={() => onGuidePlace(selectedPlace)}>
@@ -50,7 +51,7 @@ export function NearbyFacilitySheet({ places, selectedPlace, selectedPurpose, on
               </button>
               <button type="button" onClick={() => onSelectPlace(place)} className="min-w-0 flex-1 text-left">
                 <span className="line-clamp-2 text-sm font-extrabold leading-5 text-ink">{pn(place.name)}</span>
-                <span className="mt-1 line-clamp-2 text-xs font-medium leading-4 text-muted">{place.description}</span>
+                {!parkingOnly ? <span className="mt-1 line-clamp-2 text-xs font-medium leading-4 text-muted">{place.description}</span> : null}
               </button>
               <div className="flex shrink-0 items-center gap-2 pt-0.5">
                 <span className="text-[11px] font-extrabold text-primary">{place.distanceMeters}m</span>
@@ -65,7 +66,7 @@ export function NearbyFacilitySheet({ places, selectedPlace, selectedPurpose, on
           <p className="w-full py-5 text-center text-xs font-medium text-muted">{t("guide.noPurposeResults")}</p>
         ) : null}
       </div>
-      {selectedPlace && ((selectedPlace.facilities?.length || 0) > 0 || (selectedPlace.facts?.length || 0) > 0) ? (
+      {!parkingOnly && selectedPlace && ((selectedPlace.facilities?.length || 0) > 0 || (selectedPlace.facts?.length || 0) > 0) ? (
         <div className="mt-3 border-t border-line pt-3">
           <h3 className="text-sm font-extrabold text-ink">{t("guide.details")}</h3>
           <div className="mt-2 grid gap-2">

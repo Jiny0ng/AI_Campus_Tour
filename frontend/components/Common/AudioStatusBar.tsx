@@ -10,6 +10,7 @@ export function AudioStatusBar() {
   const { status, pause, resume, stop } = useAudioGuide();
   const { t } = useAppSettings();
   const pathname = usePathname();
+  if (pathname.startsWith("/tour")) return null;
   if (!status.request && status.network === "online") return null;
 
   const blocked = status.playback === "blocked";
