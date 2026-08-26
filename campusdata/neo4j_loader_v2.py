@@ -828,13 +828,15 @@ def load_campus_relations(driver) -> int:
         """,
     )
     relations = build_near_relations()
+    near_relations = [row for row in relations if row["relation_type"] == "NEAR"]
+    semi_near_relations = [row for row in relations if row["relation_type"] == "SEMI_NEAR"]
     run(
         driver,
         """
-        MATCH ()-[near:NEAR]->()
-        WHERE near.kind = 'physical_walk'
-           OR near.method IN ['nearest_canonical_building', 'tour_destination_radius_200m']
-        DELETE near
+        MATCH ()-[relation:NEAR|SEMI_NEAR]->()
+        WHERE relation.kind = 'physical_walk'
+           OR relation.method IN ['nearest_canonical_building', 'tour_destination_radius_200m']
+        DELETE relation
         """,
     )
     run(
@@ -878,7 +880,39 @@ def load_campus_relations(driver) -> int:
             near.verified = row.verified,
             near.note = CASE WHEN row.note = '' THEN null ELSE row.note END
         """,
-        batch=relations,
+        batch=near_relations,
+    )
+    run(
+        driver,
+        """
+        UNWIND $batch AS row
+        CALL {
+            WITH row
+            MATCH (entity)
+            WHERE entity.place_id = row.from_id OR entity.spot_id = row.from_id
+               OR entity.building_id = row.from_id OR entity.store_id = row.from_id
+               OR entity.facility_id = row.from_id
+            RETURN entity AS first ORDER BY elementId(entity) LIMIT 1
+        }
+        CALL {
+            WITH row
+            MATCH (entity)
+            WHERE entity.place_id = row.to_id OR entity.spot_id = row.to_id
+               OR entity.building_id = row.to_id OR entity.store_id = row.to_id
+               OR entity.facility_id = row.to_id
+            RETURN entity AS second ORDER BY elementId(entity) LIMIT 1
+        }
+        WITH row,
+             CASE WHEN elementId(first) < elementId(second) THEN first ELSE second END AS first,
+             CASE WHEN elementId(first) < elementId(second) THEN second ELSE first END AS second
+        WHERE first <> second
+        MERGE (first)-[relation:SEMI_NEAR]->(second)
+        SET relation.kind = row.kind, relation.distance_m = row.distance_m,
+            relation.walking_seconds = row.walking_seconds, relation.method = row.method,
+            relation.source = row.source, relation.verified = row.verified,
+            relation.note = CASE WHEN row.note = '' THEN null ELSE row.note END
+        """,
+        batch=semi_near_relations,
     )
     return len(relations)
 
@@ -941,6 +975,15 @@ def verify(driver) -> None:
                               THEN 1 END) AS valid
             """
         ).single()
+        semi_near_counts = session.run(
+            """
+            MATCH ()-[relation:SEMI_NEAR {kind: 'physical_walk'}]->()
+            RETURN count(relation) AS total,
+                   count(CASE WHEN relation.distance_m > 80 AND relation.distance_m <= 350
+                                   AND relation.walking_seconds IS NOT NULL
+                              THEN 1 END) AS valid
+            """
+        ).single()
 
     result = dict(counts) if counts else {}
     result.update({
@@ -953,6 +996,8 @@ def verify(driver) -> None:
         "invalid_docent_fact_links": invalid_docent_fact_links,
         "physical_near_relations": near_counts["total"],
         "invalid_physical_near_relations": near_counts["total"] - near_counts["valid"],
+        "physical_semi_near_relations": semi_near_counts["total"],
+        "invalid_physical_semi_near_relations": semi_near_counts["total"] - semi_near_counts["valid"],
     })
     print(f"Verification: {result}")
     if result.get("tour_stops") != 12 or result.get("tour_stops_with_coordinates") != 12:
@@ -965,6 +1010,8 @@ def verify(driver) -> None:
         raise RuntimeError("Every docent fact must be linked to its configured entity")
     if not result["physical_near_relations"] or result["invalid_physical_near_relations"]:
         raise RuntimeError("Physical NEAR relationships are missing or invalid")
+    if not result["physical_semi_near_relations"] or result["invalid_physical_semi_near_relations"]:
+        raise RuntimeError("Physical SEMI_NEAR relationships are missing or invalid")
 
 
 def load_all(driver, reset: bool) -> None:

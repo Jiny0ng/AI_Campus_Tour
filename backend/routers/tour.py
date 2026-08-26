@@ -160,7 +160,7 @@ def get_nearby_places(
             WHERE destination.place_id = $destination_id
                OR destination.spot_id = $destination_id
                OR destination.building_id = $destination_id
-            MATCH (destination)-[near:NEAR]-(place)
+            MATCH (destination)-[near:NEAR|SEMI_NEAR]-(place)
             WHERE near.kind = 'physical_walk'
               AND (place:Building OR place:Place OR place:Facility OR place:DocentSpot)
               AND place <> destination
@@ -200,7 +200,9 @@ def get_nearby_places(
                    near.walking_seconds AS walkingSeconds,
                    near.method AS nearMethod,
                    near.verified AS nearVerified
-            ORDER BY CASE
+                   ,type(near) AS proximityTier
+            ORDER BY CASE WHEN type(near) = 'NEAR' THEN 0 ELSE 1 END,
+                     CASE
                        WHEN place:DocentSpot THEN 0
                        WHEN place:Building THEN 2
                        WHEN place:Place THEN 1

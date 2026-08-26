@@ -13,6 +13,8 @@ DATA_DIR = Path(__file__).resolve().parent
 WALKING_SPEED_MPS = 1.3
 NEAR_SECONDS = 60
 FALLBACK_RADIUS_M = 80.0
+NEAR_MAX_DISTANCE_M = 80.0
+SEMI_NEAR_MAX_DISTANCE_M = 350.0
 MAX_SNAP_DISTANCE_M = 40.0
 MAX_SEGMENT_LENGTH_M = 5.0
 ELIGIBLE_TYPES = {"building", "parking", "store", "docent_spot", "tour_stop"}
@@ -142,8 +144,6 @@ def build_near_relations(
     walking_graph = graph if graph is not None else load_walking_graph()
     manual = list(overrides if overrides is not None else read_manual_overrides())
     graph_nodes = list(walking_graph)
-    max_walk_m = WALKING_SPEED_MPS * NEAR_SECONDS
-
     snapped: dict[str, tuple[tuple[float, float], float] | None] = {}
     for place in places:
         nearest = min(
@@ -177,15 +177,19 @@ def build_near_relations(
             if first_snap is not None and second_snap is not None:
                 if first_snap[0] not in path_lengths:
                     path_lengths[first_snap[0]] = _distances_within(
-                        walking_graph, first_snap[0], cutoff=max_walk_m
+                        walking_graph, first_snap[0], cutoff=SEMI_NEAR_MAX_DISTANCE_M
                     )
                 lengths = path_lengths[first_snap[0]]
                 network_m = lengths.get(second_snap[0])
                 if network_m is not None:
                     distance_m = first_snap[1] + network_m + second_snap[1]
                     method = "walking_network"
-            limit = max_walk_m if method == "walking_network" else FALLBACK_RADIUS_M
-            if distance_m <= limit:
+            relation_type = (
+                "NEAR" if distance_m <= NEAR_MAX_DISTANCE_M
+                else "SEMI_NEAR" if distance_m <= SEMI_NEAR_MAX_DISTANCE_M
+                else None
+            )
+            if relation_type is not None:
                 results[pair] = {
                     "from_id": pair[0],
                     "to_id": pair[1],
@@ -196,6 +200,7 @@ def build_near_relations(
                     "source": "generated",
                     "verified": False,
                     "note": "",
+                    "relation_type": relation_type,
                 }
 
     for row in manual:
@@ -221,5 +226,9 @@ def build_near_relations(
             "source": "manual",
             "verified": (row.get("verified") or "true").lower() == "true",
             "note": row.get("note", ""),
+            "relation_type": (
+                "NEAR" if distance_m is not None and distance_m <= NEAR_MAX_DISTANCE_M
+                else "SEMI_NEAR"
+            ),
         }
     return sorted(results.values(), key=lambda row: (row["from_id"], row["to_id"]))

@@ -55,15 +55,20 @@ QUERY_TEMPLATES: dict[Intent, str] = {
         LIMIT $limit
     """,
     "nearby": """
-        MATCH (origin)-[near:NEAR]-(place)
+        MATCH (origin)-[near:NEAR|SEMI_NEAR]-(place)
         WHERE origin.place_id = $current_stop_id OR origin.spot_id = $current_stop_id
            OR origin.building_id = $current_stop_id
         WITH place, near
         WHERE $keyword = '' OR place.name CONTAINS $keyword OR coalesce(place.category, '') CONTAINS $keyword
         RETURN coalesce(place.place_id, place.spot_id, place.building_id, place.facility_id) AS id,
                place.name AS name, coalesce(place.description, place.main_function, place.docent_text, '') AS description,
-               near.distance_m AS distanceMeters, near.walking_seconds AS walkingSeconds
-        ORDER BY near.distance_m LIMIT $limit
+               near.distance_m AS distanceMeters, near.walking_seconds AS walkingSeconds,
+               type(near) AS proximityTier,
+               CASE WHEN type(near) = 'SEMI_NEAR'
+                    THEN '조금 거리가 있지만 가볼 만한 곳'
+                    ELSE '가까운 곳' END AS suggestionTone
+        ORDER BY CASE WHEN type(near) = 'NEAR' THEN 0 ELSE 1 END,
+                 near.distance_m LIMIT $limit
     """,
     "place_search": """
         MATCH (place)
@@ -94,7 +99,7 @@ FORBIDDEN_CYPHER = re.compile(
 )
 ALLOWED_LABELS = {"Building", "Place", "DocentSpot", "Store", "Facility", "Floor", "Fact"}
 ALLOWED_RELATIONSHIPS = {
-    "HAS_FACT", "LOCATED_IN", "HAS_STORE", "HAS_FLOOR", "HAS_FACILITY", "HAS_ROOM", "NEAR",
+    "HAS_FACT", "LOCATED_IN", "HAS_STORE", "HAS_FLOOR", "HAS_FACILITY", "HAS_ROOM", "NEAR", "SEMI_NEAR",
 }
 
 

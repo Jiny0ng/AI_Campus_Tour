@@ -21,6 +21,11 @@ class GraphQaTemplateTests(unittest.TestCase):
         self.assertNotIn("fact.content CONTAINS $keyword", query)
         self.assertNotIn("fact.category CONTAINS $keyword", query)
 
+    def test_nearby_prefers_near_and_can_fall_back_to_semi_near(self):
+        query = QUERY_TEMPLATES["nearby"]
+        self.assertIn("NEAR|SEMI_NEAR", query)
+        self.assertIn("type(near) = 'NEAR' THEN 0 ELSE 1", query)
+
 
 if __name__ == "__main__":
     unittest.main()
