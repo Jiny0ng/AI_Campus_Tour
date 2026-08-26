@@ -127,6 +127,8 @@ def generation_prompt(spec: DocentSpec, phase: str = "arrival") -> str:
 눈앞의 형태나 주변을 직접 살펴보도록 유도하고, 이동 중이라고 말하지 마세요.
 반드시 첫 문장을 그대로 사용하세요: {spec.opening_line}"""
     )
+    minimum_chars = max(60, round(spec.target_duration_seconds * 2.2))
+    maximum_chars = min(500, round(spec.target_duration_seconds * 6.0))
     return f"""당신은 전북대학교 캠퍼스의 한국어 음성 도슨트 대본을 작성합니다.
 아래 데이터만 사실의 근거로 사용하고 제공되지 않은 수치·인물·시설·인과관계를 추가하지 마세요.
 이 작업의 목적은 사실 목록을 읽어 주는 것이 아니라, 처음 온 후배와 캠퍼스를 함께
@@ -155,7 +157,10 @@ def generation_prompt(spec: DocentSpec, phase: str = "arrival") -> str:
 8. TTS가 읽기 쉬운 짧은 문장을 사용하고 괄호·마크다운·이모지를 쓰지 마세요.
 9. 첫 문장을 제외한 표현은 바꿀 수 있지만, 실제로 사용하는 사실의 숫자와 고유명사는
    원문을 보존하세요.
-10. JSON만 반환하세요.
+10. 공백과 문장부호를 포함한 전체 대본 길이는 반드시 {minimum_chars}자 이상
+    {maximum_chars}자 이하로 작성하세요. 반환하기 전에 글자 수를 확인하고, 초과하면
+    반복되는 수식어와 선택 사실부터 줄이세요.
+11. JSON만 반환하세요.
 
 반환 형식:
 {{"script":"전체 대본", "usedFactIds":["실제로 사용한 모든 factId"]}}

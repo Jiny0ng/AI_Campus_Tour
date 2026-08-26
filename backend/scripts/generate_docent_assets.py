@@ -219,7 +219,8 @@ def main() -> int:
         llm = make_llm(model)
         for spec, fingerprint in stale_specs:
             last_error: Exception | None = None
-            for attempt in range(2):
+            generation_attempts = max(1, int(os.getenv("DOCENT_GENERATION_MAX_ATTEMPTS", "4")))
+            for attempt in range(generation_attempts):
                 try:
                     en_route_text, en_route_fact_ids = generate_and_validate(spec, llm, "en_route")
                     if arrival_enabled[spec.entity_id]:
@@ -229,7 +230,7 @@ def main() -> int:
                     break
                 except Exception as error:
                     last_error = error
-                    if attempt == 1:
+                    if attempt == generation_attempts - 1:
                         print(
                             f"Docent generation failed for {spec.entity_id}: {error}",
                             file=sys.stderr,

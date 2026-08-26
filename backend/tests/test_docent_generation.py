@@ -65,6 +65,8 @@ class DocentGenerationTests(unittest.TestCase):
         self.assertIn("호응을 유도", prompt)
         self.assertIn("금액 정보", prompt)
         self.assertIn("절대 말하지 마세요", prompt)
+        self.assertIn("99자 이상", prompt)
+        self.assertIn("270자 이하", prompt)
 
     def test_review_prompt_allows_supplied_editorial_insights(self):
         prompt = review_prompt(sample_spec(), "야경을 감상하기 좋습니다.")
