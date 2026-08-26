@@ -55,10 +55,18 @@ def save_manifest(manifest: dict) -> None:
 
 
 def synthesize_with_retry(text: str, locale: str, style: str) -> bytes:
-    delays = (2, 5)
+    # Gemini TTS can legitimately take longer than the realtime request budget
+    # for docent-length scripts. Asset generation is an offline job, so give
+    # each attempt a wider deadline and tolerate transient 504s.
+    delays = (3, 8, 15, 30)
     for attempt in range(len(delays) + 1):
         try:
-            return _synthesize_with_google(text, locale, style)
+            return _synthesize_with_google(
+                text,
+                locale,
+                style,
+                timeout_seconds=60.0,
+            )
         except TtsUnavailable:
             if attempt >= len(delays):
                 raise
