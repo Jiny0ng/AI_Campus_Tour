@@ -49,20 +49,34 @@ def normalize_text(text: str) -> str:
 
 def audio_id_for(text: str, locale: str, style: str, content_version: str) -> str:
     preset = preset_for(style, locale)
-    parts = (
-        normalize_text(text),
-        locale,
-        preset.voice,
-        style,
-        preset.model,
-        preset.id,
-        str(preset.speaking_rate),
-        str(preset.pitch),
-        str(preset.volume_gain_db),
-        str(preset.sample_rate_hertz),
-        preset.encoding,
-        content_version,
-    )
+    if preset.id.startswith("legacy-"):
+        # Preserve the deployed cache key exactly for navigation, arrival,
+        # system, filler, user answers, and non-Korean docents.  Changing the
+        # selected Korean docent preset must not regenerate every managed asset.
+        parts = (
+            normalize_text(text),
+            locale,
+            preset.voice,
+            style,
+            preset.model,
+            os.getenv("TTS_PROMPT_VERSION", "v1"),
+            content_version,
+        )
+    else:
+        parts = (
+            normalize_text(text),
+            locale,
+            preset.voice,
+            style,
+            preset.model,
+            preset.id,
+            str(preset.speaking_rate),
+            str(preset.pitch),
+            str(preset.volume_gain_db),
+            str(preset.sample_rate_hertz),
+            preset.encoding,
+            content_version,
+        )
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
 
 

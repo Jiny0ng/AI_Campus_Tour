@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import sys
 import unittest
@@ -39,6 +40,25 @@ class TtsServiceTests(unittest.TestCase):
         first = audio_id_for("테스트", "ko-KR", "system", "v1")
         second = audio_id_for("테스트", "ko-KR", "system", "v2")
         self.assertNotEqual(first, second)
+
+    def test_navigation_keeps_the_original_deployed_cache_hash(self):
+        os.environ["TTS_VOICE_NAME"] = "Kore"
+        os.environ["TTS_MODEL"] = "gemini-2.5-flash-tts"
+        os.environ["TTS_PROMPT_VERSION"] = "v1"
+        expected_parts = (
+            "100미터 앞에서 왼쪽으로 이동하세요.",
+            "ko-KR",
+            "Kore",
+            "navigation",
+            "gemini-2.5-flash-tts",
+            "v1",
+            "v1",
+        )
+        expected = hashlib.sha256("|".join(expected_parts).encode("utf-8")).hexdigest()
+        self.assertEqual(
+            audio_id_for(expected_parts[0], "ko-KR", "navigation", "v1"),
+            expected,
+        )
 
     @patch("services.tts_service._synthesize_with_google")
     @patch("services.tts_service.read_object")
