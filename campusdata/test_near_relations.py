@@ -35,6 +35,21 @@ class NearRelationsTest(unittest.TestCase):
         ]
         self.assertEqual([], build_near_relations(candidates, graph, []))
 
+    def test_preserves_distance_precision_at_semi_near_boundary(self):
+        graph = {
+            (127.0, 35.0): {(127.001, 35.0): 80.4},
+            (127.001, 35.0): {(127.0, 35.0): 80.4},
+        }
+        candidates = [
+            {"id": "a", "entity_type": "building", "latitude": 35.0, "longitude": 127.0},
+            {"id": "b", "entity_type": "building", "latitude": 35.0, "longitude": 127.001},
+        ]
+
+        relations = build_near_relations(candidates, graph, [])
+
+        self.assertEqual("SEMI_NEAR", relations[0]["relation_type"])
+        self.assertEqual(80.4, relations[0]["distance_m"])
+
     def test_manual_include_and_exclude_override_generated_relations(self):
         graph = {(127.0, 35.0): {}}
         candidates = [
