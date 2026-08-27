@@ -93,8 +93,19 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
     () => matchedDestinations.map((destination) => destinationToPlace(
       destination,
       distanceMeters(currentLocation, destination.coordinate),
-    )).sort((first, second) => first.distanceMeters - second.distanceMeters),
-    [currentLocation, matchedDestinations],
+    )).sort((first, second) => {
+      const query = keyword.trim().toLocaleLowerCase();
+      const relevance = (place: GuidePlace) => {
+        const name = place.name.toLocaleLowerCase();
+        if (name === query) return 0;
+        if (name.startsWith(query)) return 1;
+        if (name.includes(query)) return 2;
+        return 3;
+      };
+      return relevance(first) - relevance(second)
+        || first.distanceMeters - second.distanceMeters;
+    }),
+    [currentLocation, keyword, matchedDestinations],
   );
 
   const purposeFacilityPlaces = useMemo(() => {
@@ -136,8 +147,10 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
     ? purposeFacilityPlaces
     : keyword.trim() ? searchResults : popularPlaces;
   const visiblePlaces = selectedPlace
-    ? [selectedPlace, ...filteredPlaces.filter((place) => place.id !== selectedPlace.id)]
-    : filteredPlaces;
+    ? [selectedPlace]
+    : keyword.trim() || selectedPurpose
+      ? filteredPlaces.slice(0, 1)
+      : [];
 
   function handleSelectPlace(place: GuidePlace) {
     setSelectedPlace(place);
@@ -176,7 +189,11 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
             </button>
             <SearchBar
               value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
+              onChange={(event) => {
+                setKeyword(event.target.value);
+                setSelectedPurpose(null);
+                setSelectedPlace(null);
+              }}
               placeholder={t("guide.searchPlaceholder")}
               containerClassName="h-[38px] flex-1 bg-surface/95"
             />

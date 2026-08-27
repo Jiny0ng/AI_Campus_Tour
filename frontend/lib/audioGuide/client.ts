@@ -8,6 +8,9 @@ const localeMap = {
 } as const;
 
 export function audioCacheKey(request: AudioRequest) {
+  if (request.source.kind === "asset") {
+    return `asset|${request.source.assetId}`;
+  }
   return [request.text, request.locale, request.category].join("|");
 }
 
@@ -16,13 +19,19 @@ export async function fetchAudio(
   signal: AbortSignal,
 ) {
   const startedAt = performance.now();
-  const response = await synthesizeWithRetry(request, signal);
+  const source = request.source;
+  const response = source.kind === "asset"
+    ? await fetch(`/api/tts/assets/${encodeURIComponent(source.assetId)}`, {
+        signal,
+        cache: "no-store",
+      })
+    : await synthesizeWithRetry(request, signal);
   const ttfbMs = performance.now() - startedAt;
   if (!response.ok) throw Object.assign(new Error("Audio request failed"), { ttfbMs });
   // A synth cache miss waits for model generation. That duration is not a
   // network-quality signal; a cache hit or static asset request is.
   const cacheStatus = response.headers.get("X-Audio-Cache")?.toUpperCase();
-  const resultSource: "asset-cache" | "realtime-tts" = cacheStatus === "HIT"
+  const resultSource: "asset-cache" | "realtime-tts" = source.kind === "asset" || cacheStatus === "HIT"
     ? "asset-cache"
     : "realtime-tts";
   return {
