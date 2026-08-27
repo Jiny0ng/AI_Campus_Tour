@@ -24,6 +24,7 @@ sys.path.insert(0, str(BACKEND_DIR))
 
 from services import tts_service  # noqa: E402
 from services.audio_storage import load_manifest, write_object  # noqa: E402
+from services.tts_prompt_catalog import build_docent_prompt  # noqa: E402
 from services.tts_presets import BUBBLY_DOCENT  # noqa: E402
 from services.tts_service import audio_id_for, object_name_for  # noqa: E402
 
@@ -306,8 +307,11 @@ def main() -> int:
 
     preset = replace(
         BUBBLY_DOCENT,
-        id="bubbly-proud-senior-story-sample-v8",
-        prompt=f"{BUBBLY_DOCENT.prompt}\n\n{ENDING_DIRECTION}",
+        id="bubbly-proud-senior-story-sample-v9",
+        # Do not inherit BUBBLY_DOCENT.prompt here: it includes the legacy
+        # SHORT_ENDINGS instruction to end the final syllable immediately,
+        # which conflicts with the reviewed natural-ending direction below.
+        prompt=f"{build_docent_prompt('bubbly_proud_senior')}\n\n{ENDING_DIRECTION}",
     )
     tts_service.preset_for = lambda style, locale: preset
     manifest_path = Path(os.environ["TTS_MANIFEST_PATH"])
@@ -316,7 +320,7 @@ def main() -> int:
     generated = []
     for position, (entity_id, text) in enumerate(sample_texts().items(), start=1):
         asset_id = f"sample-story:{entity_id}:ko"
-        version = "story-prompt-sample-v8"
+        version = "story-prompt-sample-v9"
         print(json.dumps({"generating": asset_id, "progress": f"{position}/3"}, ensure_ascii=False), flush=True)
         audio, verified_text, quality = synthesize_verified(text)
         content_hash = audio_id_for(verified_text, "ko-KR", "core-docent", version)
