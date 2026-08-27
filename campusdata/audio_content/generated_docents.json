@@ -3,7 +3,7 @@
   "scripts": {
     "tour_01_new_gate": {
       "status": "active",
-      "text": "지금 보고 계신 곳은 전북대학교의 신정문입니다. 이곳은 전북대학교의 정문이며 가장 한국적인 캠퍼스를 상징하는 공간입니다. 2019년에 완공되었으며 총사업비는 53억 원입니다. 정문은 전통 한옥 형태로 설계되었습니다. 정문 중앙의 전북대학교 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼습니다.",
+      "text": "지금 보고 계신 곳은 전북대학교의 신정문입니다. 이곳은 전북대학교의 정문이며 가장 한국적인 캠퍼스를 상징하는 공간입니다. 2019년에 완공되었으며 전통 한옥 형태로 설계되었습니다. 정문 중앙의 전북대학교 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼습니다.",
       "contentFingerprint": "95652fb44994f7559c8a7f72cf80d00a749d9c5fa99ee9dae1f6c78a9bbd06b3",
       "contentVersion": "95652fb44994f755",
       "model": "gemini-3.6-flash",
@@ -13,8 +13,7 @@
         "tour_01_new_gate:architecture",
         "tour_01_new_gate:symbolism",
         "tour_01_new_gate:signage",
-        "tour_01_new_gate:completion-year",
-        "tour_01_new_gate:project-cost"
+        "tour_01_new_gate:completion-year"
       ],
       "targetDurationSeconds": 60,
       "validatedAt": "2026-08-25T14:42:58.757068+00:00"
