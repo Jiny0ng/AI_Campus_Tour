@@ -12,6 +12,7 @@ import math
 import os
 import re
 import sys
+import time
 import wave
 from dataclasses import replace
 from pathlib import Path
@@ -198,12 +199,30 @@ def concatenate_wavs(parts: list[bytes], pause_milliseconds: int = 120) -> bytes
 
 def synthesize_candidate(text: str, chunked: bool) -> tuple[bytes, int]:
     chunks = split_text_chunks(text) if chunked else [text]
-    parts = [
-        tts_service._synthesize_with_google(
-            chunk, "ko-KR", "core-docent", timeout_seconds=60
-        )
-        for chunk in chunks
-    ]
+    parts = []
+    for chunk_index, chunk in enumerate(chunks, start=1):
+        last_error: Exception | None = None
+        for request_attempt in range(1, 4):
+            try:
+                parts.append(
+                    tts_service._synthesize_with_google(
+                        chunk, "ko-KR", "core-docent", timeout_seconds=90
+                    )
+                )
+                break
+            except Exception as error:
+                last_error = error
+                print(json.dumps({
+                    "ttsRetry": request_attempt,
+                    "chunk": f"{chunk_index}/{len(chunks)}",
+                    "error": type(error).__name__,
+                }), flush=True)
+                if request_attempt < 3:
+                    time.sleep(request_attempt * 2)
+        else:
+            raise RuntimeError(
+                f"TTS chunk {chunk_index}/{len(chunks)} failed after 3 requests"
+            ) from last_error
     return concatenate_wavs(parts), len(chunks)
 
 
@@ -293,7 +312,7 @@ def main() -> int:
 
     preset = replace(
         BUBBLY_DOCENT,
-        id="bubbly-proud-senior-story-sample-v11",
+        id="bubbly-proud-senior-story-sample-v12",
         # Do not inherit BUBBLY_DOCENT.prompt here: it includes the legacy
         # SHORT_ENDINGS instruction to end the final syllable immediately,
         # which conflicts with the reviewed natural-ending direction below.
@@ -306,7 +325,7 @@ def main() -> int:
     generated = []
     for position, (entity_id, text) in enumerate(sample_texts().items(), start=1):
         asset_id = f"sample-story:{entity_id}:ko"
-        version = "story-prompt-sample-v11"
+        version = "story-prompt-sample-v12"
         print(json.dumps({"generating": asset_id, "progress": f"{position}/3"}, ensure_ascii=False), flush=True)
         audio, verified_text, quality = synthesize_verified(text)
         content_hash = audio_id_for(verified_text, "ko-KR", "core-docent", version)
