@@ -156,6 +156,11 @@ def _json_object(content: Any) -> dict[str, Any]:
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if not match:
         return {}
+    try:
+        parsed = json.loads(match.group(0))
+        return parsed if isinstance(parsed, dict) else {}
+    except json.JSONDecodeError:
+        return {}
 
 
 PROXIMITY_PATTERN = re.compile(
@@ -189,11 +194,6 @@ def parse_proximity_question(question: str) -> tuple[str, str] | None:
     if origin in PROXIMITY_PRONOUNS:
         origin = ""
     return origin[:80], _clean_proximity_target(match.group("target") or "")
-    try:
-        parsed = json.loads(match.group(0))
-        return parsed if isinstance(parsed, dict) else {}
-    except json.JSONDecodeError:
-        return {}
 
 
 def plan_question(question: str, current_place_name: str, llm: Any) -> QueryPlan:

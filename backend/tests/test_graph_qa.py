@@ -1,10 +1,22 @@
 import unittest
 
 from services.graph_qa import (
+    _json_object,
     QUERY_TEMPLATES,
     parse_proximity_question,
     validate_read_only_cypher,
 )
+
+
+class JsonObjectTests(unittest.TestCase):
+    def test_extracts_json_object_from_model_response(self):
+        self.assertEqual(
+            _json_object('```json\n{"intent":"facts","keyword":"도서관"}\n```'),
+            {"intent": "facts", "keyword": "도서관"},
+        )
+
+    def test_invalid_json_returns_empty_object(self):
+        self.assertEqual(_json_object("not json"), {})
 
 
 class GraphQaTemplateTests(unittest.TestCase):
