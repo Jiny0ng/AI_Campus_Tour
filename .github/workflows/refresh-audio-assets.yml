@@ -8,13 +8,13 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: production-audio-assets
+  group: production-campus-mutation
   cancel-in-progress: false
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 120
     steps:
       - name: Generate changed managed assets on the production VM
         uses: appleboy/ssh-action@v1.0.3
@@ -23,10 +23,11 @@ jobs:
           username: ${{ secrets.GCP_VM_USERNAME }}
           key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           port: 22
-          command_timeout: 25m
+          command_timeout: 110m
           script: |
             set -Eeuo pipefail
             cd ~/AI_Campus_Tour
+            export TTS_MANIFEST_PATH="/runtime/audio_content/audio_manifest.json"
             # Override any legacy value left in the VM's persistent .env so a
             # prompt rollout invalidates and regenerates every docent script.
             export DOCENT_SCRIPT_PROMPT_VERSION="v3"
@@ -35,5 +36,6 @@ jobs:
             docker-compose --profile audio run --rm audio-asset-generator \
               python /app/scripts/generate_docent_assets.py --apply
             docker-compose --profile audio run --rm audio-asset-generator
-            docker-compose exec -T backend python /app/scripts/validate_audio_manifest.py
+            docker-compose --profile audio run --rm audio-asset-generator \
+              python /app/scripts/validate_audio_manifest.py --require-pro-wav --check-storage
             docker-compose restart backend

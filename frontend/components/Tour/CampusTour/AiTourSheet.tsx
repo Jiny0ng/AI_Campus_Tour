@@ -222,8 +222,8 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
         body: JSON.stringify({
           question: normalized,
           language: locale,
-          current_stop_id: nextStop?.id ?? currentStop?.id ?? "",
-          current_place_name: nextStop?.name ?? currentStop?.name ?? "",
+          current_stop_id: currentStop?.id ?? "",
+          current_place_name: currentStop?.name ?? "",
           next_stop_id: nextStop?.id ?? "",
         }),
       });

@@ -55,20 +55,48 @@ QUERY_TEMPLATES: dict[Intent, str] = {
         LIMIT $limit
     """,
     "nearby": """
-        MATCH (origin)-[near:NEAR|SEMI_NEAR]-(place)
-        WHERE origin.place_id = $current_stop_id OR origin.spot_id = $current_stop_id
-           OR origin.building_id = $current_stop_id
-        WITH place, near
-        WHERE $keyword = '' OR place.name CONTAINS $keyword OR coalesce(place.category, '') CONTAINS $keyword
-        RETURN coalesce(place.place_id, place.spot_id, place.building_id, place.facility_id) AS id,
+        MATCH (origin)
+        WHERE ($entity_name <> '' AND (origin.name CONTAINS $entity_name
+               OR coalesce(origin.alias, '') CONTAINS $entity_name))
+           OR ($entity_name = '' AND (origin.place_id = $current_stop_id
+               OR origin.spot_id = $current_stop_id OR origin.building_id = $current_stop_id))
+        WITH origin,
+             CASE WHEN origin.name = $entity_name THEN 0
+                  WHEN origin.name STARTS WITH $entity_name THEN 1 ELSE 2 END AS originRank
+        ORDER BY originRank LIMIT 1
+        OPTIONAL MATCH (origin)-[near:NEAR|SEMI_NEAR]-(nearContainer)
+        WITH origin, collect(CASE WHEN near IS NULL THEN null ELSE {
+             container: nearContainer, distanceMeters: near.distance_m,
+             walkingSeconds: near.walking_seconds, proximityTier: type(near)
+        } END) AS nearbyContainers
+        WITH [{container: origin, distanceMeters: 0, walkingSeconds: 0,
+               proximityTier: 'NEAR'}]
+             + [item IN nearbyContainers WHERE item IS NOT NULL] AS containers
+        UNWIND containers AS proximity
+        WITH proximity, proximity.container AS container
+        OPTIONAL MATCH (directFacility:Facility)-[:LOCATED_IN]->(container)
+        OPTIONAL MATCH (container)-[:HAS_STORE]->(storeFacility:Facility)
+        OPTIONAL MATCH (container)-[:HAS_FLOOR]->(:Floor)-[:HAS_FACILITY|HAS_ROOM]->(floorFacility:Facility)
+        WITH proximity, [container, directFacility, storeFacility, floorFacility] AS candidates
+        UNWIND candidates AS place
+        WITH place, proximity
+        WHERE place IS NOT NULL AND ($keyword = '' OR place.name CONTAINS $keyword
+              OR coalesce(place.type, '') CONTAINS $keyword
+              OR coalesce(place.category, '') CONTAINS $keyword
+              OR coalesce(place.description, '') CONTAINS $keyword)
+        ORDER BY CASE WHEN proximity.proximityTier = 'NEAR' THEN 0 ELSE 1 END,
+                 proximity.distanceMeters
+        WITH place, head(collect(proximity)) AS proximity
+        RETURN coalesce(place.place_id, place.spot_id, place.building_id, place.facility_id,
+                        place.store_id, place.room_id) AS id,
                place.name AS name, coalesce(place.description, place.main_function, place.docent_text, '') AS description,
-               near.distance_m AS distanceMeters, near.walking_seconds AS walkingSeconds,
-               type(near) AS proximityTier,
-               CASE WHEN type(near) = 'SEMI_NEAR'
+               proximity.distanceMeters AS distanceMeters, proximity.walkingSeconds AS walkingSeconds,
+               proximity.proximityTier AS proximityTier,
+               CASE WHEN proximity.proximityTier = 'SEMI_NEAR'
                     THEN '조금 거리가 있지만 가볼 만한 곳'
                     ELSE '가까운 곳' END AS suggestionTone
-        ORDER BY CASE WHEN type(near) = 'NEAR' THEN 0 ELSE 1 END,
-                 near.distance_m LIMIT $limit
+        ORDER BY CASE WHEN proximity.proximityTier = 'NEAR' THEN 0 ELSE 1 END,
+                 proximity.distanceMeters LIMIT $limit
     """,
     "place_search": """
         MATCH (place)
@@ -128,6 +156,39 @@ def _json_object(content: Any) -> dict[str, Any]:
     match = re.search(r"\{.*\}", text, re.DOTALL)
     if not match:
         return {}
+
+
+PROXIMITY_PATTERN = re.compile(
+    r"^\s*(?:(?P<origin>.+?)\s+)?(?:근처|주변|인근)(?:에|의|에서)?\s*(?P<target>.*?)\s*$"
+)
+PROXIMITY_PRONOUNS = {"", "여기", "이곳", "현재", "현재 위치", "내", "우리", "제"}
+
+
+def _clean_proximity_target(value: str) -> str:
+    target = re.sub(
+        r"\s*(?:알려\s*줘|알려\s*주세요|추천(?:해\s*줘|해\s*주세요)?|찾아\s*줘|"
+        r"어디(?:야|예요|인가요)?|있어(?:요)?|있나요|뭐가\s*있어(?:요)?)\??\s*$",
+        "",
+        value.strip(),
+    ).strip()
+    lowered = target.lower()
+    if any(term in lowered for term in ("카페", "커피숍", "커피점", "coffee", "cafe")):
+        return "카페"
+    if any(term in lowered for term in ("편의점", "cu", "쿱스켓", "이마트24")):
+        return "편의점"
+    if "주차" in lowered:
+        return "주차"
+    return target[:80]
+
+
+def parse_proximity_question(question: str) -> tuple[str, str] | None:
+    match = PROXIMITY_PATTERN.match(question.strip())
+    if not match:
+        return None
+    origin = (match.group("origin") or "").strip()
+    if origin in PROXIMITY_PRONOUNS:
+        origin = ""
+    return origin[:80], _clean_proximity_target(match.group("target") or "")
     try:
         parsed = json.loads(match.group(0))
         return parsed if isinstance(parsed, dict) else {}
@@ -149,6 +210,15 @@ Question: {question}
     intent = str(parsed.get("intent", "facts"))
     if intent not in ALLOWED_INTENTS:
         intent = "facts"
+    proximity = parse_proximity_question(question)
+    if proximity is not None:
+        origin, target = proximity
+        return QueryPlan(
+            intent="nearby",
+            keyword=target,
+            entity_name=origin,
+            floor="",
+        )
     return QueryPlan(
         intent=intent,  # type: ignore[arg-type]
         keyword=str(parsed.get("keyword", ""))[:80].strip(),

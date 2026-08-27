@@ -18,9 +18,10 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPOSITORY_DIR = BACKEND_DIR.parent
 DATA_DIR = REPOSITORY_DIR / "campusdata"
 CONTENT_DIR = DATA_DIR / "audio_content"
-REGISTRY_PATH = CONTENT_DIR / "generated_docents.json"
-PENDING_REGISTRY_PATH = CONTENT_DIR / "generated_docents.pending.json"
-MANIFEST_PATH = CONTENT_DIR / "audio_manifest.json"
+MANIFEST_PATH = Path(os.getenv("TTS_MANIFEST_PATH", CONTENT_DIR / "audio_manifest.json"))
+RUNTIME_CONTENT_DIR = MANIFEST_PATH.parent
+REGISTRY_PATH = RUNTIME_CONTENT_DIR / "generated_docents.json"
+PENDING_REGISTRY_PATH = RUNTIME_CONTENT_DIR / "generated_docents.pending.json"
 sys.path.insert(0, str(BACKEND_DIR))
 
 from services.audio_storage import is_configured, read_object, write_object  # noqa: E402
@@ -45,6 +46,7 @@ def load_json(path: Path, fallback: dict) -> dict:
 
 
 def atomic_save(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = path.with_suffix(path.suffix + ".tmp")
     temporary_path.write_text(
         json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
@@ -345,8 +347,8 @@ def main() -> int:
 
     # Activate only after every script passed both validators and every audio
     # object is confirmed present in storage.
-    atomic_save(REGISTRY_PATH, next_registry)
     atomic_save(MANIFEST_PATH, next_manifest)
+    atomic_save(REGISTRY_PATH, next_registry)
     PENDING_REGISTRY_PATH.unlink(missing_ok=True)
     print(json.dumps({
         "activatedDocents": len(assets_to_activate),

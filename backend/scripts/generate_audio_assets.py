@@ -7,6 +7,7 @@ Dry-run is the default. Use --apply only from an authenticated operator or CI jo
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import json
 import os
@@ -18,9 +19,10 @@ from pathlib import Path
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPOSITORY_DIR = BACKEND_DIR.parent
 CONTENT_DIR = REPOSITORY_DIR / "campusdata" / "audio_content"
-MANIFEST_PATH = CONTENT_DIR / "audio_manifest.json"
+MANIFEST_PATH = Path(os.getenv("TTS_MANIFEST_PATH", CONTENT_DIR / "audio_manifest.json"))
+RUNTIME_CONTENT_DIR = MANIFEST_PATH.parent
 PLACES_PATH = REPOSITORY_DIR / "campusdata" / "campus_places.csv"
-GENERATED_DOCENTS_PATH = CONTENT_DIR / "generated_docents.json"
+GENERATED_DOCENTS_PATH = RUNTIME_CONTENT_DIR / "generated_docents.json"
 SYSTEM_PUBLIC_DIR = Path(
     os.getenv(
         "AUDIO_SYSTEM_PUBLIC_DIR",
@@ -45,7 +47,8 @@ DISTANCE_BUCKETS = (30, 50, 100, 200, 300, 500)
 
 
 def save_manifest(manifest: dict) -> None:
-    """Persist progress after every asset so a transient API error is resumable."""
+    """Atomically activate a completely generated manifest."""
+    MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = MANIFEST_PATH.with_suffix(".json.tmp")
     temporary_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
@@ -172,6 +175,7 @@ def main() -> int:
     args = parser.parse_args()
 
     manifest = json.loads(MANIFEST_PATH.read_text(encoding="utf-8"))
+    next_manifest = copy.deepcopy(manifest)
     rows = managed_rows()
     docent_rows, docent_errors = core_docent_rows()
     rows.extend(docent_rows)
@@ -231,7 +235,7 @@ def main() -> int:
                     "encoding": preset.encoding,
                 },
             )
-        manifest["assets"][row["id"]] = {
+        next_manifest["assets"][row["id"]] = {
             "audioId": audio_id,
             "objectName": object_name,
             "locale": row["locale"],
@@ -247,10 +251,9 @@ def main() -> int:
                 local_path = SYSTEM_PUBLIC_DIR / f"{parts[1]}-{parts[2]}.{preset.extension}"
                 local_path.write_bytes(content)
                 local_system_files.add(local_path.name)
-                manifest["assets"][row["id"]]["localPath"] = str(
+                next_manifest["assets"][row["id"]]["localPath"] = str(
                     local_path.relative_to(SYSTEM_PUBLIC_DIR.parent.parent)
                 )
-        save_manifest(manifest)
         print(json.dumps({
             "completed": completed,
             "total": len(planned),
@@ -267,7 +270,7 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    save_manifest(manifest)
+    save_manifest(next_manifest)
     print(json.dumps({"reusedStoredAssets": reused_objects}, ensure_ascii=False))
     return 0
 

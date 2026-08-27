@@ -5,13 +5,17 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 REPOSITORY_DIR = BACKEND_DIR.parent
-MANIFEST_PATH = REPOSITORY_DIR / "campusdata" / "audio_content" / "audio_manifest.json"
+MANIFEST_PATH = Path(os.getenv(
+    "TTS_MANIFEST_PATH",
+    REPOSITORY_DIR / "campusdata" / "audio_content" / "audio_manifest.json",
+))
 sys.path.insert(0, str(BACKEND_DIR))
 
 from services.audio_storage import delete_object, list_objects, read_object  # noqa: E402

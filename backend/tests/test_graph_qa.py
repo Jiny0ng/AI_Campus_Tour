@@ -1,6 +1,10 @@
 import unittest
 
-from services.graph_qa import QUERY_TEMPLATES, validate_read_only_cypher
+from services.graph_qa import (
+    QUERY_TEMPLATES,
+    parse_proximity_question,
+    validate_read_only_cypher,
+)
 
 
 class GraphQaTemplateTests(unittest.TestCase):
@@ -24,7 +28,24 @@ class GraphQaTemplateTests(unittest.TestCase):
     def test_nearby_prefers_near_and_can_fall_back_to_semi_near(self):
         query = QUERY_TEMPLATES["nearby"]
         self.assertIn("NEAR|SEMI_NEAR", query)
-        self.assertIn("type(near) = 'NEAR' THEN 0 ELSE 1", query)
+        self.assertIn("proximity.proximityTier = 'NEAR' THEN 0 ELSE 1", query)
+
+    def test_nearby_uses_named_origin_and_searches_facilities_inside_nearby_buildings(self):
+        query = QUERY_TEMPLATES["nearby"]
+        self.assertIn("origin.name CONTAINS $entity_name", query)
+        self.assertIn("LOCATED_IN", query)
+        self.assertIn("HAS_STORE", query)
+        self.assertIn("HAS_FLOOR", query)
+        self.assertIn("HAS_FACILITY|HAS_ROOM", query)
+
+    def test_parses_named_korean_proximity_question(self):
+        self.assertEqual(
+            ("중앙도서관", "카페"),
+            parse_proximity_question("중앙도서관 근처 카페 알려줘"),
+        )
+
+    def test_parses_current_location_proximity_question(self):
+        self.assertEqual(("", "편의점"), parse_proximity_question("주변 편의점 알려주세요"))
 
 
 if __name__ == "__main__":

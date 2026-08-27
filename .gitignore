@@ -29,6 +29,7 @@ logs/
 .cleanup-quarantine/
 backend/backups/
 campusdata/backups/
+runtime/audio_content/
 
 .next
 node_modules
