@@ -1,6 +1,6 @@
 "use client";
 
-import { LocateFixed } from "lucide-react";
+import { Compass } from "lucide-react";
 
 type LocationButtonProps = {
   onClick?: () => void;
@@ -14,7 +14,7 @@ export function LocationButton({ onClick }: LocationButtonProps) {
       className="grid size-11 place-items-center rounded-full bg-surface text-primary shadow-sm"
       aria-label="Use current location"
     >
-      <LocateFixed size={20} />
+      <Compass size={20} />
     </button>
   );
 }

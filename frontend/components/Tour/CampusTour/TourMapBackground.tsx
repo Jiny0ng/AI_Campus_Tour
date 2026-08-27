@@ -102,7 +102,6 @@ export function TourMapBackground({
         showUserLocation
         followUserLocation
         recenterUserLocationToken={recenterUserLocationToken}
-        headingUp
         onReady={onMapReady}
       />
       <div className="pointer-events-none absolute inset-0 bg-white/5" />

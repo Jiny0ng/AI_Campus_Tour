@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, LocateFixed } from "lucide-react";
+import { ChevronLeft, Compass } from "lucide-react";
 import { FloatingButton } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import { campusCenter } from "@/constants/campus";
@@ -769,7 +769,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
           <div className="mt-3 flex flex-col items-end gap-3">
             <TourSettingsMenu />
             <FloatingButton
-              icon={<LocateFixed size={21} />}
+              icon={<Compass size={21} />}
               label={t("map.recenter")}
               variant="soft"
               disabled={!userLocation}

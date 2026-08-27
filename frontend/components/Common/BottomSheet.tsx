@@ -2,7 +2,7 @@
 
 import { PropsWithChildren, ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { motion, AnimatePresence, useDragControls, useMotionValue } from "framer-motion";
+import { motion, AnimatePresence, useDragControls, useMotionValue, animate } from "framer-motion";
 import { cn } from "@/lib/cn";
 
 type BottomSheetProps = PropsWithChildren<{
@@ -31,7 +31,7 @@ export function BottomSheet({
   contentClassName,
   freeDrag = false,
   minVisibleHeightVh = 18,
-  maxHeightVh = 60,
+  maxHeightVh = 65,
   initialHeightVh = 26,
   children,
 }: BottomSheetProps) {
@@ -85,6 +85,22 @@ export function BottomSheet({
           dragConstraints={{ top: 0, bottom: maxDragY }}
           dragElastic={0}
           dragMomentum={false}
+          onDragEnd={() => {
+            if (freeDrag) {
+              const currentY = dragY.get();
+              const viewportHeight = window.innerHeight;
+              const initialOffset = (viewportHeight * (maxHeightVh - initialHeightVh)) / 100;
+              const snapPoints = [0, initialOffset, maxDragY];
+              const threshold = viewportHeight * 0.05;
+
+              for (const point of snapPoints) {
+                if (Math.abs(currentY - point) < threshold) {
+                  animate(dragY, point, { type: "spring", bounce: 0, duration: 0.4 });
+                  break;
+                }
+              }
+            }
+          }}
           style={freeDrag ? { height: `${maxHeightVh}dvh`, y: dragY } : undefined}
           className={cn(
             "fixed inset-x-0 bottom-0 z-20 mx-auto flex max-h-[90dvh] w-full max-w-[430px] flex-col rounded-t-sheet bg-surface px-5 pb-[calc(24px+env(safe-area-inset-bottom))] pt-3 shadow-sheet",

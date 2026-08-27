@@ -16,7 +16,6 @@ type NaverMapProps = {
   showUserLocation?: boolean;
   followUserLocation?: boolean;
   recenterUserLocationToken?: number;
-  headingUp?: boolean;
   minZoom?: number;
   maxZoom?: number;
   onReady?: (map: naver.maps.Map) => void;
@@ -232,7 +231,6 @@ export function NaverMap({
   showUserLocation = true,
   followUserLocation = false,
   recenterUserLocationToken = 0,
-  headingUp = false,
   minZoom = 6,
   maxZoom = 21,
   onReady,
@@ -377,7 +375,7 @@ export function NaverMap({
           setHeading((currentHeading) => {
             if (currentHeading === null) return gpsHeading;
             const delta = ((gpsHeading - currentHeading + 540) % 360) - 180;
-            return currentHeading + delta * 0.35;
+            return currentHeading + delta * 0.5;
           });
         }
       },
@@ -386,7 +384,7 @@ export function NaverMap({
       },
       {
         enableHighAccuracy: true,
-        maximumAge: 5000,
+        maximumAge: 0,
         timeout: 10000,
       },
     );
@@ -436,7 +434,7 @@ export function NaverMap({
         setHeading((currentHeading) => {
           if (currentHeading === null) return nextHeading;
           const delta = ((nextHeading - currentHeading + 540) % 360) - 180;
-          return currentHeading + delta * 0.25;
+          return currentHeading + delta * 0.5;
         });
       }
     }
@@ -576,11 +574,6 @@ export function NaverMap({
       <div
         ref={containerRef}
         className="absolute inset-0 z-0 size-full"
-        style={headingUp && heading !== null ? {
-          transform: `rotate(${-heading}deg) scale(1.45)`,
-          transformOrigin: "50% 50%",
-          transition: "transform 180ms linear",
-        } : undefined}
       />
     </div>
   );

@@ -366,9 +366,9 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
 
         <div className="pointer-events-auto absolute right-4 top-[74px] z-30 flex flex-col items-end gap-3">
           <AppSettingsMenu />
-          <FloatingButton icon={<Compass size={21} />} label={t("map.orientation")} />
+
           <FloatingButton
-            icon={<LocateFixed size={21} />}
+            icon={<Compass size={21} />}
             label={t("map.recenter")}
             onClick={() => setRecenterUserLocationToken((token) => token + 1)}
           />
