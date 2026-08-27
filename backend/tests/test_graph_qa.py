@@ -49,6 +49,7 @@ class GraphQaTemplateTests(unittest.TestCase):
         self.assertIn("HAS_STORE", query)
         self.assertIn("HAS_FLOOR", query)
         self.assertIn("HAS_FACILITY|HAS_ROOM", query)
+        self.assertIn("WITH place, proximity\n        ORDER BY", query)
 
     def test_parses_named_korean_proximity_question(self):
         self.assertEqual(

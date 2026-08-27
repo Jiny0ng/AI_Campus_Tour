@@ -84,6 +84,7 @@ QUERY_TEMPLATES: dict[Intent, str] = {
               OR coalesce(place.type, '') CONTAINS $keyword
               OR coalesce(place.category, '') CONTAINS $keyword
               OR coalesce(place.description, '') CONTAINS $keyword)
+        WITH place, proximity
         ORDER BY CASE WHEN proximity.proximityTier = 'NEAR' THEN 0 ELSE 1 END,
                  proximity.distanceMeters
         WITH place, head(collect(proximity)) AS proximity
