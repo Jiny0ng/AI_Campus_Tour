@@ -198,7 +198,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const [arrivedStopId, setArrivedStopId] = useState<string | null>(null);
   const [recenterUserLocationToken, setRecenterUserLocationToken] = useState(0);
   const [isOffRouteDialogOpen, setIsOffRouteDialogOpen] = useState(false);
-  const [needsIdleDocentFallback, setNeedsIdleDocentFallback] = useState(false);
+  const [gpsDocentSpots, setGpsDocentSpots] = useState<CampusTourNearbySpot[]>([]);
   const startLocationInitializedRef = useRef(false);
   const offRouteWarningArmedRef = useRef(true);
   const lastRouteDistanceLogRef = useRef<number | null>(null);
@@ -206,8 +206,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const confirmedArrivalStopIdsRef = useRef(new Set<string>());
   const previousLocaleRef = useRef(locale);
   const tourSessionIdRef = useRef(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`);
-  const idleDocentSpotIdsRef = useRef(new Set<string>());
-  const lastIdleDocentAtRef = useRef(0);
+  const playedDocentSpotIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     beginNetworkGrace();
@@ -284,29 +283,32 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.enRouteDocentText || narrationStop?.docentText);
 
   useEffect(() => {
-    if (!needsIdleDocentFallback || status.playback !== "idle" || status.request || isNearbyLoading) return;
-    if (Date.now() - lastIdleDocentAtRef.current < 20_000) return;
-    const spot = nearbySpots.find((candidate) => (
+    if (locale !== "ko" || status.playback !== "idle" || status.request) return;
+    const spot = gpsDocentSpots.find((candidate) => (
       candidate.distanceMeters <= 60
       && Boolean(candidate.docentText)
-      && !idleDocentSpotIdsRef.current.has(candidate.id)
+      && Boolean(candidate.audioAssetId)
+      && !playedDocentSpotIdsRef.current.has(candidate.id)
     ));
-    if (!spot?.docentText) return;
-    idleDocentSpotIdsRef.current.add(spot.id);
-    lastIdleDocentAtRef.current = Date.now();
-    setNeedsIdleDocentFallback(false);
+    if (!spot?.docentText || !spot.audioAssetId) return;
+    playedDocentSpotIdsRef.current.add(spot.id);
+    clientDebug("audio", "docent-spot-triggered", {
+      spotId: spot.id,
+      distanceMeters: spot.distanceMeters,
+      audioAssetId: spot.audioAssetId,
+    });
     void speak({
-      id: `idle-docent-spot:${tourSessionIdRef.current}:${spot.id}:${locale}`,
+      id: `gps-docent-spot:${tourSessionIdRef.current}:${spot.id}:ko`,
       text: spot.docentText,
-      locale: /[가-힣]/.test(spot.docentText) ? "ko" : locale,
+      locale: "ko",
       category: "location-docent",
       priority: 25,
-      source: { kind: "tts" },
+      source: { kind: "asset", assetId: spot.audioAssetId },
       interruptible: true,
       resumePolicy: "discard",
       report: { placeId: spot.id, placeName: spot.name, include: true },
     });
-  }, [isNearbyLoading, locale, nearbySpots, needsIdleDocentFallback, speak, status.playback, status.request]);
+  }, [gpsDocentSpots, locale, speak, status.playback, status.request]);
 
   useEffect(() => {
     if (previousLocaleRef.current === locale) return;
@@ -345,13 +347,11 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
 
   useEffect(() => {
     if (!narrationStop || !enRouteNarrationText) {
-      setNeedsIdleDocentFallback(Boolean(narrationStop));
       return;
     }
     const narrationId = `en-route:${narrationStop.id}:${locale}`;
     if (narratedStopIdsRef.current.has(narrationId)) return;
     narratedStopIdsRef.current.add(narrationId);
-    setNeedsIdleDocentFallback(false);
     void speak({
       id: `tour-stop:${tourSessionIdRef.current}:${narrationId}`,
       text: enRouteNarrationText,
@@ -365,7 +365,6 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       resumePolicy: "resume",
       report: { placeId: narrationStop.id, placeName: narrationStop.name, include: true },
     }).then(async (outcome) => {
-      if (outcome === "skipped") setNeedsIdleDocentFallback(true);
       if (
         outcome === "completed"
         && narrationStop.id === "tour_01_new_gate"
@@ -586,6 +585,36 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
 
     return () => navigator.geolocation.clearWatch(watchId);
   }, [data]);
+
+  const gpsLatitudeBucket = userLocation?.lat.toFixed(4) ?? "";
+  const gpsLongitudeBucket = userLocation?.lng.toFixed(4) ?? "";
+
+  useEffect(() => {
+    if (!gpsLatitudeBucket || !gpsLongitudeBucket || locale !== "ko") {
+      setGpsDocentSpots([]);
+      return;
+    }
+    const controller = new AbortController();
+    const latitude = Number(gpsLatitudeBucket);
+    const longitude = Number(gpsLongitudeBucket);
+    trackedFetch("/api/tour/nearby-docent-spots", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitude, longitude, radius_meters: 60 }),
+      signal: controller.signal,
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("GPS docent spots request failed");
+        return response.json();
+      })
+      .then((result: { nearbySpots: CampusTourNearbySpot[] }) => {
+        setGpsDocentSpots(result.nearbySpots);
+      })
+      .catch((error: Error) => {
+        if (error.name !== "AbortError") setGpsDocentSpots([]);
+      });
+    return () => controller.abort();
+  }, [gpsLatitudeBucket, gpsLongitudeBucket, locale]);
 
   useEffect(() => {
     const destination = nextStop || currentStop;

@@ -66,11 +66,12 @@ export type CampusTourNearbySpot = {
   category: string;
   description: string;
   docentText: string;
+  audioAssetId?: string;
   latitude: number;
   longitude: number;
   distanceMeters: number;
   walkingSeconds?: number;
-  nearMethod?: "walking_network" | "straight_line_fallback" | "manual";
+  nearMethod?: "walking_network" | "straight_line_fallback" | "manual" | "gps_radius";
   nearVerified?: boolean;
 };
 

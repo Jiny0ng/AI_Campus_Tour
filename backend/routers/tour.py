@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any, Literal
 import yaml
 import os
@@ -57,6 +57,12 @@ class NearbySpotsRequest(BaseModel):
     destination_id: str
     latitude: float
     longitude: float
+
+
+class NearbyDocentSpotsRequest(BaseModel):
+    latitude: float
+    longitude: float
+    radius_meters: float = Field(default=60, ge=10, le=100)
 
 
 # 퓨샷 프롬프트 로드 유틸리티
@@ -217,6 +223,52 @@ def get_nearby_places(
         )
         return [dict(row) for row in rows]
 
+
+def get_gps_nearby_docent_spots(
+    driver,
+    latitude: float,
+    longitude: float,
+    radius_meters: float = 60,
+):
+    """Return docent spots inside the user's current GPS radius."""
+    with driver.session() as session:
+        rows = session.run(
+            """
+            MATCH (spot:DocentSpot)
+            WHERE spot.latitude IS NOT NULL AND spot.longitude IS NOT NULL
+            WITH spot, point.distance(
+                point({latitude: toFloat(spot.latitude), longitude: toFloat(spot.longitude)}),
+                point({latitude: $latitude, longitude: $longitude})
+            ) AS distance_m
+            WHERE distance_m <= $radius_meters
+            RETURN coalesce(spot.spot_id, spot.place_id, elementId(spot)) AS id,
+                   spot.name AS name,
+                   coalesce(spot.spot_type, spot.category, '도슨트스팟') AS category,
+                   coalesce(spot.description, spot.related_content, '') AS description,
+                   coalesce(spot.docent_text, '') AS docentText,
+                   toFloat(spot.latitude) AS latitude,
+                   toFloat(spot.longitude) AS longitude,
+                   round(distance_m, 1) AS distanceMeters,
+                   toInteger(ceil(distance_m / 1.3)) AS walkingSeconds,
+                   'gps_radius' AS nearMethod,
+                   true AS nearVerified
+            ORDER BY distance_m, name
+            LIMIT 5
+            """,
+            latitude=latitude,
+            longitude=longitude,
+            radius_meters=radius_meters,
+        )
+        spots = [dict(row) for row in rows]
+    generated = active_generated_docents()
+    results = []
+    for spot in spots:
+        entity_id = str(spot.get("id", ""))
+        asset_prefix = "en-route-docent" if entity_id in generated else "core-docent"
+        spot["audioAssetId"] = f"{asset_prefix}:{entity_id}:ko"
+        results.append(spot)
+    return results
+
 def get_building_coords(driver, name: str):
     with driver.session() as session:
         node = session.run("MATCH (b) WHERE (b:Building OR b:TourStop) AND b.name = $name RETURN coalesce(b.tour_latitude, b.latitude) AS lat, coalesce(b.tour_longitude, b.longitude) AS lng", {"name": name}).single()
@@ -245,6 +297,21 @@ async def nearby_docent_spots(req: NearbySpotsRequest, request: Request):
             req.latitude,
             req.longitude,
         ),
+    }
+
+
+@router.post("/nearby-docent-spots")
+async def nearby_docent_spots_by_gps(req: NearbyDocentSpotsRequest, request: Request):
+    spots = get_gps_nearby_docent_spots(
+        request.app.state.neo4j_driver,
+        req.latitude,
+        req.longitude,
+        req.radius_meters,
+    )
+    return {
+        "status": "success",
+        "triggerRadiusMeters": req.radius_meters,
+        "nearbySpots": spots,
     }
 
 
