@@ -720,11 +720,49 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       return;
     }
     if (isLastStop) {
+      stop("manual-tour-finish");
       router.push(APP_ROUTES.tourSummary);
       return;
     }
     if (tourData?.stops?.length > 0) {
-      setCurrentStopIndex((index) => Math.min(index + 1, tourData.stops.length - 1));
+      const advancedIndex = Math.min(currentStopIndex + 1, tourData.stops.length - 1);
+      const advancedCurrentStop = tourData.stops[advancedIndex];
+      const advancedNextStop = advancedCurrentStop?.nextStopId
+        ? tourData.stops.find((candidate) => candidate.id === advancedCurrentStop.nextStopId)
+        : undefined;
+      const advancedNarrationStop = advancedNextStop ?? advancedCurrentStop;
+      const advancedNarrationText = advancedNarrationStop
+        ? ((locale === "ko"
+          ? advancedNarrationStop.enRouteDocentText || advancedNarrationStop.docentText
+          : "") || advancedNarrationStop.description)
+        : "";
+      const hasAdvancedReviewedNarration = locale === "ko" && Boolean(
+        advancedNarrationStop?.enRouteDocentText || advancedNarrationStop?.docentText,
+      );
+
+      stop("manual-tour-advance");
+      setCurrentStopIndex(advancedIndex);
+      if (advancedNarrationStop && advancedNarrationText) {
+        const narrationId = `en-route:${advancedNarrationStop.id}:${locale}`;
+        narratedStopIdsRef.current.add(narrationId);
+        void speak({
+          id: `manual-next:${tourSessionIdRef.current}:${advancedNarrationStop.id}:${locale}:${Date.now()}`,
+          text: advancedNarrationText,
+          locale,
+          category: hasAdvancedReviewedNarration ? "core-docent" : "location-docent",
+          priority: 70,
+          source: hasAdvancedReviewedNarration
+            ? { kind: "asset", assetId: `en-route-docent:${advancedNarrationStop.id}:${locale}` }
+            : { kind: "tts" },
+          interruptible: true,
+          resumePolicy: "discard",
+          report: {
+            placeId: advancedNarrationStop.id,
+            placeName: advancedNarrationStop.name,
+            include: true,
+          },
+        });
+      }
     }
   }
 
