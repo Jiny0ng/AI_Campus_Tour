@@ -40,8 +40,9 @@ ENDING_DIRECTION = """
 문장의 마지막 모음은 과도하게 늘이지 않는다. 다만 마지막 음절을 짧게 잘라 먹거나
 급하게 끝내지 말고, 자연스러운 호흡과 완만한 하강 억양으로 차분하게 마무리한다.
 안내 전체의 마지막 문장에서도 말하는 속도를 갑자기 높이지 말고 평소 속도를 유지한다.
-대본 끝의 말줄임표는 새로운 소리로 읽지 말고, 마지막 음절까지 또렷하게 발음한 뒤
-아주 짧은 여유를 남기라는 지시로 해석한다.
+마지막 문장은 마침표까지 완전한 문장으로 읽는다. 마지막 단어와 마지막 음절을 생략하거나
+흐리지 말고 또렷하게 끝낸다. 음성 파일의 뒤쪽 여유는 후처리로 추가하므로, 낭독하면서
+임의로 길게 여운을 만들 필요는 없다.
 """.strip()
 
 
@@ -52,7 +53,7 @@ def sample_texts() -> dict[str, str]:
             "한국적인 캠퍼스를 상징하는 공간인데요. 2019년에 완공되어 전통 한옥의 "
             "멋을 보여 줍니다. 중앙의 현판도 한번 살펴보세요. 당시 중문과 김병기 교수가 "
             "직접 쓴 글씨라고 해요. 그 이야기를 알고 보니 조금 다르게 느껴지지 않나요? "
-            "안으로 들어가기 전에 신정문의 첫인상을 기억해 보세요..."
+            "안으로 들어가기 전에 신정문의 첫인상을 기억해 보세요."
         ),
         "tour_03_university_headquarters": (
             "지금 보고 계신 곳은 전북대학교의 행정 중심인 대학본부입니다. 총장실과 "
@@ -60,7 +61,7 @@ def sample_texts() -> dict[str, str]:
             "있습니다. 지혜롭고 용감하게 전진하는 모습에는 전북대인의 기상이 담겨 있어요. "
             "이 상징은 1981년, 약 6천 명이 참여한 투표를 거쳐 선정되었습니다. 그리고 "
             "1982년 5월 지금의 조형물이 세워졌어요. 알고 바라보니 그 자세가 조금 더 "
-            "힘차게 느껴지지 않나요? 전북대의 기상을 한번 떠올려 보세요..."
+            "힘차게 느껴지지 않나요? 전북대의 기상을 한번 떠올려 보세요."
         ),
         "docent_leopard_statue": (
             "지금 보고 계신 조형물은 전북대학교를 상징하는 표범상입니다. 학교는 표범이 "
@@ -68,7 +69,7 @@ def sample_texts() -> dict[str, str]:
             "이 상징은 1981년 약 6천 명이 참여한 투표를 거쳐 선정되었습니다. 이듬해 "
             "5월에는 지금의 조형물이 대학본부 앞에 세워졌어요. 자세를 천천히 바라보세요. "
             "학교가 담고 싶었던 힘찬 기상이 느껴지시나요? 전북대학교의 상징을 기억해 "
-            "보세요..."
+            "보세요."
         ),
     }
 
@@ -103,7 +104,7 @@ def main() -> int:
 
     preset = replace(
         BUBBLY_DOCENT,
-        id="bubbly-proud-senior-story-sample-v4",
+        id="bubbly-proud-senior-story-sample-v5",
         prompt=f"{BUBBLY_DOCENT.prompt}\n\n{ENDING_DIRECTION}",
     )
     tts_service.preset_for = lambda style, locale: preset
@@ -112,7 +113,7 @@ def main() -> int:
 
     for position, (entity_id, text) in enumerate(sample_texts().items(), start=1):
         asset_id = f"sample-story:{entity_id}:ko"
-        version = "story-prompt-sample-v4"
+        version = "story-prompt-sample-v5"
         content_hash = audio_id_for(text, "ko-KR", "core-docent", version)
         object_name = object_name_for(content_hash, "ko-KR", "core-docent")
         print(json.dumps({"generating": asset_id, "progress": f"{position}/3"}, ensure_ascii=False), flush=True)
