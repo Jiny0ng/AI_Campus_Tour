@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from services.tts_presets import BUBBLY_DOCENT, preset_for  # noqa: E402
+from services.tts_presets import BUBBLY_DOCENT, FAST_CHAT_ANSWER, preset_for  # noqa: E402
 
 
 class TtsPresetTests(unittest.TestCase):
@@ -26,8 +26,12 @@ class TtsPresetTests(unittest.TestCase):
     def test_navigation_uses_the_same_selected_gemini_preset(self):
         self.assertEqual(preset_for("navigation", "ko-KR"), BUBBLY_DOCENT)
 
-    def test_user_answers_use_the_same_selected_gemini_preset(self):
-        self.assertEqual(preset_for("user-answer", "ko-KR"), BUBBLY_DOCENT)
+    def test_user_answers_use_the_low_latency_flash_preset(self):
+        preset = preset_for("user-answer", "ko-KR")
+        self.assertEqual(preset, FAST_CHAT_ANSWER)
+        self.assertEqual(preset.model, "gemini-2.5-flash-tts")
+        self.assertEqual(preset.voice, BUBBLY_DOCENT.voice)
+        self.assertEqual(preset.prompt, BUBBLY_DOCENT.prompt)
 
     def test_other_locales_do_not_switch_to_a_legacy_provider(self):
         self.assertEqual(preset_for("location-docent", "en-US"), BUBBLY_DOCENT)

@@ -3,7 +3,9 @@ import unittest
 from services.graph_qa import (
     _json_object,
     QUERY_TEMPLATES,
+    is_current_location_question,
     parse_proximity_question,
+    plan_question,
     validate_read_only_cypher,
 )
 
@@ -17,6 +19,11 @@ class JsonObjectTests(unittest.TestCase):
 
     def test_invalid_json_returns_empty_object(self):
         self.assertEqual(_json_object("not json"), {})
+
+
+class FailingLlm:
+    def invoke(self, _prompt):
+        raise AssertionError("deterministic location questions must not call the planner LLM")
 
 
 class GraphQaTemplateTests(unittest.TestCase):
@@ -59,6 +66,25 @@ class GraphQaTemplateTests(unittest.TestCase):
 
     def test_parses_current_location_proximity_question(self):
         self.assertEqual(("", "편의점"), parse_proximity_question("주변 편의점 알려주세요"))
+
+    def test_parses_proximity_question_without_spacing(self):
+        self.assertEqual(
+            ("중앙도서관", "카페"),
+            parse_proximity_question("중앙도서관근처카페알려줘"),
+        )
+
+    def test_current_location_pronoun_tolerates_spacing(self):
+        self.assertTrue(is_current_location_question("여 기가 어디야"))
+        plan = plan_question("여 기가 어디야", "신정문", FailingLlm())
+        self.assertEqual("current_place", plan.intent)
+        self.assertTrue(plan.use_current_gps)
+
+    def test_nearby_here_uses_gps_without_planner_llm(self):
+        plan = plan_question("여기근처카페알려줘", "신정문", FailingLlm())
+        self.assertEqual("nearby", plan.intent)
+        self.assertEqual("카페", plan.keyword)
+        self.assertEqual("", plan.entity_name)
+        self.assertTrue(plan.use_current_gps)
 
 
 if __name__ == "__main__":

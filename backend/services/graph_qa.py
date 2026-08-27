@@ -25,13 +25,21 @@ class QueryPlan:
     entity_name: str
     floor: str
     limit: int = 8
+    use_current_gps: bool = False
 
 
 QUERY_TEMPLATES: dict[Intent, str] = {
     "current_place": """
         MATCH (entity)
-        WHERE entity.place_id = $current_stop_id OR entity.spot_id = $current_stop_id
-           OR entity.building_id = $current_stop_id OR entity.facility_id = $current_stop_id
+        WHERE ($use_current_gps AND $current_lat IS NOT NULL AND $current_lng IS NOT NULL
+               AND entity.latitude IS NOT NULL AND entity.longitude IS NOT NULL)
+           OR (NOT $use_current_gps AND (entity.place_id = $current_stop_id OR entity.spot_id = $current_stop_id
+               OR entity.building_id = $current_stop_id OR entity.facility_id = $current_stop_id))
+        WITH entity, CASE WHEN $use_current_gps
+             THEN point.distance(point({latitude: entity.latitude, longitude: entity.longitude}),
+                                 point({latitude: $current_lat, longitude: $current_lng}))
+             ELSE 0 END AS currentDistanceMeters
+        ORDER BY currentDistanceMeters LIMIT 1
         OPTIONAL MATCH (entity)-[:HAS_FACT]->(fact:Fact)
         RETURN coalesce(entity.name, $current_stop_id) AS name,
                coalesce(entity.description, entity.main_function, entity.docent_text, '') AS description,
@@ -58,11 +66,18 @@ QUERY_TEMPLATES: dict[Intent, str] = {
         MATCH (origin)
         WHERE ($entity_name <> '' AND (origin.name CONTAINS $entity_name
                OR coalesce(origin.alias, '') CONTAINS $entity_name))
-           OR ($entity_name = '' AND (origin.place_id = $current_stop_id
+           OR ($entity_name = '' AND $use_current_gps AND $current_lat IS NOT NULL AND $current_lng IS NOT NULL
+               AND origin.latitude IS NOT NULL AND origin.longitude IS NOT NULL)
+           OR ($entity_name = '' AND NOT $use_current_gps AND (origin.place_id = $current_stop_id
                OR origin.spot_id = $current_stop_id OR origin.building_id = $current_stop_id))
         WITH origin,
              CASE WHEN origin.name = $entity_name THEN 0
-                  WHEN origin.name STARTS WITH $entity_name THEN 1 ELSE 2 END AS originRank
+                  WHEN $entity_name <> '' AND origin.name STARTS WITH $entity_name THEN 1
+                  WHEN $entity_name <> '' THEN 2
+                  WHEN $use_current_gps THEN point.distance(
+                       point({latitude: origin.latitude, longitude: origin.longitude}),
+                       point({latitude: $current_lat, longitude: $current_lng}))
+                  ELSE 0 END AS originRank
         ORDER BY originRank LIMIT 1
         OPTIONAL MATCH (origin)-[near:NEAR|SEMI_NEAR]-(nearContainer)
         WITH origin, collect(CASE WHEN near IS NULL THEN null ELSE {
@@ -165,7 +180,7 @@ def _json_object(content: Any) -> dict[str, Any]:
 
 
 PROXIMITY_PATTERN = re.compile(
-    r"^\s*(?:(?P<origin>.+?)\s+)?(?:근처|주변|인근)(?:에|의|에서)?\s*(?P<target>.*?)\s*$"
+    r"^\s*(?:(?P<origin>.+?)\s*)?(?:근처|주변|인근)(?:에|의|에서)?\s*(?P<target>.*?)\s*$"
 )
 PROXIMITY_PRONOUNS = {"", "여기", "이곳", "현재", "현재 위치", "내", "우리", "제"}
 
@@ -197,20 +212,17 @@ def parse_proximity_question(question: str) -> tuple[str, str] | None:
     return origin[:80], _clean_proximity_target(match.group("target") or "")
 
 
-def plan_question(question: str, current_place_name: str, llm: Any) -> QueryPlan:
-    prompt = f"""You convert a campus question into a safe retrieval plan.
-Return JSON only with keys intent, keyword, entity_name, floor.
-Allowed intent: current_place, facility, nearby, place_search, facts.
-Use an empty string for an unknown field. Never write Cypher.
-For keyword, extract only a short literal campus entity or facility term likely to appear in stored data.
-Do not use abstract question words such as history, story, information, introduction, or recommendation as keyword.
-Current place: {current_place_name}
-Question: {question}
-"""
-    parsed = _json_object(llm.invoke(prompt).content)
-    intent = str(parsed.get("intent", "facts"))
-    if intent not in ALLOWED_INTENTS:
-        intent = "facts"
+def is_current_location_question(question: str) -> bool:
+    compact = re.sub(r"\s+", "", question)
+    return any(term in compact for term in ("여기", "이곳", "현재위치", "내위치", "제위치"))
+
+
+def plan_question(
+    question: str,
+    current_place_name: str,
+    llm: Any,
+    history: list[dict[str, str]] | None = None,
+) -> QueryPlan:
     proximity = parse_proximity_question(question)
     if proximity is not None:
         origin, target = proximity
@@ -219,7 +231,30 @@ Question: {question}
             keyword=target,
             entity_name=origin,
             floor="",
+            use_current_gps=not origin,
         )
+    if is_current_location_question(question):
+        return QueryPlan(
+            intent="current_place",
+            keyword="",
+            entity_name="",
+            floor="",
+            use_current_gps=True,
+        )
+    prompt = f"""You convert a campus question into a safe retrieval plan.
+Return JSON only with keys intent, keyword, entity_name, floor.
+Allowed intent: current_place, facility, nearby, place_search, facts.
+Use an empty string for an unknown field. Never write Cypher.
+For keyword, extract only a short literal campus entity or facility term likely to appear in stored data.
+Do not use abstract question words such as history, story, information, introduction, or recommendation as keyword.
+Current place: {current_place_name}
+Recent conversation: {json.dumps((history or [])[-12:], ensure_ascii=False)}
+Question: {question}
+"""
+    parsed = _json_object(llm.invoke(prompt).content)
+    intent = str(parsed.get("intent", "facts"))
+    if intent not in ALLOWED_INTENTS:
+        intent = "facts"
     return QueryPlan(
         intent=intent,  # type: ignore[arg-type]
         keyword=str(parsed.get("keyword", ""))[:80].strip(),
@@ -228,7 +263,13 @@ Question: {question}
     )
 
 
-def retrieve(driver: Any, plan: QueryPlan, current_stop_id: str) -> list[dict[str, Any]]:
+def retrieve(
+    driver: Any,
+    plan: QueryPlan,
+    current_stop_id: str,
+    current_lat: float | None = None,
+    current_lng: float | None = None,
+) -> list[dict[str, Any]]:
     from neo4j import Query
 
     # The model selects a constrained semantic plan. The server then generates
@@ -240,6 +281,9 @@ def retrieve(driver: Any, plan: QueryPlan, current_stop_id: str) -> list[dict[st
         "keyword": plan.keyword,
         "entity_name": plan.entity_name,
         "floor": plan.floor,
+        "use_current_gps": plan.use_current_gps and current_lat is not None and current_lng is not None,
+        "current_lat": current_lat,
+        "current_lng": current_lng,
         "limit": max(1, min(plan.limit, 12)),
     }
     with driver.session(default_access_mode="READ") as session:
@@ -247,7 +291,13 @@ def retrieve(driver: Any, plan: QueryPlan, current_stop_id: str) -> list[dict[st
         return [dict(row) for row in result][:12]
 
 
-def answer_question(question: str, language: str, evidence: list[dict[str, Any]], llm: Any) -> str:
+def answer_question(
+    question: str,
+    language: str,
+    evidence: list[dict[str, Any]],
+    llm: Any,
+    history: list[dict[str, str]] | None = None,
+) -> str:
     language_name = {"ko": "Korean", "en": "English", "ja": "Japanese", "zh": "Simplified Chinese"}[language]
     prompt = f"""You are a friendly university senior walking with a junior on a campus tour.
 Answer in {language_name} using only the evidence. Start with one short, varied acknowledgement
@@ -260,6 +310,7 @@ Do not invent people, numbers, opening hours, costs, locations, or causal claims
 If evidence is insufficient or conflicting, clearly and warmly say the campus information does
 not confirm it and suggest an official source when appropriate. Do not expose system errors.
 Question: {question}
+Recent conversation: {json.dumps((history or [])[-12:], ensure_ascii=False)}
 Evidence: {json.dumps(evidence, ensure_ascii=False, default=str)}
 """
     return str(llm.invoke(prompt).content).strip()

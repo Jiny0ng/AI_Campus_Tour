@@ -14,21 +14,36 @@ router = APIRouter(tags=["캠퍼스 질문"])
 logger = logging.getLogger(__name__)
 
 
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str = Field(min_length=1, max_length=500)
+
+
 class QuestionRequest(BaseModel):
     question: str = Field(min_length=1, max_length=500)
     language: Literal["ko", "en", "ja", "zh"] = "ko"
     current_stop_id: str = Field(default="", max_length=120)
     current_place_name: str = Field(default="", max_length=120)
     next_stop_id: str = Field(default="", max_length=120)
+    current_lat: float | None = Field(default=None, ge=-90, le=90)
+    current_lng: float | None = Field(default=None, ge=-180, le=180)
+    history: list[ChatMessage] = Field(default_factory=list, max_length=12)
 
 
 @router.post("/tour/questions")
 def ask_question(payload: QuestionRequest, request: Request):
     try:
         llm = make_qa_llm()
-        plan = plan_question(payload.question, payload.current_place_name, llm)
-        evidence = retrieve(request.app.state.neo4j_driver, plan, payload.current_stop_id)
-        answer = answer_question(payload.question, payload.language, evidence, llm)
+        history = [message.model_dump() for message in payload.history]
+        plan = plan_question(payload.question, payload.current_place_name, llm, history)
+        evidence = retrieve(
+            request.app.state.neo4j_driver,
+            plan,
+            payload.current_stop_id,
+            payload.current_lat,
+            payload.current_lng,
+        )
+        answer = answer_question(payload.question, payload.language, evidence, llm, history)
         return {
             "answer": answer,
             "evidence": evidence,

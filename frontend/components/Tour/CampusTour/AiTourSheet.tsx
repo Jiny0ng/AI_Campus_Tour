@@ -11,6 +11,7 @@ import type { CampusTourNearbySpot, CampusTourStop } from "@/types";
 type AiTourSheetProps = {
   currentStop?: CampusTourStop;
   nextStop?: CampusTourStop;
+  userLocation?: { lat: number; lng: number } | null;
   onNext: () => void;
   onPrev?: () => void;
   hasPrev?: boolean;
@@ -52,7 +53,12 @@ type BrowserSpeechRecognition = {
   onend: (() => void) | null;
 };
 
-export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
+type ChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
+export function AiTourSheet({ currentStop, nextStop, userLocation, onNext, onPrev, hasPrev, isLastStop, onAddWaypoint, nearbySpots = [], isNearbyLoading = false, addingSpotId, isSegmentLoading, hasArrived = false, needsArrivalConfirmation = false, remainingDistanceMeters, onRecenterMap, canRecenter = false }: AiTourSheetProps) {
   const { t, pn } = useAppSettings();
   const { locale } = useAppSettings();
   const { status, pause, resume, speak, suspendForQuestion, resumeAfterQuestion } = useAudioGuide();
@@ -70,7 +76,7 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
   const speechOperationRef = useRef(0);
   const [questionOpen, setQuestionOpen] = useState(false);
   const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState("");
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [questionState, setQuestionState] = useState<"idle" | "listening" | "transcribing" | "searching" | "answering" | "error">("idle");
 
   useLayoutEffect(() => {
@@ -214,7 +220,9 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
     const normalized = question.trim();
     if (!normalized || questionState === "searching" || questionState === "answering") return;
     setQuestionState("searching");
-    setAnswer("");
+    const history = chatMessages.slice(-12);
+    setChatMessages((messages) => [...messages, { role: "user", content: normalized }]);
+    updateQuestion("");
     try {
       const response = await fetch("/api/tour/questions", {
         method: "POST",
@@ -225,11 +233,14 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
           current_stop_id: currentStop?.id ?? "",
           current_place_name: currentStop?.name ?? "",
           next_stop_id: nextStop?.id ?? "",
+          current_lat: userLocation?.lat ?? null,
+          current_lng: userLocation?.lng ?? null,
+          history,
         }),
       });
       if (!response.ok) throw new Error("question failed");
       const payload = await response.json() as { answer: string };
-      setAnswer(payload.answer);
+      setChatMessages((messages) => [...messages, { role: "assistant", content: payload.answer }]);
       setQuestionState("answering");
       await speak({
         id: `user-answer:${crypto.randomUUID()}`,
@@ -406,7 +417,22 @@ export function AiTourSheet({ currentStop, nextStop, onNext, onPrev, hasPrev, is
                     : questionState === "error" ? "처리하지 못했습니다. 텍스트로 다시 시도해 주세요."
                     : "음성 인식 결과를 고친 뒤 전송할 수도 있어요."}
                 </p>
-                {answer ? <p className="mt-3 rounded-xl bg-white px-3 py-2 text-sm leading-6 text-ink">{answer}</p> : null}
+                {chatMessages.length > 0 ? (
+                  <div className="mt-3 flex max-h-56 flex-col gap-2 overflow-y-auto rounded-xl bg-white p-3">
+                    {chatMessages.map((message, index) => (
+                      <div
+                        key={`${message.role}-${index}`}
+                        className={`max-w-[88%] rounded-2xl px-3 py-2 text-sm leading-6 ${
+                          message.role === "user"
+                            ? "ml-auto bg-primary text-white"
+                            : "mr-auto bg-primary-soft text-ink"
+                        }`}
+                      >
+                        {message.content}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </section>
             ) : null}
             <p className="mt-2 text-sm font-medium leading-5 text-ink/80">

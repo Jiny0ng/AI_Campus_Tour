@@ -752,6 +752,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
         <AiTourSheet
           currentStop={currentStop}
           nextStop={nextStop}
+          userLocation={userLocation}
           isLastStop={isLastStop}
           onNext={handleNext}
           onPrev={handlePrev}

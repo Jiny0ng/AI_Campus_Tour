@@ -45,10 +45,25 @@ BUBBLY_DOCENT = TtsPreset(
     media_type="audio/wav",
 )
 
+FAST_CHAT_ANSWER = TtsPreset(
+    id="bubbly-proud-senior-flash-v1",
+    model="gemini-2.5-flash-tts",
+    voice="Sulafat",
+    prompt=build_docent_prompt("bubbly_proud_senior") + SHORT_ENDINGS,
+    speaking_rate=1.08,
+    pitch=4.0,
+    volume_gain_db=0.0,
+    sample_rate_hertz=24000,
+    encoding="LINEAR16",
+    extension="wav",
+    media_type="audio/wav",
+)
+
 
 def preset_for(style: str, locale: str) -> TtsPreset:
-    # Every runtime and generated asset uses the single listening-tested
-    # Gemini-TTS configuration. Keep the arguments for the shared service API,
-    # but never select a legacy voice or a style-specific TTS provider.
-    del style, locale
+    # Interactive answers favor latency. Reviewed navigation and docent assets
+    # keep the listening-tested Pro preset and remain immutable stored WAVs.
+    del locale
+    if style == "user-answer":
+        return FAST_CHAT_ANSWER
     return BUBBLY_DOCENT
