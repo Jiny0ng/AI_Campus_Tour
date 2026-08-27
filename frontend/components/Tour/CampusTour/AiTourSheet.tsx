@@ -69,7 +69,7 @@ export function AiTourSheet({ currentStop, nextStop, userLocation, onNext, onPre
 
   useLayoutEffect(() => {
     const updateConstraints = () => {
-      const maximumHeight = window.innerHeight * 0.4;
+      const maximumHeight = window.innerHeight * 0.65;
       const minimumVisibleHeight = 172;
       const nextMaxDragY = Math.max(0, maximumHeight - minimumVisibleHeight);
       setMaxDragY(nextMaxDragY);
@@ -256,7 +256,7 @@ export function AiTourSheet({ currentStop, nextStop, userLocation, onNext, onPre
       dragConstraints={{ top: 0, bottom: maxDragY }}
       dragElastic={0}
       dragMomentum={false}
-      style={{ y: sheetY, height: "40dvh" }}
+      style={{ y: sheetY, height: "65dvh" }}
       onDragEnd={() => setIsExpanded(sheetY.get() < maxDragY / 2)}
       className="absolute inset-x-0 bottom-0 z-30 mx-auto flex w-full max-w-[430px] flex-col rounded-t-[22px] bg-surface px-6 pb-[calc(18px+env(safe-area-inset-bottom))] pt-2 shadow-sheet"
     >
