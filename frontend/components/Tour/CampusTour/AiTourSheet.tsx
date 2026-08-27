@@ -42,6 +42,17 @@ const insightIcons: Record<string, string> = {
   "hidden-place": "🔎",
 };
 
+type BrowserSpeechRecognition = {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: ((event: { results: ArrayLike<{ 0: { transcript: string } }> }) => void) | null;
+  onerror: (() => void) | null;
+  onend: (() => void) | null;
+};
+
 type ChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -59,6 +70,7 @@ export function AiTourSheet({ currentStop, nextStop, userLocation, onNext, onPre
   const [maxDragY, setMaxDragY] = useState(0);
   const initializedDragRef = useRef(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const recognitionRef = useRef<BrowserSpeechRecognition | null>(null);
   const recordingChunksRef = useRef<Blob[]>([]);
   const questionRef = useRef("");
   const speechOperationRef = useRef(0);
@@ -100,6 +112,8 @@ export function AiTourSheet({ currentStop, nextStop, userLocation, onNext, onPre
 
   const closeQuestion = () => {
     speechOperationRef.current += 1;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
     recorderRef.current?.stop();
     recorderRef.current = null;
     setQuestionOpen(false);
@@ -113,20 +127,60 @@ export function AiTourSheet({ currentStop, nextStop, userLocation, onNext, onPre
   };
 
   const editQuestion = (value: string) => {
-    // Invalidate an in-flight Google STT upload so a late transcript cannot
-    // restore text the user deliberately edited or removed.
+    // Invalidate late speech callbacks so they cannot restore text that the
+    // user deliberately edited or removed.
     speechOperationRef.current += 1;
+    recognitionRef.current?.stop();
+    recognitionRef.current = null;
     if (recorderRef.current?.state === "recording") recorderRef.current.stop();
     updateQuestion(value);
     setQuestionState("idle");
   };
 
   const toggleRecording = async () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      return;
+    }
     if (recorderRef.current?.state === "recording") {
       recorderRef.current.stop();
       return;
     }
     try {
+      const speechWindow = window as typeof window & {
+        SpeechRecognition?: new () => BrowserSpeechRecognition;
+        webkitSpeechRecognition?: new () => BrowserSpeechRecognition;
+      };
+      const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+      if (Recognition) {
+        const operation = ++speechOperationRef.current;
+        const questionBeforeRecording = questionRef.current.trim();
+        const recognition = new Recognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = ({ ko: "ko-KR", en: "en-US", ja: "ja-JP", zh: "zh-CN" })[locale];
+        recognition.onresult = (event) => {
+          if (speechOperationRef.current !== operation) return;
+          let sessionTranscript = "";
+          for (let index = 0; index < event.results.length; index += 1) {
+            sessionTranscript += `${event.results[index][0].transcript} `;
+          }
+          updateQuestion([questionBeforeRecording, sessionTranscript.trim()].filter(Boolean).join(" "));
+        };
+        recognition.onerror = () => {
+          if (speechOperationRef.current === operation) setQuestionState("error");
+        };
+        recognition.onend = () => {
+          if (speechOperationRef.current !== operation) return;
+          recognitionRef.current = null;
+          setQuestionState((state) => state === "listening" ? "idle" : state);
+        };
+        recognitionRef.current = recognition;
+        recognition.start();
+        setQuestionState("listening");
+        return;
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const operation = ++speechOperationRef.current;
       const questionBeforeRecording = questionRef.current.trim();

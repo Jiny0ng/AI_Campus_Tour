@@ -149,7 +149,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   const visiblePlaces = selectedPlace
     ? [selectedPlace]
     : keyword.trim() || selectedPurpose
-      ? filteredPlaces.slice(0, 1)
+      ? filteredPlaces
       : [];
 
   function handleSelectPlace(place: GuidePlace) {
@@ -241,7 +241,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
 
         <NearbyFacilitySheet
           key={selectedPurpose ?? "popular"}
-          places={selectedPurpose ? filteredPlaces.slice(0, 3) : filteredPlaces}
+          places={filteredPlaces}
           selectedPlace={selectedPlace}
           selectedPurpose={selectedPurpose}
           onSelectPlace={handleSelectPlace}
