@@ -22,6 +22,10 @@ from services.audio_storage import read_object  # noqa: E402
 from services.tts_presets import BUBBLY_DOCENT  # noqa: E402
 
 
+def is_review_sample(asset_id: str) -> bool:
+    return asset_id.startswith(("sample-ending:", "sample-story:"))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--require-pro-wav", action="store_true")
@@ -37,6 +41,11 @@ def main() -> int:
     for asset_id, asset in assets.items():
         if not isinstance(asset, dict) or not required.issubset(asset):
             errors.append(asset_id)
+            continue
+        # Listening-review samples deliberately use isolated prompt IDs and are
+        # never requested by the application. Production preset enforcement is
+        # limited to actual navigation/docent assets.
+        if is_review_sample(asset_id):
             continue
         object_name = str(asset.get("objectName", ""))
         if args.require_pro_wav and (
