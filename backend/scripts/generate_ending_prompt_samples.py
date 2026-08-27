@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import array
 import copy
 import io
 import json
+import math
 import os
+import re
 import sys
 import wave
 from dataclasses import replace
@@ -21,6 +24,12 @@ from services import tts_service  # noqa: E402
 from services.audio_storage import load_manifest, write_object  # noqa: E402
 from services.tts_presets import BUBBLY_DOCENT  # noqa: E402
 from services.tts_service import audio_id_for, object_name_for  # noqa: E402
+
+
+HANGUL_AND_DIGITS = re.compile(r"[^0-9가-힣]+")
+FINAL_WORDS = re.compile(r"[0-9A-Za-z가-힣]+")
+TAIL_SECONDS = 4
+MAX_SYNTHESIS_ATTEMPTS = 3
 
 ENDING_DIRECTION = """
 추가 이야기형 낭독 지시:
@@ -74,6 +83,129 @@ def sample_texts() -> dict[str, str]:
     }
 
 
+def fallback_text(text: str, attempt: int) -> str:
+    """Use a safer complete ending only on the final synthesis attempt."""
+    if attempt < MAX_SYNTHESIS_ATTEMPTS:
+        return text
+    replacements = {
+        "신정문의 첫인상을 기억해 보세요.": "이 모습이 바로 신정문이 전하는 첫인상입니다.",
+        "전북대의 기상을 한번 떠올려 보세요.": "이 모습에는 전북대의 힘찬 기상이 담겨 있습니다.",
+        "전북대학교의 상징을 기억해 보세요.": "이 조형물은 전북대학교를 대표하는 상징입니다.",
+    }
+    for original, replacement in replacements.items():
+        if text.endswith(original):
+            return text.removesuffix(original) + replacement
+    return text
+
+
+def expected_ending(text: str, word_count: int = 2) -> str:
+    words = FINAL_WORDS.findall(text)
+    return "".join(words[-word_count:])
+
+
+def normalized_hangul(text: str) -> str:
+    return HANGUL_AND_DIGITS.sub("", text)
+
+
+def ending_matches(text: str, transcript: str) -> bool:
+    expected = normalized_hangul(expected_ending(text))
+    recognized = normalized_hangul(transcript)
+    return bool(expected) and recognized.endswith(expected)
+
+
+def wav_details(audio: bytes) -> tuple[wave._wave_params, bytes]:
+    with wave.open(io.BytesIO(audio), "rb") as source:
+        return source.getparams(), source.readframes(source.getnframes())
+
+
+def waveform_confidently_complete(audio: bytes) -> tuple[bool, dict[str, float]]:
+    """Fast-pass WAVs with a natural quiet tail; ambiguous endings go to STT."""
+    params, frames = wav_details(audio)
+    if params.sampwidth != 2 or params.nchannels != 1:
+        return False, {"quietTailMs": 0.0, "tailRms": math.inf}
+    samples = array.array("h")
+    samples.frombytes(frames)
+    if sys.byteorder != "little":
+        samples.byteswap()
+    threshold = 240
+    quiet_samples = 0
+    for sample in reversed(samples):
+        if abs(sample) > threshold:
+            break
+        quiet_samples += 1
+    tail_window = samples[-max(1, round(params.framerate * 0.08)):]
+    tail_rms = math.sqrt(sum(sample * sample for sample in tail_window) / len(tail_window))
+    quiet_tail_ms = quiet_samples / params.framerate * 1_000
+    # Require a meaningful natural tail and low terminal energy. Anything less
+    # certain is verified semantically instead of being guessed from waveform.
+    passed = quiet_tail_ms >= 140 and tail_rms <= threshold
+    return passed, {"quietTailMs": round(quiet_tail_ms, 1), "tailRms": round(tail_rms, 1)}
+
+
+def tail_wav(audio: bytes, seconds: int = TAIL_SECONDS) -> bytes:
+    params, frames = wav_details(audio)
+    frame_width = params.sampwidth * params.nchannels
+    wanted = min(params.nframes, params.framerate * seconds)
+    selected = frames[-wanted * frame_width:]
+    output = io.BytesIO()
+    with wave.open(output, "wb") as destination:
+        destination.setparams(params)
+        destination.writeframes(selected)
+    return output.getvalue()
+
+
+def transcribe_tail(audio: bytes) -> str:
+    from google.cloud import speech_v1 as speech
+
+    params, _ = wav_details(audio)
+    response = speech.SpeechClient().recognize(
+        config=speech.RecognitionConfig(
+            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+            sample_rate_hertz=params.framerate,
+            audio_channel_count=params.nchannels,
+            language_code="ko-KR",
+            enable_automatic_punctuation=False,
+            model=os.getenv("STT_MODEL", "latest_short"),
+        ),
+        audio=speech.RecognitionAudio(content=tail_wav(audio)),
+        timeout=15,
+    )
+    return " ".join(
+        result.alternatives[0].transcript
+        for result in response.results
+        if result.alternatives
+    ).strip()
+
+
+def synthesize_verified(text: str) -> tuple[bytes, str, dict[str, object]]:
+    failures: list[dict[str, object]] = []
+    for attempt in range(1, MAX_SYNTHESIS_ATTEMPTS + 1):
+        candidate_text = fallback_text(text, attempt)
+        raw_audio = tts_service._synthesize_with_google(
+            candidate_text, "ko-KR", "core-docent", timeout_seconds=60
+        )
+        wave_passed, metrics = waveform_confidently_complete(raw_audio)
+        transcript = ""
+        stt_checked = not wave_passed
+        passed = wave_passed
+        if stt_checked:
+            transcript = transcribe_tail(raw_audio)
+            passed = ending_matches(candidate_text, transcript)
+        result = {
+            "attempt": attempt,
+            "waveformPassed": wave_passed,
+            "sttChecked": stt_checked,
+            "expectedEnding": expected_ending(candidate_text),
+            "transcript": transcript,
+            **metrics,
+        }
+        print(json.dumps({"qualityGate": result, "passed": passed}, ensure_ascii=False), flush=True)
+        if passed:
+            return append_trailing_silence(raw_audio), candidate_text, result
+        failures.append(result)
+    raise RuntimeError(f"ending quality gate failed after {MAX_SYNTHESIS_ATTEMPTS} attempts: {failures}")
+
+
 def append_trailing_silence(audio: bytes, milliseconds: int = 700) -> bytes:
     """Keep the final phoneme away from the physical end of a PCM WAV file."""
     with wave.open(io.BytesIO(audio), "rb") as source:
@@ -104,24 +236,25 @@ def main() -> int:
 
     preset = replace(
         BUBBLY_DOCENT,
-        id="bubbly-proud-senior-story-sample-v5",
+        id="bubbly-proud-senior-story-sample-v6",
         prompt=f"{BUBBLY_DOCENT.prompt}\n\n{ENDING_DIRECTION}",
     )
     tts_service.preset_for = lambda style, locale: preset
     manifest_path = Path(os.environ["TTS_MANIFEST_PATH"])
     next_manifest = copy.deepcopy(load_manifest())
 
+    generated = []
     for position, (entity_id, text) in enumerate(sample_texts().items(), start=1):
         asset_id = f"sample-story:{entity_id}:ko"
-        version = "story-prompt-sample-v5"
-        content_hash = audio_id_for(text, "ko-KR", "core-docent", version)
-        object_name = object_name_for(content_hash, "ko-KR", "core-docent")
+        version = "story-prompt-sample-v6"
         print(json.dumps({"generating": asset_id, "progress": f"{position}/3"}, ensure_ascii=False), flush=True)
-        audio = append_trailing_silence(
-            tts_service._synthesize_with_google(
-                text, "ko-KR", "core-docent", timeout_seconds=60
-            )
-        )
+        audio, verified_text, quality = synthesize_verified(text)
+        content_hash = audio_id_for(verified_text, "ko-KR", "core-docent", version)
+        object_name = object_name_for(content_hash, "ko-KR", "core-docent")
+        generated.append((asset_id, entity_id, version, content_hash, object_name, audio, quality))
+
+    # Do not publish any sample until all three have passed the quality gate.
+    for asset_id, entity_id, version, content_hash, object_name, audio, quality in generated:
         write_object(object_name, audio, {
             "content_hash": content_hash,
             "entity_id": entity_id,
@@ -133,6 +266,7 @@ def main() -> int:
             "model": preset.model,
             "voice": preset.voice,
             "encoding": preset.encoding,
+            "ending_quality": json.dumps(quality, ensure_ascii=False),
         })
         next_manifest["assets"][asset_id] = {
             "audioId": content_hash,
@@ -143,7 +277,7 @@ def main() -> int:
             "mediaType": preset.media_type,
             "preset": preset.id,
         }
-        print(json.dumps({"uploaded": asset_id, "bytes": len(audio)}, ensure_ascii=False), flush=True)
+        print(json.dumps({"uploaded": asset_id, "bytes": len(audio), "quality": quality}, ensure_ascii=False), flush=True)
 
     atomic_save(manifest_path, next_manifest)
     return 0
