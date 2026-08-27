@@ -21,10 +21,7 @@ export async function fetchAudio(
   const startedAt = performance.now();
   const source = request.source;
   const response = source.kind === "asset"
-    ? await fetch(`/api/tts/assets/${encodeURIComponent(source.assetId)}`, {
-        signal,
-        cache: "no-store",
-      })
+    ? await fetchAssetWithRetry(source.assetId, signal)
     : await synthesizeWithRetry(request, signal);
   const ttfbMs = performance.now() - startedAt;
   if (!response.ok) throw Object.assign(new Error("Audio request failed"), { ttfbMs });
@@ -39,6 +36,39 @@ export async function fetchAudio(
     ttfbMs,
     source: resultSource,
   };
+}
+
+async function fetchAssetWithRetry(assetId: string, signal: AbortSignal) {
+  const retryDelays = [350, 900, 2_000];
+  let lastResponse: Response | null = null;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retryDelays.length; attempt += 1) {
+    try {
+      const response = await fetch(`/api/tts/assets/${encodeURIComponent(assetId)}`, {
+        signal,
+        cache: "no-store",
+      });
+      lastResponse = response;
+      if (response.ok || response.status < 500) return response;
+    } catch (error) {
+      if (signal.aborted) throw error;
+      lastError = error;
+    }
+    if (attempt === retryDelays.length) break;
+    await abortableDelay(retryDelays[attempt], signal);
+  }
+  if (lastResponse) return lastResponse;
+  throw lastError ?? new Error("Stored audio request failed");
+}
+
+function abortableDelay(delay: number, signal: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const timer = window.setTimeout(resolve, delay);
+    signal.addEventListener("abort", () => {
+      window.clearTimeout(timer);
+      reject(signal.reason ?? new DOMException("Aborted", "AbortError"));
+    }, { once: true });
+  });
 }
 
 async function synthesize(request: AudioRequest, signal: AbortSignal) {
@@ -69,14 +99,7 @@ async function synthesizeWithRetry(request: AudioRequest, signal: AbortSignal) {
       lastError = error;
     }
     if (attempt === retryDelays.length) break;
-    const delay = retryDelays[attempt];
-    await new Promise<void>((resolve, reject) => {
-      const timer = window.setTimeout(resolve, delay);
-      signal.addEventListener("abort", () => {
-        window.clearTimeout(timer);
-        reject(signal.reason ?? new DOMException("Aborted", "AbortError"));
-      }, { once: true });
-    });
+    await abortableDelay(retryDelays[attempt], signal);
   }
   if (lastResponse) return lastResponse;
   throw lastError ?? new Error("Audio request failed");

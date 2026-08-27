@@ -230,6 +230,9 @@ export function AudioGuideProvider({ children }: { children: ReactNode }) {
         setStatus((current) => ({ ...current, playback: "blocked" }));
         return;
       }
+      // A transient storage/network failure must not permanently consume a
+      // stored docent ID. Allow the same narration to be requested again.
+      seenIdsRef.current.delete(item.request.id);
       finishActive("skipped");
       drainRef.current();
     }
