@@ -24,11 +24,6 @@ jobs:
             set -Eeuo pipefail
             cd ~/AI_Campus_Tour
             export TTS_MANIFEST_PATH="/runtime/audio_content/audio_manifest.json"
-            # The ending quality gate uses google-cloud-speech. Rebuild from the
-            # current requirements before running so a stale operator image
-            # cannot silently skip or fail STT verification. Docker reuses the
-            # dependency layer when requirements.txt is unchanged.
-            docker-compose --profile audio build audio-asset-generator
             docker-compose --profile audio run --rm audio-asset-generator \
               python /app/scripts/generate_ending_prompt_samples.py --upload
             docker-compose restart backend

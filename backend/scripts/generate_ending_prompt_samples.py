@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import array
+import base64
 import copy
 import io
 import json
@@ -12,6 +13,7 @@ import math
 import os
 import re
 import sys
+from urllib.request import Request, urlopen
 import wave
 from dataclasses import replace
 from pathlib import Path
@@ -155,26 +157,41 @@ def tail_wav(audio: bytes, seconds: int = TAIL_SECONDS) -> bytes:
 
 
 def transcribe_tail(audio: bytes) -> str:
-    from google.cloud import speech_v1 as speech
-
-    params, _ = wav_details(audio)
-    response = speech.SpeechClient().recognize(
-        config=speech.RecognitionConfig(
-            encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
-            sample_rate_hertz=params.framerate,
-            audio_channel_count=params.nchannels,
-            language_code="ko-KR",
-            enable_automatic_punctuation=False,
-            model=os.getenv("STT_MODEL", "latest_short"),
-        ),
-        audio=speech.RecognitionAudio(content=tail_wav(audio)),
-        timeout=15,
+    api_key = os.getenv("GOOGLE_API_KEY", "").strip()
+    if not api_key:
+        raise RuntimeError("GOOGLE_API_KEY is required for ending transcription")
+    model = os.getenv("DOCENT_ENDING_STT_MODEL", "gemini-3.6-flash")
+    payload = {
+        "contents": [{
+            "role": "user",
+            "parts": [
+                {
+                    "text": (
+                        "다음 한국어 음성에서 실제로 들리는 말만 그대로 전사하세요. "
+                        "잘리거나 불완전한 마지막 음절을 추측해서 완성하지 마세요. "
+                        "설명, 따옴표, 타임스탬프 없이 전사문만 반환하세요."
+                    )
+                },
+                {
+                    "inlineData": {
+                        "mimeType": "audio/wav",
+                        "data": base64.b64encode(tail_wav(audio)).decode("ascii"),
+                    }
+                },
+            ],
+        }],
+        "generationConfig": {"temperature": 0, "maxOutputTokens": 128},
+    }
+    request = Request(
+        f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent",
+        data=json.dumps(payload).encode("utf-8"),
+        headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+        method="POST",
     )
-    return " ".join(
-        result.alternatives[0].transcript
-        for result in response.results
-        if result.alternatives
-    ).strip()
+    with urlopen(request, timeout=20) as response:
+        result = json.load(response)
+    parts = result.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+    return "".join(part.get("text", "") for part in parts).strip()
 
 
 def synthesize_verified(text: str) -> tuple[bytes, str, dict[str, object]]:
