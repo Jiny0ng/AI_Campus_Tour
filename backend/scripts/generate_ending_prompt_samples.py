@@ -151,6 +151,63 @@ def tail_wav(audio: bytes, seconds: int = TAIL_SECONDS) -> bytes:
     return output.getvalue()
 
 
+def split_text_chunks(text: str, max_chars: int = 110) -> list[str]:
+    """Group complete sentences into TTS requests below the observed cutoff."""
+    sentences = [value.strip() for value in re.findall(r"[^.!?]+[.!?]?", text) if value.strip()]
+    chunks: list[str] = []
+    current = ""
+    for sentence in sentences:
+        combined = f"{current} {sentence}".strip()
+        if current and len(combined) > max_chars:
+            chunks.append(current)
+            current = sentence
+        else:
+            current = combined
+    if current:
+        chunks.append(current)
+    return chunks
+
+
+def concatenate_wavs(parts: list[bytes], pause_milliseconds: int = 120) -> bytes:
+    if not parts:
+        raise ValueError("at least one WAV part is required")
+    first_params, first_frames = wav_details(parts[0])
+    frames = [first_frames]
+    pause_frames = round(first_params.framerate * pause_milliseconds / 1_000)
+    pause = b"\x00" * pause_frames * first_params.nchannels * first_params.sampwidth
+    for part in parts[1:]:
+        params, part_frames = wav_details(part)
+        if (
+            params.nchannels,
+            params.sampwidth,
+            params.framerate,
+            params.comptype,
+        ) != (
+            first_params.nchannels,
+            first_params.sampwidth,
+            first_params.framerate,
+            first_params.comptype,
+        ):
+            raise ValueError("WAV parts use incompatible PCM formats")
+        frames.extend((pause, part_frames))
+    output = io.BytesIO()
+    with wave.open(output, "wb") as destination:
+        destination.setparams(first_params)
+        destination.writeframes(b"".join(frames))
+    return output.getvalue()
+
+
+def synthesize_candidate(text: str, chunked: bool) -> tuple[bytes, int]:
+    chunks = split_text_chunks(text) if chunked else [text]
+    parts = [
+        tts_service._synthesize_with_google(
+            chunk, "ko-KR", "core-docent", timeout_seconds=60
+        )
+        for chunk in chunks
+    ]
+    return concatenate_wavs(parts), len(chunks)
+
+
 def transcribe_tail(audio: bytes) -> str:
     api_key = os.getenv("GOOGLE_API_KEY", "").strip()
     if not api_key:
@@ -193,9 +250,8 @@ def synthesize_verified(text: str) -> tuple[bytes, str, dict[str, object]]:
     failures: list[dict[str, object]] = []
     for attempt in range(1, MAX_SYNTHESIS_ATTEMPTS + 1):
         candidate_text = fallback_text(text, attempt)
-        raw_audio = tts_service._synthesize_with_google(
-            candidate_text, "ko-KR", "core-docent", timeout_seconds=60
-        )
+        chunked = attempt == MAX_SYNTHESIS_ATTEMPTS
+        raw_audio, chunk_count = synthesize_candidate(candidate_text, chunked)
         wave_passed, metrics = waveform_confidently_complete(raw_audio)
         transcript = ""
         stt_checked = not wave_passed
@@ -205,6 +261,8 @@ def synthesize_verified(text: str) -> tuple[bytes, str, dict[str, object]]:
             passed = ending_matches(candidate_text, transcript)
         result = {
             "attempt": attempt,
+            "chunked": chunked,
+            "chunkCount": chunk_count,
             "waveformPassed": wave_passed,
             "sttChecked": stt_checked,
             "expectedEnding": expected_ending(candidate_text),
@@ -248,7 +306,7 @@ def main() -> int:
 
     preset = replace(
         BUBBLY_DOCENT,
-        id="bubbly-proud-senior-story-sample-v7",
+        id="bubbly-proud-senior-story-sample-v8",
         prompt=f"{BUBBLY_DOCENT.prompt}\n\n{ENDING_DIRECTION}",
     )
     tts_service.preset_for = lambda style, locale: preset
@@ -258,7 +316,7 @@ def main() -> int:
     generated = []
     for position, (entity_id, text) in enumerate(sample_texts().items(), start=1):
         asset_id = f"sample-story:{entity_id}:ko"
-        version = "story-prompt-sample-v7"
+        version = "story-prompt-sample-v8"
         print(json.dumps({"generating": asset_id, "progress": f"{position}/3"}, ensure_ascii=False), flush=True)
         audio, verified_text, quality = synthesize_verified(text)
         content_hash = audio_id_for(verified_text, "ko-KR", "core-docent", version)

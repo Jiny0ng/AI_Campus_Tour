@@ -4,8 +4,10 @@ import wave
 
 from scripts.generate_ending_prompt_samples import (
     append_trailing_silence,
+    concatenate_wavs,
     ending_matches,
     expected_ending,
+    split_text_chunks,
     tail_wav,
     waveform_confidently_complete,
 )
@@ -40,6 +42,18 @@ class EndingPromptSampleTests(unittest.TestCase):
         with wave.open(io.BytesIO(padded), "rb") as wav:
             self.assertEqual(wav.getframerate(), 24_000)
             self.assertEqual(wav.getnframes(), 4 * 24_000 + 700 * 24)
+
+    def test_chunking_keeps_sentences_and_inserts_short_pause(self):
+        text = "첫 번째 문장입니다. 두 번째 문장입니다. 세 번째 문장입니다."
+        chunks = split_text_chunks(text, max_chars=22)
+        self.assertEqual(" ".join(chunks), text)
+        self.assertGreater(len(chunks), 1)
+        joined = concatenate_wavs(
+            [pcm_wav([1_000] * 2_400), pcm_wav([2_000] * 2_400)],
+            pause_milliseconds=120,
+        )
+        with wave.open(io.BytesIO(joined), "rb") as wav:
+            self.assertEqual(wav.getnframes(), 4_800 + 120 * 24)
 
 
 if __name__ == "__main__":
