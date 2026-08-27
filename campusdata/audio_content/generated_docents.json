@@ -3,9 +3,12 @@
   "scripts": {
     "tour_01_new_gate": {
       "status": "active",
-      "text": "지금 보고 계신 곳은 전북대학교의 신정문입니다. 이곳은 전북대학교의 정문이며 가장 한국적인 캠퍼스를 상징하는 공간입니다. 2019년에 완공되었으며 전통 한옥 형태로 설계되었습니다. 정문 중앙의 전북대학교 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼습니다.",
-      "contentFingerprint": "95652fb44994f7559c8a7f72cf80d00a749d9c5fa99ee9dae1f6c78a9bbd06b3",
-      "contentVersion": "95652fb44994f755",
+      "text": "전북대학교에 오신 여러분, 환영합니다. 지금 가고 있는 곳은 우리 학교의 정문인 신정문이에요. 2019년에 완공된 이곳은 전통 한옥 형태로 설계되어 가장 한국적인 캠퍼스를 상징하는 공간이랍니다. 도착하기 전에 먼저 소개해 드리면, 정문 중앙의 전북대학교 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼어요. 웅장한 한옥 정문을 마주할 생각을 하니 벌써 설레지 않나요? 이제 곧 나타날 멋진 모습을 기대하며 발걸음을 옮겨 볼게요.",
+      "enRouteText": "전북대학교에 오신 여러분, 환영합니다. 지금 가고 있는 곳은 우리 학교의 정문인 신정문이에요. 2019년에 완공된 이곳은 전통 한옥 형태로 설계되어 가장 한국적인 캠퍼스를 상징하는 공간이랍니다. 도착하기 전에 먼저 소개해 드리면, 정문 중앙의 전북대학교 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼어요. 웅장한 한옥 정문을 마주할 생각을 하니 벌써 설레지 않나요? 이제 곧 나타날 멋진 모습을 기대하며 발걸음을 옮겨 볼게요.",
+      "arrivalText": "전북대학교에 오신 여러분, 환영합니다. 눈앞에 보이는 이곳이 바로 전북대학교의 정문이에요. 전통 한옥 형태로 설계되어 가장 한국적인 캠퍼스를 상징하는 공간이랍니다. 정문 중앙에 있는 전북대학교 글씨가 보이시나요? 이 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼어요. 2019년에 완공된 이곳은 해가 진 뒤 야간 조명과 어우러진 모습이 아름다워 야경 사진을 찍거나 주변을 산책하며 감상하기 좋답니다. 웅장하고 예쁜 정문을 보니 앞으로 그려갈 캠퍼스 라이프가 더욱 기대되지 않나요?",
+      "arrivalEnabled": true,
+      "contentFingerprint": "b39b88f0a0ebeb22cb5437399e6247636a270652b9eeffa7c5e9bbe6d9b2f4e8",
+      "contentVersion": "b39b88f0a0ebeb22",
       "model": "gemini-3.6-flash",
       "promptVersion": "v1",
       "usedFactIds": [
@@ -15,12 +18,109 @@
         "tour_01_new_gate:signage",
         "tour_01_new_gate:completion-year"
       ],
+      "enRouteUsedFactIds": [
+        "tour_01_new_gate:identity",
+        "tour_01_new_gate:architecture",
+        "tour_01_new_gate:symbolism",
+        "tour_01_new_gate:signage",
+        "tour_01_new_gate:completion-year"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_01_new_gate:identity",
+        "tour_01_new_gate:architecture",
+        "tour_01_new_gate:symbolism",
+        "tour_01_new_gate:signage",
+        "tour_01_new_gate:completion-year",
+        "tour_01_new_gate:night-view"
+      ],
       "targetDurationSeconds": 60,
-      "validatedAt": "2026-08-25T14:42:58.757068+00:00"
+      "validatedAt": "2026-08-27T17:52:57.203991+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "전북대학교에 오신 여러분, 환영합니다. 지금 가고 있는 곳은 우리 학교의 정문인 신정문이에요. 2019년에 완공된 이곳은 전통 한옥 형태로 설계되어 가장 한국적인 캠퍼스를 상징하는 공간이랍니다. 도착하기 전에 먼저 소개해 드리면, 정문 중앙의 전북대학교 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼어요. 웅장한 한옥 정문을 마주할 생각을 하니 벌써 설레지 않나요? 이제 곧 나타날 멋진 모습을 기대하며 발걸음을 옮겨 볼게요.",
+          "arrivalText": "전북대학교에 오신 여러분, 환영합니다. 눈앞에 보이는 이곳이 바로 전북대학교의 정문이에요. 전통 한옥 형태로 설계되어 가장 한국적인 캠퍼스를 상징하는 공간이랍니다. 정문 중앙에 있는 전북대학교 글씨가 보이시나요? 이 글씨는 당시 전북대학교 중문과 김병기 교수가 직접 썼어요. 2019년에 완공된 이곳은 해가 진 뒤 야간 조명과 어우러진 모습이 아름다워 야경 사진을 찍거나 주변을 산책하며 감상하기 좋답니다. 웅장하고 예쁜 정문을 보니 앞으로 그려갈 캠퍼스 라이프가 더욱 기대되지 않나요?",
+          "enRouteUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:completion-year"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:completion-year",
+            "tour_01_new_gate:night-view"
+          ]
+        },
+        "en": {
+          "enRouteText": "Welcome to Jeonbuk National University! We are heading to Sinjungmun, our main gate completed in 2019. Designed in a traditional Hanok style, it symbolizes the most Korean campus. Before we arrive, note the central text Jeonbuk National University, written by Professor Kim Byung-gi of the Department of Chinese Language and Literature. Let us head over!",
+          "arrivalText": "Look right in front of you! This traditional Hanok-style structure is the main gate of Jeonbuk National University, symbolizing the most Korean campus. See the central calligraphy? The name 전북대학교 was written by Professor Kim Byung-ki of the Chinese Language and Literature department. At night, lighting makes it lovely for photos and a stroll.",
+          "enRouteUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:completion-year"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:night-view"
+          ]
+        },
+        "ja": {
+          "enRouteText": "전북대학교へようこそ！これから最初の目的地である正門に向かっています。到着する前に少しご紹介しますね。2019年に完成したこの正門は、伝統的な한옥の形で設計されていて、「最も韓国的なキャンパス」を象徴する空間です。中央の「전북대학교」という字は、当時の전북대학교中文科の김병기教授が直接書いたものなんですよ。日が暮れた後は夜間照明と美しく調和し、夜景写真を撮ったり散策するのにもぴったりです。まもなく見えてくる姿を、ぜひ楽しみにしてくださいね！",
+          "arrivalText": "みなさん、目の前に立つ立派な建物が見えますか。ここが全北大学校の正門です。2019年に完成したこの門は伝統的な韓屋の形で設計されており、「最も韓国的なキャンパス」を象徴する場所なんですよ。中央の「전북대학교」という文字は、当時の全北大学校中文科の김병기教授が直接書いたものです。日が暮れた後は夜間照明と調和して美しいので、写真撮影や散歩にもぴったりです。伝統美あふれるこの門から、素敵なキャンパスの旅を始めましょう。",
+          "enRouteUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:completion-year",
+            "tour_01_new_gate:night-view"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:completion-year",
+            "tour_01_new_gate:night-view"
+          ]
+        },
+        "zh": {
+          "enRouteText": "欢迎来到전북대학교！在到达目的地之前，先让我为你介绍一下吧。我们正前往전북대학교的正门신정문。这座在2019年完工的正门，采用了传统韩屋形式设计，是象征着“最具韩国特色校园”的空间。当你走到正面，会看到中央的“전북대학교”字样，那是当时전북대학교中文系的김병기教授亲笔题写的。日落之后，结合夜间照明的신정문非常美丽，非常适合散步和拍夜景照片。一会儿到达后，一定要好好感受一下它的魅力哦！",
+          "arrivalText": "欢迎来到全北大学的正门！请抬起头看看眼前这座壮观的建筑。这里是在2019年完工的新正门，采用传统韩屋形式设计，完美象征着“最具韩国特色的校园”。你看，正中央的“전북대학교”字样，是由当时全北大学中文系的김병기教授亲自书写的。太阳落山后，灯光映衬下的正门美轮美奂，非常适合散步和拍夜景照片。站在这么美的正门前，是不是很期待接下来的校园之旅呢？",
+          "enRouteUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:completion-year",
+            "tour_01_new_gate:night-view"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_01_new_gate:identity",
+            "tour_01_new_gate:architecture",
+            "tour_01_new_gate:symbolism",
+            "tour_01_new_gate:signage",
+            "tour_01_new_gate:completion-year",
+            "tour_01_new_gate:night-view"
+          ]
+        }
+      }
     },
     "tour_02_international_center": {
       "status": "active",
-      "text": "이곳은 전북대학교의 국제교류를 담당하는 인터내셔널센터입니다. 이 건물은 전북대학교의 국제교류와 외국인 학생 지원 업무를 담당합니다. 과거 명칭은 실크로드센터였으나 교내 명칭 공모를 통해 JBNU 인터내셔널센터로 이름을 변경했습니다. 이곳은 학생들의 학습과 휴식 공간으로도 이용됩니다. 1층에 넓은 학습 공간이 있으며 4층에 스카이라운지라는 테라스가 있습니다.",
+      "text": "지금 가고 있는 곳은 JBNU 인터내셔널센터예요. 도착하기 전에 먼저 소개해 드리면, 이곳은 과거 명칭은 실크로드센터였는데 교내 명칭 공모를 통해 JBNU 인터내셔널센터로 이름을 변경했어요. 전북대학교의 국제교류와 외국인 학생 지원 업무를 담당하고, 학생들의 학습과 휴식 공간으로도 이용돼요. 4층에 스카이라운지라는 테라스가 있으니 도착하면 함께 둘러볼까요? 벌써부터 기대가 되네요.",
+      "enRouteText": "지금 가고 있는 곳은 JBNU 인터내셔널센터예요. 도착하기 전에 먼저 소개해 드리면, 이곳은 과거 명칭은 실크로드센터였는데 교내 명칭 공모를 통해 JBNU 인터내셔널센터로 이름을 변경했어요. 전북대학교의 국제교류와 외국인 학생 지원 업무를 담당하고, 학생들의 학습과 휴식 공간으로도 이용돼요. 4층에 스카이라운지라는 테라스가 있으니 도착하면 함께 둘러볼까요? 벌써부터 기대가 되네요.",
+      "arrivalText": "이곳은 전북대학교의 국제교류를 담당하는 인터내셔널센터입니다. 눈앞에 보이는 멋진 건물을 한번 살펴볼까요? 과거 명칭은 실크로드센터였는데, 교내 명칭 공모를 통해 JBNU 인터내셔널센터로 이름을 변경했어요. 이곳은 국제교류와 외국인 학생 지원 업무를 담당하며, 학생들의 학습과 휴식 공간으로도 이용됩니다. 1층에 넓은 학습 공간이 마련되어 있고, 4층에 스카이라운지라는 테라스가 있어요. 정말 근사하지 않나요? 다음에는 센터 내부도 함께 천천히 둘러봐요.",
+      "arrivalEnabled": true,
       "contentFingerprint": "fc526472d7c1a16e5e10683ac918216b300f69b8d3a613b74cd18f67e70a2b25",
       "contentVersion": "fc526472d7c1a16e",
       "model": "gemini-3.6-flash",
@@ -30,15 +130,110 @@
         "tour_02_international_center:renaming",
         "tour_02_international_center:student-space",
         "tour_02_international_center:sky-lounge",
+        "tour_02_international_center:former-name"
+      ],
+      "enRouteUsedFactIds": [
+        "tour_02_international_center:role",
+        "tour_02_international_center:renaming",
+        "tour_02_international_center:student-space",
+        "tour_02_international_center:sky-lounge",
+        "tour_02_international_center:former-name"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_02_international_center:role",
+        "tour_02_international_center:renaming",
+        "tour_02_international_center:student-space",
+        "tour_02_international_center:sky-lounge",
         "tour_02_international_center:former-name",
         "tour_02_international_center:first-floor-study"
       ],
       "targetDurationSeconds": 60,
-      "validatedAt": "2026-08-25T14:43:17.676771+00:00"
+      "validatedAt": "2026-08-27T17:56:03.267305+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 JBNU 인터내셔널센터예요. 도착하기 전에 먼저 소개해 드리면, 이곳은 과거 명칭은 실크로드센터였는데 교내 명칭 공모를 통해 JBNU 인터내셔널센터로 이름을 변경했어요. 전북대학교의 국제교류와 외국인 학생 지원 업무를 담당하고, 학생들의 학습과 휴식 공간으로도 이용돼요. 4층에 스카이라운지라는 테라스가 있으니 도착하면 함께 둘러볼까요? 벌써부터 기대가 되네요.",
+          "arrivalText": "이곳은 전북대학교의 국제교류를 담당하는 인터내셔널센터입니다. 눈앞에 보이는 멋진 건물을 한번 살펴볼까요? 과거 명칭은 실크로드센터였는데, 교내 명칭 공모를 통해 JBNU 인터내셔널센터로 이름을 변경했어요. 이곳은 국제교류와 외국인 학생 지원 업무를 담당하며, 학생들의 학습과 휴식 공간으로도 이용됩니다. 1층에 넓은 학습 공간이 마련되어 있고, 4층에 스카이라운지라는 테라스가 있어요. 정말 근사하지 않나요? 다음에는 센터 내부도 함께 천천히 둘러봐요.",
+          "enRouteUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name",
+            "tour_02_international_center:first-floor-study"
+          ]
+        },
+        "en": {
+          "enRouteText": "We are heading to the JBNU International Center, renamed through a campus contest! Formerly the Silk Road Center, it manages international exchange and foreign student support. It also serves as a cozy space for students to study and rest. Before we arrive, guess what is upstairs? There is a terrace called Sky Lounge on the 4th floor!",
+          "arrivalText": "Look right in front of you at the JBNU 인터내셔널센터! Renamed through a campus contest, this place manages international exchanges and supports international students at JBNU. Formerly known as the Silk Road Center, it also serves as a student space for studying and relaxing. Do not miss the terrace called Sky Lounge on the 4th floor!",
+          "enRouteUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次に向かっているのは、JBNU 인터내셔널센터です。ここは全北大学校の国際交流と外国人学生支援を担当する場所です。以前は실크로드센터という名前でしたが、校内名称公募を経てJBNU 인터내셔널센터に変更されました。学生たちの学習や休憩の空間としても使われていて、4階にはスカイラウンジというテラスがあります。知る人ぞ知る隠れた名所なので、到着したらぜひ見に行ってみませんか？素敵な景色が待っていますよ！",
+          "arrivalText": "目の前に見えているのが、JBNU 인터내셔널센터です。ここは校内名称公募を通じて名前が変更された建物で、過去の名称は실크로드센터でした。全北大学校の国際交流や外国人学生の支援業務を担当しています。また、学生たちの学習や休息空間としても利用されているんですよ。特に4階には스카이라운지というテラスもあります。ぜひ一度立ち寄って、特別な時間を過ごしてみてくださいね。",
+          "enRouteUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name",
+            "tour_02_international_center:sky-lounge-tip"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正前往 JBNU 인터내셔널센터。在到达之前，让我为您简单介绍一下吧。这里过去被称为실크로드센터，后来通过校内名称征集，改为了现在的名字。这里主要负责全北大学的国际交流和外国留学生支援工作。同时，它也是大家学习与休息的空间。1层有着宽阔的学习空间，而4层还有被称为스카이라운지的露台。等会儿到了之后，去4层露台感受一下吧！",
+          "arrivalText": "这里就是JBNU 인터내셔널센터입니다！眼前这座大楼是不是很气派呢？这里原本叫作실크로드센터，后来通过校内征名活动，改名为JBNU 인터내셔널센터。这里负责全北大学的国际交流与外国留学生支援工作，同时也是学生们学习和休息的温馨空间。1楼有宽敞的学习空间，4楼还有叫作스카이라운지的露台。空闲时顺便去4楼露台看看，风景真的很棒呢！希望你在这里度过愉快的一天。",
+          "enRouteUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name",
+            "tour_02_international_center:first-floor-study"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_02_international_center:role",
+            "tour_02_international_center:renaming",
+            "tour_02_international_center:student-space",
+            "tour_02_international_center:sky-lounge",
+            "tour_02_international_center:former-name",
+            "tour_02_international_center:first-floor-study"
+          ]
+        }
+      }
     },
     "tour_03_university_headquarters": {
       "status": "active",
-      "text": "이곳은 전북대학교의 행정 중심인 대학본부입니다. 이곳에는 총장실과 주요 행정부서가 위치해 있습니다. 건물 앞에는 전북대학교의 상징동물인 표범상이 서 있습니다. 표범의 지혜로움과 용감함 그리고 과감한 전진은 전북대인의 품성과 기상을 상징합니다. 표범은 1981년 약 6천 명의 구성원과 동문을 대상으로 한 설문조사 및 투표를 통해 상징동물로 선정되었습니다. 그리고 개교 30주년인 1982년 5월에 지금의 표범상이 건립되었습니다.",
+      "text": "지금 함께 가고 있는 곳은 대학본부예요. 도착하기 전에 먼저 소개해 드리면, 이곳은 총장실과 주요 행정부서가 위치한 전북대학교의 행정 중심 건물이랍니다. 건물 3층에 무인증명발급서비스가 있어서 재학증명서 등의 서류를 무료로 출력할 때 활용하기 정말 좋아요. 나중에 서류가 필요할 때 꼭 이용해 보세요! 그리고 도착할 대학본부 앞에는 표범상이 서 있는데요. 표범은 전북대학교의 상징동물이에요. 표범의 지혜로움과 용감함 그리고 과감한 전진은 전북대인의 품성과 기상을 상징한답니다. 조금만 더 걸어가면 만날 수 있으니 기대해 주세요.",
+      "enRouteText": "지금 함께 가고 있는 곳은 대학본부예요. 도착하기 전에 먼저 소개해 드리면, 이곳은 총장실과 주요 행정부서가 위치한 전북대학교의 행정 중심 건물이랍니다. 건물 3층에 무인증명발급서비스가 있어서 재학증명서 등의 서류를 무료로 출력할 때 활용하기 정말 좋아요. 나중에 서류가 필요할 때 꼭 이용해 보세요! 그리고 도착할 대학본부 앞에는 표범상이 서 있는데요. 표범은 전북대학교의 상징동물이에요. 표범의 지혜로움과 용감함 그리고 과감한 전진은 전북대인의 품성과 기상을 상징한답니다. 조금만 더 걸어가면 만날 수 있으니 기대해 주세요.",
+      "arrivalText": "",
+      "arrivalEnabled": false,
       "contentFingerprint": "2128eeea34cace184790c1864f96f3b7da4b68f2703ec6b1c56d7882cc62be0d",
       "contentVersion": "2128eeea34cace18",
       "model": "gemini-3.6-flash",
@@ -48,15 +243,79 @@
         "tour_03_university_headquarters:leopard-location",
         "tour_03_university_headquarters:leopard-symbol",
         "tour_03_university_headquarters:leopard-meaning",
-        "tour_03_university_headquarters:leopard-selection",
-        "tour_03_university_headquarters:statue-established"
+        "tour_03_university_headquarters:certificate-service",
+        "tour_03_university_headquarters:certificate-tip"
       ],
+      "enRouteUsedFactIds": [
+        "tour_03_university_headquarters:role",
+        "tour_03_university_headquarters:leopard-location",
+        "tour_03_university_headquarters:leopard-symbol",
+        "tour_03_university_headquarters:leopard-meaning",
+        "tour_03_university_headquarters:certificate-service",
+        "tour_03_university_headquarters:certificate-tip"
+      ],
+      "arrivalUsedFactIds": [],
       "targetDurationSeconds": 70,
-      "validatedAt": "2026-08-25T14:43:35.875635+00:00"
+      "validatedAt": "2026-08-27T17:58:03.996316+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 함께 가고 있는 곳은 대학본부예요. 도착하기 전에 먼저 소개해 드리면, 이곳은 총장실과 주요 행정부서가 위치한 전북대학교의 행정 중심 건물이랍니다. 건물 3층에 무인증명발급서비스가 있어서 재학증명서 등의 서류를 무료로 출력할 때 활용하기 정말 좋아요. 나중에 서류가 필요할 때 꼭 이용해 보세요! 그리고 도착할 대학본부 앞에는 표범상이 서 있는데요. 표범은 전북대학교의 상징동물이에요. 표범의 지혜로움과 용감함 그리고 과감한 전진은 전북대인의 품성과 기상을 상징한답니다. 조금만 더 걸어가면 만날 수 있으니 기대해 주세요.",
+          "arrivalText": "",
+          "enRouteUsedFactIds": [
+            "tour_03_university_headquarters:role",
+            "tour_03_university_headquarters:leopard-location",
+            "tour_03_university_headquarters:leopard-symbol",
+            "tour_03_university_headquarters:leopard-meaning",
+            "tour_03_university_headquarters:certificate-service",
+            "tour_03_university_headquarters:certificate-tip"
+          ],
+          "arrivalUsedFactIds": []
+        },
+        "en": {
+          "enRouteText": "We are heading to the University Headquarters, the administrative center with the President's office and major administrative departments. In front of it stands a statue of a leopard, the symbol animal of Jeonbuk National University. Chosen in 1981 by about 6,000 members and alumni, its wisdom, bravery, and bold forward drive symbolize the spirit of JBNU people. Look out for this proud statue as we get closer!",
+          "arrivalText": "",
+          "enRouteUsedFactIds": [
+            "tour_03_university_headquarters:role",
+            "tour_03_university_headquarters:leopard-location",
+            "tour_03_university_headquarters:leopard-symbol",
+            "tour_03_university_headquarters:leopard-meaning",
+            "tour_03_university_headquarters:leopard-selection"
+          ],
+          "arrivalUsedFactIds": []
+        },
+        "ja": {
+          "enRouteText": "次に向かっているのは、全北大学校の行政の中心である大学本部です。ここには総長室や主要な行政部署が位置しています。到着する前に少しご紹介しますね。建物の前には、本校の象徴動物であるヒョウ像があります。ヒョウの知恵深さと勇敢さ、そして果敢な前進は、全北大学の人の品格と気性を象徴しているんですよ。このヒョウ像は開校30周年を迎えた1982年5月に建てられました。どんな姿か、到着したらぜひ近くでご覧になってみてくださいね。",
+          "arrivalText": "",
+          "enRouteUsedFactIds": [
+            "tour_03_university_headquarters:role",
+            "tour_03_university_headquarters:leopard-location",
+            "tour_03_university_headquarters:leopard-symbol",
+            "tour_03_university_headquarters:leopard-meaning",
+            "tour_03_university_headquarters:statue-established"
+          ],
+          "arrivalUsedFactIds": []
+        },
+        "zh": {
+          "enRouteText": "我们正在前往大学本部。这里是包含校长室和主要行政部门的全北大学行政中心大楼。在到达之前，让我为您介绍一下大楼前等候我们的特别存在吧！您知道全北大学的象征动物是什么吗？答案就是豹子。1981年，通过针对约6千名成员和校友的调查与投票，豹子被选为了象征动物。豹子的智慧、勇敢以及果敢前行，完美象征着全北大学人的品格与气概。为了纪念建校30周年，1982年5月在大学本部前建立了一座豹子像。一会儿到达后，一定要和威风凛凛的豹子像合照留念哦！",
+          "arrivalText": "",
+          "enRouteUsedFactIds": [
+            "tour_03_university_headquarters:role",
+            "tour_03_university_headquarters:leopard-location",
+            "tour_03_university_headquarters:leopard-symbol",
+            "tour_03_university_headquarters:leopard-meaning",
+            "tour_03_university_headquarters:leopard-selection",
+            "tour_03_university_headquarters:statue-established"
+          ],
+          "arrivalUsedFactIds": []
+        }
+      }
     },
     "tour_04_jinsudang": {
       "status": "active",
-      "text": "지금 보고 계신 진수당은 다양한 활동이 모이는 복합 공간입니다. 이곳에서는 강연과 행사 및 세미나 등이 열립니다. 건물 1층에는 편의점과 카페 등의 편의시설이 있습니다. 그리고 교내식당인 진수원이 위치합니다. 2층에는 AI Space가 있습니다. AI Space는 AI와 XR 기술을 체험하고 활용하는 공간입니다. 이곳에서는 ChatGPT와 Gemini 및 Adobe 등 다양한 AI·디지털 도구를 활용할 수 있는 환경을 제공합니다.",
+      "text": "지금 가고 있는 곳은 바로 진수당이에요. 도착하기 전에 먼저 소개해 드리면, 이곳은 강연과 행사 및 세미나 등이 열리는 복합 공간이랍니다. 1층에는 편의점과 카페 등의 편의시설이 있고, 교내식당인 진수원이 위치해요. 그리고 2층에 AI Space가 있는데요. AI Space는 AI와 XR 기술을 체험하고 활용하는 공간이에요. 이곳에서는 Apple Vision Pro 3대를 이용할 수 있답니다. 첨단 기술을 직접 경험할 생각에 벌써 설레지 않나요? 발걸음을 조금만 더 올려볼까요?",
+      "enRouteText": "지금 가고 있는 곳은 바로 진수당이에요. 도착하기 전에 먼저 소개해 드리면, 이곳은 강연과 행사 및 세미나 등이 열리는 복합 공간이랍니다. 1층에는 편의점과 카페 등의 편의시설이 있고, 교내식당인 진수원이 위치해요. 그리고 2층에 AI Space가 있는데요. AI Space는 AI와 XR 기술을 체험하고 활용하는 공간이에요. 이곳에서는 Apple Vision Pro 3대를 이용할 수 있답니다. 첨단 기술을 직접 경험할 생각에 벌써 설레지 않나요? 발걸음을 조금만 더 올려볼까요?",
+      "arrivalText": "지금 보고 계신 진수당은 다양한 활동이 모이는 복합 공간입니다. 이곳에서는 강연과 행사 및 세미나 등이 열리곤 해요. 1층에 편의점과 카페 등의 편의시설이 있고 교내식당인 진수원이 위치해 있답니다. 건물 2층으로 눈을 돌려보면 AI Space가 있는데요. AI Space는 AI와 XR 기술을 체험하고 활용하는 공간이에요. Meta Quest 등의 XR 기기와 바둑 AI 로봇 등 AI 체험 장비가 마련되어 있어요. 수업 끝나고 꼭 한번 이용해 보는 건 어떨까요? 다채로운 진수당을 둘러보니 다음 이동할 장소도 정말 기대됩니다.",
+      "arrivalEnabled": true,
       "contentFingerprint": "aed8aa89b71f3a23501765e356cf46dc706188dfc9253a0000f3f014166aa47a",
       "contentVersion": "aed8aa89b71f3a23",
       "model": "gemini-3.6-flash",
@@ -67,14 +326,109 @@
         "tour_04_jinsudang:ai-space-location",
         "tour_04_jinsudang:ai-space-role",
         "tour_04_jinsudang:first-floor",
-        "tour_04_jinsudang:digital-tools"
+        "tour_04_jinsudang:vision-pro"
+      ],
+      "enRouteUsedFactIds": [
+        "tour_04_jinsudang:role",
+        "tour_04_jinsudang:restaurant",
+        "tour_04_jinsudang:ai-space-location",
+        "tour_04_jinsudang:ai-space-role",
+        "tour_04_jinsudang:first-floor",
+        "tour_04_jinsudang:vision-pro"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_04_jinsudang:role",
+        "tour_04_jinsudang:restaurant",
+        "tour_04_jinsudang:ai-space-location",
+        "tour_04_jinsudang:ai-space-role",
+        "tour_04_jinsudang:first-floor",
+        "tour_04_jinsudang:xr-equipment"
       ],
       "targetDurationSeconds": 65,
-      "validatedAt": "2026-08-25T14:43:54.560543+00:00"
+      "validatedAt": "2026-08-27T18:02:17.725883+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 바로 진수당이에요. 도착하기 전에 먼저 소개해 드리면, 이곳은 강연과 행사 및 세미나 등이 열리는 복합 공간이랍니다. 1층에는 편의점과 카페 등의 편의시설이 있고, 교내식당인 진수원이 위치해요. 그리고 2층에 AI Space가 있는데요. AI Space는 AI와 XR 기술을 체험하고 활용하는 공간이에요. 이곳에서는 Apple Vision Pro 3대를 이용할 수 있답니다. 첨단 기술을 직접 경험할 생각에 벌써 설레지 않나요? 발걸음을 조금만 더 올려볼까요?",
+          "arrivalText": "지금 보고 계신 진수당은 다양한 활동이 모이는 복합 공간입니다. 이곳에서는 강연과 행사 및 세미나 등이 열리곤 해요. 1층에 편의점과 카페 등의 편의시설이 있고 교내식당인 진수원이 위치해 있답니다. 건물 2층으로 눈을 돌려보면 AI Space가 있는데요. AI Space는 AI와 XR 기술을 체험하고 활용하는 공간이에요. Meta Quest 등의 XR 기기와 바둑 AI 로봇 등 AI 체험 장비가 마련되어 있어요. 수업 끝나고 꼭 한번 이용해 보는 건 어떨까요? 다채로운 진수당을 둘러보니 다음 이동할 장소도 정말 기대됩니다.",
+          "enRouteUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:first-floor",
+            "tour_04_jinsudang:vision-pro"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:first-floor",
+            "tour_04_jinsudang:xr-equipment"
+          ]
+        },
+        "en": {
+          "enRouteText": "As we head to Jinsudang, let me introduce this building! It is a complex space for lectures, events, and seminars, and it houses our campus cafeteria, Jinsuwon. On the 2nd floor, there is an AI Space to experience and utilize AI and XR technology. You can even try 3 Apple Vision Pro devices! Isn't that exciting? Let's head inside together soon!",
+          "arrivalText": "Here we are at 진수당! Take a look at the building right before you. This is a complex space for lectures, events, and seminars. It houses our campus restaurant, 진수원. On the second floor, you will find AI Space, where you can experience and utilize AI and XR technologies like Meta Quest. Isn't it exciting to explore our smart campus?",
+          "enRouteUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:vision-pro"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:xr-equipment"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次は、様々な活動の拠点である진수당に向かっています。到着する前に、少しご紹介しますね。진수당は、講演やイベント、セミナーなどが開かれる複合空間です。校内食堂の진수원もここに位置しています。さらに2階にあるAI Spaceは、AIやXR技術を体験し活用できる注目の空間です。Meta QuestなどのXR機器や囲碁AIロボットといった体験設備も整っています。到着したら、最新技術の世界を覗いてみませんか。一緒にワクワクしながら向かいましょう！",
+          "arrivalText": "目の前に見えているのが진수당です。建物の立派な佇まいをぜひ観察してみてくださいね。ここは講演やイベント、セミナーなどが開かれる複合空間なんです。館内には校内食堂の진수원も位置していますよ。そして2階にあるAI Spaceでは、AIやXR技術を体験して活用できます。なんとApple Vision Pro 3台も利用できるんですよ。学生たちの学びと活気が集まる素敵な場所ですよね。",
+          "enRouteUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:xr-equipment"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:vision-pro"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正一起前往진수당。在到达目的地之前，让我先为您简单介绍一下吧！진수당是举办各种讲座、活动以及学术研讨会的复合空间，里面还设有校内食堂진수원。特别有趣的是，2楼设有AI Space，这是一个专门用来体验和利用AI与XR技术的空间。在这里，您甚至还可以亲自使用3台Apple Vision Pro呢！是不是很期待去体验一下未来的科技感？让我们一起加快脚步走过去吧！",
+          "arrivalText": "现在，我们已经来到진수당面前了。你看，这座建筑是不是很有特色？这里是举行各种演讲、活动和研讨会的复合空间。不仅如此，校内食堂진수원也在这里。来到2楼，你会发现AI Space。这是一个可以体验和利用AI与XR技术的空间。里面还准备了Meta Quest等XR设备以及围棋AI机器人等AI体验装备呢！要不要进去参观一下，探索属于全北大学的科技魅力？",
+          "enRouteUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:vision-pro"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_04_jinsudang:role",
+            "tour_04_jinsudang:restaurant",
+            "tour_04_jinsudang:ai-space-location",
+            "tour_04_jinsudang:ai-space-role",
+            "tour_04_jinsudang:xr-equipment"
+          ]
+        }
+      }
     },
     "tour_05_engineering_entrance": {
       "status": "active",
-      "text": "이곳부터 전북대학교 공과대학 권역이 시작됩니다. 이곳은 공과대학 1호관 앞에 위치하며, 공과대학 권역으로 들어가는 주요 지점입니다. 공과대학 건물을 찾아갈 때 기준점으로 활용하기 좋은 위치입니다. 근처의 비행기 전시물은 공과대학 권역의 대표적인 랜드마크입니다. 이 전시물은 단순한 모형이나 조형물이 아니라 실제 사용되었던 항공기입니다. 전시된 비행기는 실제 한국전쟁에서 사용된 전투기입니다.",
+      "text": "지금 가고 있는 곳은 전북대학교 공과대학 권역으로 들어가는 주요 지점이에요. 공과대학 건물을 찾아갈 때 기준점으로 활용하기 아주 좋은 위치랍니다. 도착하기 전에 먼저 소개해 드리면 인근에 비행기 전시물이 있어요. 공과대학 권역의 대표적인 랜드마크인데요. 단순한 모형이나 조형물이 아니라 실제 사용되었던 항공기이고, 실제 한국전쟁에서 사용된 전투기랍니다. 직접 마주하면 어떤 느낌일지 정말 궁금하지 않나요? 얼른 가서 확인해 봐요.",
+      "enRouteText": "지금 가고 있는 곳은 전북대학교 공과대학 권역으로 들어가는 주요 지점이에요. 공과대학 건물을 찾아갈 때 기준점으로 활용하기 아주 좋은 위치랍니다. 도착하기 전에 먼저 소개해 드리면 인근에 비행기 전시물이 있어요. 공과대학 권역의 대표적인 랜드마크인데요. 단순한 모형이나 조형물이 아니라 실제 사용되었던 항공기이고, 실제 한국전쟁에서 사용된 전투기랍니다. 직접 마주하면 어떤 느낌일지 정말 궁금하지 않나요? 얼른 가서 확인해 봐요.",
+      "arrivalText": "이곳부터 전북대학교 공과대학 권역이 시작됩니다. 여긴 공과대학 1호관 앞이자 공과대학 권역으로 들어가는 주요 지점이에요. 다른 공과대학 건물을 찾아갈 때 기준점으로 활용하기 아주 좋은 위치랍니다. 눈앞에 서 있는 비행기 전시물도 한번 자세히 둘러보세요. 공과대학 권역의 대표적인 랜드마크인 이 비행기는 단순한 모형이나 조형물이 아니라 실제 사용되었던 항공기예요. 무려 실제 한국전쟁에서 사용된 전투기랍니다. 정말 멋지지 않나요? 근사한 전투기 앞에서 사진을 남기며 다음 장소로 향할 준비를 해봐요.",
+      "arrivalEnabled": true,
       "contentFingerprint": "fbe639a3697ff48ebb03bfcf63b33f90392029e22d822f9e9df50a4fb7798001",
       "contentVersion": "fbe639a3697ff48e",
       "model": "gemini-3.6-flash",
@@ -84,15 +438,114 @@
         "tour_05_engineering_entrance:wayfinding",
         "tour_05_engineering_entrance:aircraft-history",
         "tour_05_engineering_entrance:aircraft-authenticity",
+        "tour_05_engineering_entrance:aircraft-location",
+        "tour_05_engineering_entrance:landmark"
+      ],
+      "enRouteUsedFactIds": [
+        "tour_05_engineering_entrance:role",
+        "tour_05_engineering_entrance:wayfinding",
+        "tour_05_engineering_entrance:aircraft-history",
+        "tour_05_engineering_entrance:aircraft-authenticity",
+        "tour_05_engineering_entrance:aircraft-location",
+        "tour_05_engineering_entrance:landmark"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_05_engineering_entrance:role",
+        "tour_05_engineering_entrance:wayfinding",
+        "tour_05_engineering_entrance:aircraft-history",
+        "tour_05_engineering_entrance:aircraft-authenticity",
         "tour_05_engineering_entrance:location",
         "tour_05_engineering_entrance:landmark"
       ],
       "targetDurationSeconds": 65,
-      "validatedAt": "2026-08-25T14:44:16.179471+00:00"
+      "validatedAt": "2026-08-27T18:05:23.402006+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 전북대학교 공과대학 권역으로 들어가는 주요 지점이에요. 공과대학 건물을 찾아갈 때 기준점으로 활용하기 아주 좋은 위치랍니다. 도착하기 전에 먼저 소개해 드리면 인근에 비행기 전시물이 있어요. 공과대학 권역의 대표적인 랜드마크인데요. 단순한 모형이나 조형물이 아니라 실제 사용되었던 항공기이고, 실제 한국전쟁에서 사용된 전투기랍니다. 직접 마주하면 어떤 느낌일지 정말 궁금하지 않나요? 얼른 가서 확인해 봐요.",
+          "arrivalText": "이곳부터 전북대학교 공과대학 권역이 시작됩니다. 여긴 공과대학 1호관 앞이자 공과대학 권역으로 들어가는 주요 지점이에요. 다른 공과대학 건물을 찾아갈 때 기준점으로 활용하기 아주 좋은 위치랍니다. 눈앞에 서 있는 비행기 전시물도 한번 자세히 둘러보세요. 공과대학 권역의 대표적인 랜드마크인 이 비행기는 단순한 모형이나 조형물이 아니라 실제 사용되었던 항공기예요. 무려 실제 한국전쟁에서 사용된 전투기랍니다. 정말 멋지지 않나요? 근사한 전투기 앞에서 사진을 남기며 다음 장소로 향할 준비를 해봐요.",
+          "enRouteUsedFactIds": [
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:aircraft-history",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:aircraft-location",
+            "tour_05_engineering_entrance:landmark"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:aircraft-history",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:location",
+            "tour_05_engineering_entrance:landmark"
+          ]
+        },
+        "en": {
+          "enRouteText": "We are heading toward Engineering Building 1. This area is the main entry point and a handy reference point when navigating through the College of Engineering. Before we arrive, get ready to see an iconic landmark, a real aircraft! It is not just a simple model, but an actual fighter plane that was used in the Korean War. Get your camera ready for a cool photo!",
+          "arrivalText": "Here we are in front of 공과대학 1호관! This is the main entry point to the JBNU engineering zone, making it a great reference point when finding engineering buildings. Look at the airplane displayed nearby! It is an iconic landmark here. It is not a simple model, but an actual fighter plane used in the Korean War. Isn't that amazing? Take a moment to admire this piece of history!",
+          "enRouteUsedFactIds": [
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:aircraft-history",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:landmark"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_05_engineering_entrance:location",
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:landmark",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:aircraft-history"
+          ]
+        },
+        "ja": {
+          "enRouteText": "向かっているのは、工科大学1号館の近くです。ここは全北大学校の工科大学エリアに入る主要な地点で、工科大学の建物に向かう際の目印としてもぴったりな場所なんですよ。到着したらぜひ見てほしいのが、近くにある飛行機の展示物です。大韓民国空軍から寄贈されたもので、工科大学エリアの代表的なランドマークになっています。単なる模型や造形物ではなく、なんと実際に朝鮮戦争で使用された本物の戦闘機なんですよ。本物の迫力を間近で感じられるなんて、ワクワクしてきませんか？まもなく到着しますので、楽しみにしていてくださいね！",
+          "arrivalText": "工科大学1号館の前に到着しましたね。ここは全北大学校の工科大学エリアに入る主要な地点で、周辺の建物を見つける時の基準点としてぴったりな場所なんです。目の前にある飛行機が見えますか？これは工科大学エリアの代表的なランドマークなのですが、単なる模型や造形物ではありません。なんと、実際に朝鮮戦争で使用された本物の戦闘機なんですよ。間近で見ると迫力が違いますよね。歴史の息吹をじっくりと感じてみてくださいね。",
+          "enRouteUsedFactIds": [
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:aircraft-history",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:aircraft-donation",
+            "tour_05_engineering_entrance:landmark"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:aircraft-history",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:location",
+            "tour_05_engineering_entrance:landmark"
+          ]
+        },
+        "zh": {
+          "enRouteText": "现在，我们正一步步迈向공과대학 1호관。这里是进入全北大学工学院区域的主要入口，也是大家寻找工学院各大楼时非常实用的基准点。在到达之前，让我先为您揭晓一个特别的看点吧！等会儿到了目的地，您会看到展示的飞机。这可不是简单的模型或艺术雕塑，而是曾经在韩国战争中实际服役过的真实战斗机呢！听到这里，您是不是也感到很神奇，想要快点一睹它的风采了呢？让我们继续向前走，一起去亲眼见证这架带有历史印记的真实战机吧！",
+          "arrivalText": "我们现在来到了공과대학 1호관前面。这里是进入全北大学工学院区域的主要入口，也是寻找工学院大楼时非常适合的基准点。请看眼前，这里有一架展示的飞机，它可是工学院区域代表性的标志物呢！您觉得它只是个普通的模型吗？其实，这并不是单纯的模型或雕塑，而是真正曾在朝鲜战争中服役过的战斗机。亲眼看到真实的战机，是不是感觉很奇妙？不妨停下脚步仔细看看，感受一下这里的独特氛围吧。",
+          "enRouteUsedFactIds": [
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:aircraft-history",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:location"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_05_engineering_entrance:role",
+            "tour_05_engineering_entrance:wayfinding",
+            "tour_05_engineering_entrance:aircraft-history",
+            "tour_05_engineering_entrance:aircraft-authenticity",
+            "tour_05_engineering_entrance:location",
+            "tour_05_engineering_entrance:landmark"
+          ]
+        }
+      }
     },
     "tour_06_central_library": {
       "status": "active",
-      "text": "이곳은 전북대학교의 대표 학습 공간인 중앙도서관입니다. 이곳은 대표적인 학습 및 자료 이용 공간입니다. 2026년 2월 리모델링 이후 1층 열람실 시설이 개선되었습니다. 쾌적한 환경에서 공부하고 싶다면 1층 열람실을 이용하기 좋습니다. 다만 시험기간에는 1층 이용자가 많아 혼잡할 수 있습니다. 시험기간에 콘센트 좌석이 필요하다면 1층보다 2층이나 3층 열람실을 고려할 수 있습니다. 또한 날씨가 좋은 날에는 야외 테라스에서 공부하는 학생들도 많습니다.",
+      "text": "지금 가고 있는 곳은 전북대학교의 대표적인 학습 및 자료 이용 공간인 중앙도서관이에요. 도착하기 전에 먼저 소개해 드리면, 2026년 2월 리모델링 이후 1층 열람실 시설이 개선되었답니다. 쾌적한 환경에서 공부하고 싶다면 1층 열람실을 이용하기 좋아요. 날씨가 좋은 날에는 야외 테라스에서 공부하는 학생들도 많답니다. 다만 시험기간에는 1층 이용자가 많아 혼잡할 수 있어요. 만약 시험기간에 콘센트 좌석이 필요하다면 1층보다 2층이나 3층 열람실을 고려할 수 있습니다. 곧 만나볼 도서관의 모습을 기대해 보세요.",
+      "enRouteText": "지금 가고 있는 곳은 전북대학교의 대표적인 학습 및 자료 이용 공간인 중앙도서관이에요. 도착하기 전에 먼저 소개해 드리면, 2026년 2월 리모델링 이후 1층 열람실 시설이 개선되었답니다. 쾌적한 환경에서 공부하고 싶다면 1층 열람실을 이용하기 좋아요. 날씨가 좋은 날에는 야외 테라스에서 공부하는 학생들도 많답니다. 다만 시험기간에는 1층 이용자가 많아 혼잡할 수 있어요. 만약 시험기간에 콘센트 좌석이 필요하다면 1층보다 2층이나 3층 열람실을 고려할 수 있습니다. 곧 만나볼 도서관의 모습을 기대해 보세요.",
+      "arrivalText": "이곳은 전북대학교의 대표 학습 공간인 중앙도서관입니다. 대표적인 학습 및 자료 이용 공간으로, 눈앞의 도서관 건물을 한번 둘러볼까요? 2026년 2월 리모델링 이후 1층 열람실 시설이 개선되었어요. 쾌적한 환경에서 공부하고 싶다면 1층 열람실을 이용하기 좋습니다. 다만 시험기간에는 1층 이용자가 많아 혼잡할 수 있어요. 시험기간에 콘센트 좌석이 필요하다면 1층보다 2층이나 3층 열람실을 고려할 수 있습니다. 날씨가 좋은 날에는 야외 테라스에서 공부하는 학생들도 많아요. 정말 자주 오고 싶은 곳이죠? 이제 다음 장소로 걸어가 볼게요.",
+      "arrivalEnabled": true,
       "contentFingerprint": "e3b9907919152c250ed5bd7a11f23c8b1b8e17cf1643a76959be0261b14c511e",
       "contentVersion": "e3b9907919152c25",
       "model": "gemini-3.6-flash",
@@ -100,17 +553,114 @@
       "usedFactIds": [
         "tour_06_central_library:role",
         "tour_06_central_library:remodeling",
-        "tour_06_central_library:first-floor-tip",
         "tour_06_central_library:exam-crowding",
         "tour_06_central_library:outlet-tip",
+        "tour_06_central_library:first-floor-tip",
+        "tour_06_central_library:terrace"
+      ],
+      "enRouteUsedFactIds": [
+        "tour_06_central_library:role",
+        "tour_06_central_library:remodeling",
+        "tour_06_central_library:exam-crowding",
+        "tour_06_central_library:outlet-tip",
+        "tour_06_central_library:first-floor-tip",
+        "tour_06_central_library:terrace"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_06_central_library:role",
+        "tour_06_central_library:remodeling",
+        "tour_06_central_library:exam-crowding",
+        "tour_06_central_library:outlet-tip",
+        "tour_06_central_library:first-floor-tip",
         "tour_06_central_library:terrace"
       ],
       "targetDurationSeconds": 65,
-      "validatedAt": "2026-08-25T14:44:35.508127+00:00"
+      "validatedAt": "2026-08-27T18:08:56.075716+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 전북대학교의 대표적인 학습 및 자료 이용 공간인 중앙도서관이에요. 도착하기 전에 먼저 소개해 드리면, 2026년 2월 리모델링 이후 1층 열람실 시설이 개선되었답니다. 쾌적한 환경에서 공부하고 싶다면 1층 열람실을 이용하기 좋아요. 날씨가 좋은 날에는 야외 테라스에서 공부하는 학생들도 많답니다. 다만 시험기간에는 1층 이용자가 많아 혼잡할 수 있어요. 만약 시험기간에 콘센트 좌석이 필요하다면 1층보다 2층이나 3층 열람실을 고려할 수 있습니다. 곧 만나볼 도서관의 모습을 기대해 보세요.",
+          "arrivalText": "이곳은 전북대학교의 대표 학습 공간인 중앙도서관입니다. 대표적인 학습 및 자료 이용 공간으로, 눈앞의 도서관 건물을 한번 둘러볼까요? 2026년 2월 리모델링 이후 1층 열람실 시설이 개선되었어요. 쾌적한 환경에서 공부하고 싶다면 1층 열람실을 이용하기 좋습니다. 다만 시험기간에는 1층 이용자가 많아 혼잡할 수 있어요. 시험기간에 콘센트 좌석이 필요하다면 1층보다 2층이나 3층 열람실을 고려할 수 있습니다. 날씨가 좋은 날에는 야외 테라스에서 공부하는 학생들도 많아요. 정말 자주 오고 싶은 곳이죠? 이제 다음 장소로 걸어가 볼게요.",
+          "enRouteUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip",
+            "tour_06_central_library:first-floor-tip",
+            "tour_06_central_library:terrace"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip",
+            "tour_06_central_library:first-floor-tip",
+            "tour_06_central_library:terrace"
+          ]
+        },
+        "en": {
+          "enRouteText": "We are heading to the Central Library, JBNU's main learning and resource space. Remodeling in February 2026 upgraded the first floor reading room facilities. During exam periods, the first floor gets crowded. If you need an outlet seat then, try the second or third floor reading rooms. On nice days, students also love studying on the outdoor terrace! Ready to take a look?",
+          "arrivalText": "Here we are at the Central Library, JBNU's main space for learning and resources. Look at the entrance in front of you! The first floor reading room facilities were improved after remodeling in February 2026. It gets crowded on the first floor during exam periods. If you need an outlet seat then, try the second or third floor reading rooms instead. Isn't it wonderful?",
+          "enRouteUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip",
+            "tour_06_central_library:terrace"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次に向かっているのは、全北大学校の代表的な学習と資料利用の空間、中央図書館です。到着する前に少しご紹介しますね。2026年2月のリノベーション以降、1階閲覧室の施設が改善されました。快適に勉強したい時は1階がおすすめですが、試験期間は1階の利用者が多く混雑することがあります。もし試験期間にコンセント席が必要なら、1階より2階や3階の閲覧室を検討してみてくださいね。天気が良い日には屋外テラスで勉強する学生も多いんですよ。どんな場所か楽しみですね！",
+          "arrivalText": "目の前にある建物が見えますか。ここが全北大学校の代表的な学習および資料利用空間である中央図書館です。2026年2月のリモデル以降、1階閲覧室の施設が改善されました。快適な環境で勉強したいなら、1階の閲覧室を利用するのがおすすめです。ただ、試験期間には1階の利用者が多く混雑することがあります。試験期間にコンセント座席が必要なら、1階より2階や3階の閲覧室を検討してみてくださいね。学生たちの熱気を感じられるステキな空間です。",
+          "enRouteUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:first-floor-tip",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip",
+            "tour_06_central_library:terrace"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:first-floor-tip",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正前往중앙도서관。这里是全北大学代表性的学习和资料利用空间。在2026年2月改装后，1层阅览室设施得到了改善。平时想在舒适的环境中学习，很适合利用1层阅览室。不过在考试期间，1层的使用者很多，可能会比较拥挤。如果考试期间需要插座座位，相比1层，您可以考虑2层或3层阅览室。天气好的时候，还有不少人在户外露台学习呢。让我们一起期待接下来的参观吧！",
+          "arrivalText": "请看眼前，这就是全北大学代表性的学习与资料利用空间——중앙도서관。2026年2月改造后，1楼阅览室设施得到了改善，想在舒适环境中学习的话很适合使用1楼阅览室。不过考试期间1楼使用者很多，可能会有些拥挤。如果考试期间需要插座座位，比起1楼，您可以考虑2楼或3楼阅览室。天气好的日子里，在户外露台学习的学生也很多呢。站在面前看着这里，是不是也能感受到浓浓的学习气息呢？",
+          "enRouteUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:first-floor-tip",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip",
+            "tour_06_central_library:terrace"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_06_central_library:role",
+            "tour_06_central_library:remodeling",
+            "tour_06_central_library:exam-crowding",
+            "tour_06_central_library:outlet-tip",
+            "tour_06_central_library:first-floor-tip",
+            "tour_06_central_library:terrace"
+          ]
+        }
+      }
     },
     "tour_07_geonji_plaza": {
       "status": "active",
-      "text": "지금 도착한 곳은 캠퍼스 중심부의 건지광장입니다. 이곳은 전북대학교 캠퍼스 중심부에 위치한 대표적인 광장입니다. 여러 주요 건물과 이동 동선이 연결되어 캠퍼스 이동의 기준점 역할을 합니다. 넓은 광장과 주변 녹지 공간이 있어 학생들의 만남과 휴식 장소로 자주 활용됩니다. 중앙도서관에서 건지광장으로 이동하는 길 주변에는 넓은 잔디밭과 녹지 공간이 조성되어 있습니다. 봄철 벚꽃이 피는 시기에는 중앙도서관 주변 길과 잔디밭이 산책하거나 사진을 찍기 좋은 장소가 됩니다.",
+      "text": "지금 가고 있는 곳은 건지광장이에요. 중앙도서관에서 건지광장으로 이동하는 길 주변에는 넓은 잔디밭과 녹지 공간이 조성되어 있답니다. 봄철 벚꽃이 피는 시기에는 중앙도서관 주변 길과 잔디밭이 산책하거나 사진을 찍기 좋은 장소가 돼요. 도착하기 전에 먼저 소개해 드리면, 건지광장은 전북대학교 캠퍼스 중심부에 위치한 대표적인 광장이에요. 여러 주요 건물과 이동 동선이 연결되어 캠퍼스 이동의 기준점 역할을 한답니다. 넓은 광장과 주변 녹지 공간이 있어 학생들의 만남과 휴식 장소로 자주 활용되곤 해요. 곧 만날 광장의 모습을 기대해 보세요.",
+      "enRouteText": "지금 가고 있는 곳은 건지광장이에요. 중앙도서관에서 건지광장으로 이동하는 길 주변에는 넓은 잔디밭과 녹지 공간이 조성되어 있답니다. 봄철 벚꽃이 피는 시기에는 중앙도서관 주변 길과 잔디밭이 산책하거나 사진을 찍기 좋은 장소가 돼요. 도착하기 전에 먼저 소개해 드리면, 건지광장은 전북대학교 캠퍼스 중심부에 위치한 대표적인 광장이에요. 여러 주요 건물과 이동 동선이 연결되어 캠퍼스 이동의 기준점 역할을 한답니다. 넓은 광장과 주변 녹지 공간이 있어 학생들의 만남과 휴식 장소로 자주 활용되곤 해요. 곧 만날 광장의 모습을 기대해 보세요.",
+      "arrivalText": "지금 도착한 곳은 캠퍼스 중심부의 건지광장입니다. 여기는 전북대학교 캠퍼스 중심부의 대표적인 광장이에요. 눈앞을 둘러보면 여러 주요 건물과 이동 동선이 연결되어 있어 캠퍼스 이동의 기준점 역할을 한답니다. 넓은 광장과 주변 녹지 공간이 있어 학생들의 만남과 휴식 장소로 자주 활용돼요. 중앙도서관에서 건지광장으로 이동하는 길 주변에도 넓은 잔디밭과 녹지 공간이 조성되어 있죠. 탁 트인 주변을 구경하며 잠시 쉬어가도 정말 좋답니다.",
+      "arrivalEnabled": true,
       "contentFingerprint": "356be3549c9a334286c102f5b6af0a09e538d95546b806479591d05370d28b1a",
       "contentVersion": "356be3549c9a3342",
       "model": "gemini-3.6-flash",
@@ -122,12 +672,98 @@
         "tour_07_geonji_plaza:library-route",
         "tour_07_geonji_plaza:cherry-blossoms"
       ],
+      "enRouteUsedFactIds": [
+        "tour_07_geonji_plaza:role",
+        "tour_07_geonji_plaza:wayfinding",
+        "tour_07_geonji_plaza:rest",
+        "tour_07_geonji_plaza:library-route",
+        "tour_07_geonji_plaza:cherry-blossoms"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_07_geonji_plaza:role",
+        "tour_07_geonji_plaza:wayfinding",
+        "tour_07_geonji_plaza:rest",
+        "tour_07_geonji_plaza:library-route"
+      ],
       "targetDurationSeconds": 55,
-      "validatedAt": "2026-08-25T14:44:47.729988+00:00"
+      "validatedAt": "2026-08-27T18:12:34.174210+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 건지광장이에요. 중앙도서관에서 건지광장으로 이동하는 길 주변에는 넓은 잔디밭과 녹지 공간이 조성되어 있답니다. 봄철 벚꽃이 피는 시기에는 중앙도서관 주변 길과 잔디밭이 산책하거나 사진을 찍기 좋은 장소가 돼요. 도착하기 전에 먼저 소개해 드리면, 건지광장은 전북대학교 캠퍼스 중심부에 위치한 대표적인 광장이에요. 여러 주요 건물과 이동 동선이 연결되어 캠퍼스 이동의 기준점 역할을 한답니다. 넓은 광장과 주변 녹지 공간이 있어 학생들의 만남과 휴식 장소로 자주 활용되곤 해요. 곧 만날 광장의 모습을 기대해 보세요.",
+          "arrivalText": "지금 도착한 곳은 캠퍼스 중심부의 건지광장입니다. 여기는 전북대학교 캠퍼스 중심부의 대표적인 광장이에요. 눈앞을 둘러보면 여러 주요 건물과 이동 동선이 연결되어 있어 캠퍼스 이동의 기준점 역할을 한답니다. 넓은 광장과 주변 녹지 공간이 있어 학생들의 만남과 휴식 장소로 자주 활용돼요. 중앙도서관에서 건지광장으로 이동하는 길 주변에도 넓은 잔디밭과 녹지 공간이 조성되어 있죠. 탁 트인 주변을 구경하며 잠시 쉬어가도 정말 좋답니다.",
+          "enRouteUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest",
+            "tour_07_geonji_plaza:library-route",
+            "tour_07_geonji_plaza:cherry-blossoms"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest",
+            "tour_07_geonji_plaza:library-route"
+          ]
+        },
+        "en": {
+          "enRouteText": "We're heading to Geonji Plaza, a representative plaza at the center of JBNU. Connecting major buildings, it serves as a key reference point on campus. The path from Central Library features wide lawns, and the spacious plaza is a favorite spot for students to meet and rest. Isn't it wonderful to walk here?",
+          "arrivalText": "Welcome to 건지광장! Look around this representative plaza right in the center of JBNU. It connects key buildings and pathways, making it our main campus reference point. With its wide open plaza and green spaces, students love meeting and resting here. Doesn't it look wonderful? It is truly the heart of campus life.",
+          "enRouteUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest",
+            "tour_07_geonji_plaza:library-route"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次に向かっているのは、キャンパスの中心に位置する代表的な広場、건지광장です。ここは主要な建物や動線がつながり、移動の基準点になっているんですよ。중앙도서관から向かう道の周辺には広い芝生と緑地が広がり、春に桜が咲く時期には散歩や写真撮影にぴったりの場所になります。広い広場と周辺の緑地空間は、学生たちの出会いや休憩の場としてよく使われています。到着したら、ぜひ素敵な風景を楽しんでみてくださいね。",
+          "arrivalText": "さあ、目の前に広がっているのが全北大学の中心にある代表的な広場、건지광장です。広々としていて素敵な場所でしょう？ここは多くの主要な建物や動線がつながる、キャンパス移動の基準点なんです。広い広場と緑地空間があり、学生たちの出会いや休息の場として親しまれています。중앙도서관からここへ続く道にも広い芝生や緑地があり、春に桜が咲く時期には散歩や写真撮影にぴったりな場所になります。ぜひ周囲の景色を眺めながら、休憩してみてくださいね。",
+          "enRouteUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest",
+            "tour_07_geonji_plaza:library-route",
+            "tour_07_geonji_plaza:cherry-blossoms"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest",
+            "tour_07_geonji_plaza:library-route",
+            "tour_07_geonji_plaza:cherry-blossoms"
+          ]
+        },
+        "zh": {
+          "enRouteText": "现在我们正在前往건지광장。在到达之前，让我为你简单介绍一下吧。건지광장是位于全北大学校园中心的代表性广场。它连接着许多主要建筑与路线，是校园移动的重要基准点。从중앙도서관前往건지광장的路旁有着广阔的草坪与绿地。春天樱花盛开时，这里可是散步和拍照的绝佳地点呢！宽阔的广场与绿化空间，常常是同学们相聚与休息的首选。让我们一起迈步前往这个充满活力的校园中心吧！",
+          "arrivalText": "欢迎来到건지광장！快看看眼前这片开阔的广场吧。这里位于전북대학교校园中心，是最具代表性的广场。它连接着许多主要建筑与移动路线，是校园出行的基准点。宽阔的广场和周边绿地，常被同学们作为见面和休息的地方。从중앙도서관过来的路旁有着宽阔的草坪与绿地，到了春天樱花盛开时，중앙도서관周围的路线和草坪就成了散步和拍照的好去处。要不要在这里拍张照片，感受一下校园的惬意呢？",
+          "enRouteUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest",
+            "tour_07_geonji_plaza:library-route",
+            "tour_07_geonji_plaza:cherry-blossoms"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_07_geonji_plaza:role",
+            "tour_07_geonji_plaza:wayfinding",
+            "tour_07_geonji_plaza:rest",
+            "tour_07_geonji_plaza:library-route",
+            "tour_07_geonji_plaza:cherry-blossoms"
+          ]
+        }
+      }
     },
     "tour_08_stadium_swing": {
       "status": "active",
-      "text": "이곳은 전북대학교의 대표 야외 공간인 대운동장입니다. 이곳은 전북대학교의 대표적인 대규모 야외 행사 및 체육 공간입니다. 대동제와 동아리 홍보행사 및 공과대학 체전 등 교내 주요 대형 행사가 열립니다. 행사 기간에는 공연과 부스 등 다양한 프로그램이 운영되어 많은 학생들이 모입니다. 평소에는 운동과 러닝을 위한 공간으로 활발하게 이용됩니다. 큰 행사가 없는 날에는 비교적 자유롭게 운동하거나 산책하기 좋습니다.",
+      "text": "지금 가고 있는 곳은 전북대학교의 대표적인 대규모 야외 행사 및 체육 공간인 대운동장이에요. 도착하기 전에 먼저 소개해 드리면, 이곳에서는 대동제와 동아리 홍보행사 및 공과대학 체전 등 교내 주요 대형 행사가 열린답니다. 행사 기간에는 공연과 부스 등 다양한 프로그램이 운영되어 많은 학생들이 모여들어요. 평소에는 운동과 러닝을 위한 공간으로 활발하게 이용되고, 큰 행사가 없는 날에는 비교적 자유롭게 운동하거나 산책하기 좋아요. 활기찬 대운동장에 도착하면 나중에 함께 산책해 볼까요?",
+      "enRouteText": "지금 가고 있는 곳은 전북대학교의 대표적인 대규모 야외 행사 및 체육 공간인 대운동장이에요. 도착하기 전에 먼저 소개해 드리면, 이곳에서는 대동제와 동아리 홍보행사 및 공과대학 체전 등 교내 주요 대형 행사가 열린답니다. 행사 기간에는 공연과 부스 등 다양한 프로그램이 운영되어 많은 학생들이 모여들어요. 평소에는 운동과 러닝을 위한 공간으로 활발하게 이용되고, 큰 행사가 없는 날에는 비교적 자유롭게 운동하거나 산책하기 좋아요. 활기찬 대운동장에 도착하면 나중에 함께 산책해 볼까요?",
+      "arrivalText": "이곳은 전북대학교의 대표 야외 공간인 대운동장입니다. 눈앞에 펼쳐진 넓은 공간을 한번 둘러보세요. 이곳은 대표적인 대규모 야외 행사 및 체육 공간인데요. 대동제와 동아리 홍보행사 및 공과대학 체전 등 교내 주요 대형 행사가 열린답니다. 행사 기간에는 공연과 부스 등 다양한 프로그램이 운영되어 많은 학생들이 모여요. 평소에는 운동과 러닝을 위한 공간으로 활발하게 이용되는데, 큰 행사가 없는 날에는 비교적 자유롭게 운동하거나 산책하기 좋답니다. 다음에 저와 함께 가볍게 걸어보는 건 어떨까요?",
+      "arrivalEnabled": true,
       "contentFingerprint": "9f41a606a2ec5f3c78c14a8607510013ca49b3ba07e9dc57a29f8408595ac2e9",
       "contentVersion": "9f41a606a2ec5f3c",
       "model": "gemini-3.6-flash",
@@ -135,16 +771,104 @@
       "usedFactIds": [
         "tour_08_stadium_swing:role",
         "tour_08_stadium_swing:events",
-        "tour_08_stadium_swing:event-programs",
         "tour_08_stadium_swing:exercise",
+        "tour_08_stadium_swing:event-programs",
+        "tour_08_stadium_swing:free-use"
+      ],
+      "enRouteUsedFactIds": [
+        "tour_08_stadium_swing:role",
+        "tour_08_stadium_swing:events",
+        "tour_08_stadium_swing:exercise",
+        "tour_08_stadium_swing:event-programs",
+        "tour_08_stadium_swing:free-use"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_08_stadium_swing:role",
+        "tour_08_stadium_swing:events",
+        "tour_08_stadium_swing:exercise",
+        "tour_08_stadium_swing:event-programs",
         "tour_08_stadium_swing:free-use"
       ],
       "targetDurationSeconds": 60,
-      "validatedAt": "2026-08-25T14:45:04.092730+00:00"
+      "validatedAt": "2026-08-27T18:15:10.978767+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 전북대학교의 대표적인 대규모 야외 행사 및 체육 공간인 대운동장이에요. 도착하기 전에 먼저 소개해 드리면, 이곳에서는 대동제와 동아리 홍보행사 및 공과대학 체전 등 교내 주요 대형 행사가 열린답니다. 행사 기간에는 공연과 부스 등 다양한 프로그램이 운영되어 많은 학생들이 모여들어요. 평소에는 운동과 러닝을 위한 공간으로 활발하게 이용되고, 큰 행사가 없는 날에는 비교적 자유롭게 운동하거나 산책하기 좋아요. 활기찬 대운동장에 도착하면 나중에 함께 산책해 볼까요?",
+          "arrivalText": "이곳은 전북대학교의 대표 야외 공간인 대운동장입니다. 눈앞에 펼쳐진 넓은 공간을 한번 둘러보세요. 이곳은 대표적인 대규모 야외 행사 및 체육 공간인데요. 대동제와 동아리 홍보행사 및 공과대학 체전 등 교내 주요 대형 행사가 열린답니다. 행사 기간에는 공연과 부스 등 다양한 프로그램이 운영되어 많은 학생들이 모여요. 평소에는 운동과 러닝을 위한 공간으로 활발하게 이용되는데, 큰 행사가 없는 날에는 비교적 자유롭게 운동하거나 산책하기 좋답니다. 다음에 저와 함께 가볍게 걸어보는 건 어떨까요?",
+          "enRouteUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise",
+            "tour_08_stadium_swing:event-programs",
+            "tour_08_stadium_swing:free-use"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise",
+            "tour_08_stadium_swing:event-programs",
+            "tour_08_stadium_swing:free-use"
+          ]
+        },
+        "en": {
+          "enRouteText": "As we head to the Main Stadium, let me tell you about JBNU's representative outdoor space for sports and large events. It hosts major campus gatherings like Daedongje, club promotion events, and College of Engineering sports competitions. On regular days, students actively use it to exercise and run, especially along the track in the evening!",
+          "arrivalText": "Here we are at 대운동장! Look at this open space right in front of you. This is JBNU's representative large-scale outdoor event and sports space. Major events like Daedongje, club promotions, and College of Engineering sports days are held here. On regular days, it is actively used for exercise and running. Feel the energetic spirit of our campus!",
+          "enRouteUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise",
+            "tour_08_stadium_swing:evening-running"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次は大運動場へ向かっています。ここは全北大学校を代表する大規模な屋外イベントと体育の空間です。대동제やサークル広報イベント、工科大学の体育大会など校内の主要な大型行事が開かれます。イベント期間には公演やブースなど多様なプログラムが運営され、多くの学生で賑わうんですよ。普段は運動やランニングの場として活発に使われていて、行事がない日は自由に散歩するのにも最適です。到着したら、爽やかな雰囲気を体感してみてくださいね。",
+          "arrivalText": "目の前に広がる大きなグラウンドが見えますか。ここが全北大学校を代表する屋外イベントと体育の空間、대운동장です。普段は運動やランニングのための空間として活発に使われています。대동제やサークル広報活動、공과대학 체전など、校内の主要な大型行事がここで開かれます。行事の期間には公演やブースなど多様なプログラムが運営され、多くの学生が集まります。大きな行事がない日には、比較的自由に運動したり散歩したりするのに最適ですよ。爽やかな風と一緒に、キャンパスのエネルギーを感じてみませんか。",
+          "enRouteUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise",
+            "tour_08_stadium_swing:event-programs",
+            "tour_08_stadium_swing:free-use"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise",
+            "tour_08_stadium_swing:event-programs",
+            "tour_08_stadium_swing:free-use"
+          ]
+        },
+        "zh": {
+          "enRouteText": "现在我们正前往대운동장。在到达之前，让我先为您介绍一下吧！这里是全北大学代表性的大型户外活动与体育空间。平时，这里主要是学生们运动和跑步的活跃场所。到了校内举办대동제、社团宣传活动以及工科学院运动会等大型活动时，整座运动场都会变得非常热闹。活动期间会有表演和展位等各种丰富的项目，吸引许多学生聚集。在没有大型活动的日子里，这里也很适合自由地运动或散步。等会儿到了，您也想去跑道上散散步吗？",
+          "arrivalText": "欢迎来到대운동장！请看看眼前这片宽广的场地吧，这里是전북대학교代表性的大型户外活动与体育空间。平时，这里是同学们积极运动和跑步的好去处。没有大活动时，很适合自由地散步或锻炼。而到了대동제、社团宣传活动和工科学院运动会等大型盛会期间，展演和各种摊位等丰富项目会吸引许多学生聚集于此。看着这片充满活力的运动场，是不是也很想去跑道上走一走呢？",
+          "enRouteUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise",
+            "tour_08_stadium_swing:event-programs",
+            "tour_08_stadium_swing:free-use"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_08_stadium_swing:role",
+            "tour_08_stadium_swing:events",
+            "tour_08_stadium_swing:exercise",
+            "tour_08_stadium_swing:free-use",
+            "tour_08_stadium_swing:event-programs"
+          ]
+        }
+      }
     },
     "tour_09_basketball_court": {
       "status": "active",
-      "text": "이곳은 학생들이 자유롭게 이용하는 농구장입니다. 과거에는 소운동장으로 사용되던 공간입니다. 리모델링을 거쳐 현재는 정비된 농구장 및 체육 공간으로 활용되고 있습니다. 대운동장이 대규모 행사와 러닝 중심이라면 이곳은 친구들과 부담 없이 운동을 즐기기 좋은 공간입니다. 수업이 없는 시간이나 날씨가 좋은 날에는 농구와 운동을 즐기는 학생들을 자주 볼 수 있습니다. 학생들이 자유롭게 이용할 수 있어 공을 준비하면 친구들과 농구를 즐길 수 있습니다.",
+      "text": "지금 가고 있는 곳은 농구장이에요. 도착하기 전에 먼저 소개해 드리면, 과거에는 소운동장으로 사용되던 공간이었답니다. 리모델링을 거쳐 현재는 정비된 농구장 및 체육 공간으로 활용되고 있어요. 대운동장이 대규모 행사와 러닝 중심이라면 이곳은 친구들과 부담 없이 운동을 즐기기 좋은 공간이에요. 수업이 없는 시간이나 날씨가 좋은 날에는 농구와 운동을 즐기는 학생들을 자주 볼 수 있죠. 학생들이 자유롭게 이용할 수 있어 공을 준비하면 친구들과 농구를 즐길 수 있답니다. 함께 걸어가 보실까요?",
+      "enRouteText": "지금 가고 있는 곳은 농구장이에요. 도착하기 전에 먼저 소개해 드리면, 과거에는 소운동장으로 사용되던 공간이었답니다. 리모델링을 거쳐 현재는 정비된 농구장 및 체육 공간으로 활용되고 있어요. 대운동장이 대규모 행사와 러닝 중심이라면 이곳은 친구들과 부담 없이 운동을 즐기기 좋은 공간이에요. 수업이 없는 시간이나 날씨가 좋은 날에는 농구와 운동을 즐기는 학생들을 자주 볼 수 있죠. 학생들이 자유롭게 이용할 수 있어 공을 준비하면 친구들과 농구를 즐길 수 있답니다. 함께 걸어가 보실까요?",
+      "arrivalText": "이곳은 학생들이 자유롭게 이용하는 농구장입니다. 눈앞에 보이는 깔끔한 코트를 한번 둘러보세요. 과거에는 소운동장으로 사용되던 공간이었지만, 리모델링을 거쳐 현재는 정비된 농구장 및 체육 공간으로 활용되고 있답니다. 대운동장이 대규모 행사와 러닝 중심이라면, 이곳은 친구들과 부담 없이 운동을 즐기기 좋은 공간이에요. 수업이 없는 시간이나 날씨가 좋은 날에는 농구와 운동을 즐기는 학생들을 자주 볼 수 있어요. 공을 준비하면 친구들과 언제든 농구를 즐길 수 있으니 나중에 꼭 와보세요. 이제 활기찬 분위기를 마음에 담고 이동해 볼까요?",
+      "arrivalEnabled": true,
       "contentFingerprint": "9b2c623444525617a05f34a4151399de8383129d3dd69bb847c3875dcaa41c02",
       "contentVersion": "9b2c623444525617",
       "model": "gemini-3.6-flash",
@@ -156,12 +880,98 @@
         "tour_09_basketball_court:popular-time",
         "tour_09_basketball_court:comparison"
       ],
+      "enRouteUsedFactIds": [
+        "tour_09_basketball_court:history",
+        "tour_09_basketball_court:remodeling",
+        "tour_09_basketball_court:free-use",
+        "tour_09_basketball_court:popular-time",
+        "tour_09_basketball_court:comparison"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_09_basketball_court:history",
+        "tour_09_basketball_court:remodeling",
+        "tour_09_basketball_court:free-use",
+        "tour_09_basketball_court:popular-time",
+        "tour_09_basketball_court:comparison"
+      ],
       "targetDurationSeconds": 55,
-      "validatedAt": "2026-08-25T14:45:22.282592+00:00"
+      "validatedAt": "2026-08-27T18:18:01.509572+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 농구장이에요. 도착하기 전에 먼저 소개해 드리면, 과거에는 소운동장으로 사용되던 공간이었답니다. 리모델링을 거쳐 현재는 정비된 농구장 및 체육 공간으로 활용되고 있어요. 대운동장이 대규모 행사와 러닝 중심이라면 이곳은 친구들과 부담 없이 운동을 즐기기 좋은 공간이에요. 수업이 없는 시간이나 날씨가 좋은 날에는 농구와 운동을 즐기는 학생들을 자주 볼 수 있죠. 학생들이 자유롭게 이용할 수 있어 공을 준비하면 친구들과 농구를 즐길 수 있답니다. 함께 걸어가 보실까요?",
+          "arrivalText": "이곳은 학생들이 자유롭게 이용하는 농구장입니다. 눈앞에 보이는 깔끔한 코트를 한번 둘러보세요. 과거에는 소운동장으로 사용되던 공간이었지만, 리모델링을 거쳐 현재는 정비된 농구장 및 체육 공간으로 활용되고 있답니다. 대운동장이 대규모 행사와 러닝 중심이라면, 이곳은 친구들과 부담 없이 운동을 즐기기 좋은 공간이에요. 수업이 없는 시간이나 날씨가 좋은 날에는 농구와 운동을 즐기는 학생들을 자주 볼 수 있어요. 공을 준비하면 친구들과 언제든 농구를 즐길 수 있으니 나중에 꼭 와보세요. 이제 활기찬 분위기를 마음에 담고 이동해 볼까요?",
+          "enRouteUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use",
+            "tour_09_basketball_court:popular-time",
+            "tour_09_basketball_court:comparison"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use",
+            "tour_09_basketball_court:popular-time",
+            "tour_09_basketball_court:comparison"
+          ]
+        },
+        "en": {
+          "enRouteText": "We are heading to the basketball court now. Before we arrive, let me share that this space used to be a small field. After remodeling, it became a well-maintained sports area. Unlike the main stadium for big events, students use it freely. Just bring a ball to play with friends! Let us check it out together.",
+          "arrivalText": "Look at the basketball court right in front of you! In the past, it was used as a small athletic field. After remodeling, it is now a well-maintained basketball court and sports space. Students can use it freely, so if you bring a ball, you can play basketball with friends! It is such a pleasant spot on campus.",
+          "enRouteUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use",
+            "tour_09_basketball_court:comparison"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use"
+          ]
+        },
+        "ja": {
+          "enRouteText": "これから農球場へ向かいましょう。ここは以前、小運動場として使われていた場所なんです。リモデルを経て、現在は綺麗に整備されたバスケットボールコートや体育空間となっています。大運動場が大規模行事やランニング中心なら、ここは友達と気軽に運動を楽しめる空間です。学生は自由に使えて、ボールを準備すれば友達とバスケを楽しめますよ。もうすぐ見えてきますので、楽しみにしていてくださいね。",
+          "arrivalText": "目の前に見えているのがバスケットボール場です。昔は소운동장として使われていた場所なんですよ。リモデルを経て、現在はきれいに整備されたバスケットボール場や体育スペースとして活用されています。誰でも自由に使えて、ボールを用意すれば友達とバスケットボールを楽しめます。大運動場が大規模なイベント中心なら、ここは気軽に運動を楽しむのにぴったりな場所です。ぜひ見てみてくださいね。",
+          "enRouteUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use",
+            "tour_09_basketball_court:comparison"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use",
+            "tour_09_basketball_court:comparison"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正走向下一个目的地——篮球场。在到达之前，让我先为您介绍一下吧。这里过去曾被用作小运动场，经过翻新改造后，如今变成了整洁的篮球场和体育空间。与适合大型活动和跑步的大运动场不同，这里非常适合和朋友们毫无负担地一起运动。学生们都可以自由使用这里，只要带上球，就能和朋友尽情打篮球。在没有课的时间或者天气好的日子里，经常能看到大家在这里欢快地运动。快跟我来，感受一下这里的活力吧！",
+          "arrivalText": "现在我们已经来到了농구장。看看眼前这片整洁的场地吧！这里过去其实是学校的小运动场，经过翻修后，变成了现在设施完善的篮球场和体育空间。和举行大型活动的大运动场不同，这里更适合和朋友轻松运动。这里向大家自由开放，只要准备好篮球，随时都能和朋友打一场球。没课的时候或是好天气里，经常能看到同学们在这里运动。看着大家活力满满的样子，是不是也想加入他们呢？",
+          "enRouteUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use",
+            "tour_09_basketball_court:comparison",
+            "tour_09_basketball_court:popular-time"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_09_basketball_court:history",
+            "tour_09_basketball_court:remodeling",
+            "tour_09_basketball_court:free-use",
+            "tour_09_basketball_court:popular-time",
+            "tour_09_basketball_court:comparison"
+          ]
+        }
+      }
     },
     "tour_10_museum": {
       "status": "active",
-      "text": "이곳은 전북대학교의 대표 문화공간인 박물관입니다. 박물관은 전북대학교의 역사와 문화, 학술 자료를 전시하고 있습니다. 다양한 유물과 전시를 통해 전북 지역의 역사와 문화를 살펴볼 수 있습니다. 이곳은 학생뿐만 아니라 일반 시민과 외부 방문객도 관람할 수 있습니다. 박물관 2층 복도에는 공부할 수 있는 공간이 마련되어 있습니다. 또한 주변에 정자와 녹지 공간이 있어 산책하거나 쉬어가기 좋습니다.",
+      "text": "지금 가고 있는 곳은 전북대학교의 대표적인 문화공간인 박물관이에요. 도착하기 전에 먼저 소개해 드리면, 이곳은 우리 학교의 역사·문화·학술 자료를 전시하는 곳이랍니다. 다양한 유물과 전시를 통해 전북 지역의 역사와 문화를 살펴볼 수 있어요. 학생뿐 아니라 일반 시민과 외부 방문객도 관람할 수 있지요. 박물관 2층 복도에 공부할 수 있는 공간이 있고, 주변에 정자와 녹지 공간이 있어 산책하거나 쉬어가기 좋아요. 잠시 후 도착하면 천천히 둘러보며 전시를 즐겨볼까요?",
+      "enRouteText": "지금 가고 있는 곳은 전북대학교의 대표적인 문화공간인 박물관이에요. 도착하기 전에 먼저 소개해 드리면, 이곳은 우리 학교의 역사·문화·학술 자료를 전시하는 곳이랍니다. 다양한 유물과 전시를 통해 전북 지역의 역사와 문화를 살펴볼 수 있어요. 학생뿐 아니라 일반 시민과 외부 방문객도 관람할 수 있지요. 박물관 2층 복도에 공부할 수 있는 공간이 있고, 주변에 정자와 녹지 공간이 있어 산책하거나 쉬어가기 좋아요. 잠시 후 도착하면 천천히 둘러보며 전시를 즐겨볼까요?",
+      "arrivalText": "이곳은 전북대학교의 대표 문화공간인 박물관입니다. 건물 모습을 한번 둘러보세요. 근사하죠? 이곳은 우리 학교의 역사·문화·학술 자료를 전시하는 대표적인 공간이에요. 다양한 유물과 전시를 통해 전북 지역의 역사와 문화를 살펴볼 수 있답니다. 학생뿐 아니라 일반 시민과 외부 방문객도 관람할 수 있어요. 2층 복도에 공부할 수 있는 공간이 있고, 주변에 정자와 녹지 공간이 있어 산책하거나 쉬어가기 좋아요. 잠시 둘러보며 분위기를 즐겨볼까요?",
+      "arrivalEnabled": true,
       "contentFingerprint": "269a2590ae641120e5603fe23b29be076a437536dbdbc567387e633ed16ba598",
       "contentVersion": "269a2590ae641120",
       "model": "gemini-3.6-flash",
@@ -173,12 +983,99 @@
         "tour_10_museum:study-space",
         "tour_10_museum:green-space"
       ],
+      "enRouteUsedFactIds": [
+        "tour_10_museum:role",
+        "tour_10_museum:exhibits",
+        "tour_10_museum:public-access",
+        "tour_10_museum:study-space",
+        "tour_10_museum:green-space"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_10_museum:role",
+        "tour_10_museum:exhibits",
+        "tour_10_museum:public-access",
+        "tour_10_museum:study-space",
+        "tour_10_museum:green-space"
+      ],
       "targetDurationSeconds": 60,
-      "validatedAt": "2026-08-25T14:45:37.856670+00:00"
+      "validatedAt": "2026-08-27T18:21:37.298006+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 전북대학교의 대표적인 문화공간인 박물관이에요. 도착하기 전에 먼저 소개해 드리면, 이곳은 우리 학교의 역사·문화·학술 자료를 전시하는 곳이랍니다. 다양한 유물과 전시를 통해 전북 지역의 역사와 문화를 살펴볼 수 있어요. 학생뿐 아니라 일반 시민과 외부 방문객도 관람할 수 있지요. 박물관 2층 복도에 공부할 수 있는 공간이 있고, 주변에 정자와 녹지 공간이 있어 산책하거나 쉬어가기 좋아요. 잠시 후 도착하면 천천히 둘러보며 전시를 즐겨볼까요?",
+          "arrivalText": "이곳은 전북대학교의 대표 문화공간인 박물관입니다. 건물 모습을 한번 둘러보세요. 근사하죠? 이곳은 우리 학교의 역사·문화·학술 자료를 전시하는 대표적인 공간이에요. 다양한 유물과 전시를 통해 전북 지역의 역사와 문화를 살펴볼 수 있답니다. 학생뿐 아니라 일반 시민과 외부 방문객도 관람할 수 있어요. 2층 복도에 공부할 수 있는 공간이 있고, 주변에 정자와 녹지 공간이 있어 산책하거나 쉬어가기 좋아요. 잠시 둘러보며 분위기를 즐겨볼까요?",
+          "enRouteUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access",
+            "tour_10_museum:study-space",
+            "tour_10_museum:green-space"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access",
+            "tour_10_museum:study-space",
+            "tour_10_museum:green-space"
+          ]
+        },
+        "en": {
+          "enRouteText": "We are heading to the 박물관. As JBNU's representative cultural space, it exhibits historical, cultural, and academic materials. Through various artifacts and exhibitions, you can explore Jeonbuk's history and culture. Students, citizens, and outside visitors are all welcome. You can even find a study space on the second floor hallway!",
+          "arrivalText": "Look right in front of you at the 박물관! It is a representative cultural space exhibiting JBNU's history, culture, and academic materials. Through various artifacts and exhibitions, you can explore the history and culture of the Jeonbuk region. Students, citizens, and outside visitors are all welcome to view them. Enjoy your visit!",
+          "enRouteUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access",
+            "tour_10_museum:study-space"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次は박물관へ向かいましょう。到着する前に少しご紹介しますね。ここは全北大学校の歴史や文化、学術資料を展示する代表的な文化空間です。様々な遺物や展示を通して、全北地域の歴史と文化を見ることができますよ。学生だけでなく、一般の市民や外部の訪問客も観覧できます。2階の廊下には勉強できる空間もあります。周辺には亭子や緑地空間があり、散歩や休憩にもぴったりです。到着したらぜひ楽しんでくださいね。",
+          "arrivalText": "目の前をご覧ください。ここが全北大学校の歴史や文化、学術資料を展示する代表的な文化空間、博物館です。様々な遺物や展示を通じて、全北地域の歴史と文化をじっくり楽しむことができますよ。ここは学生だけでなく、市民や外部の訪問客も自由に見学できるんです。建物の周辺には東屋や緑地があり、散策や休憩にもぴったりですよ。ぜひ中に入って、素敵な時間を過ごしてみてくださいね。",
+          "enRouteUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access",
+            "tour_10_museum:study-space",
+            "tour_10_museum:green-space"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access",
+            "tour_10_museum:green-space"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正在前往박물관。在到达之前，让我先为你介绍一下吧。这里是展示全北大学历史、文化和学术资料的代表性文化空间。通过里面丰富的文物和展览，你可以深入了解全北地区的历史与文化。你知道吗？这里不仅面向学生开放，普通市民和外部访客也都可以来参观哦。另外，박물관 2层走廊还有可以学习的空间。周围也有凉亭和绿地，非常适合散步或休息。待会儿到了之后，不妨进去感受一下这里的文化气息吧！",
+          "arrivalText": "眼前就是全北大学的博物馆了，快看！这里是展示全北大学历史、文化和学术资料的代表性文化空间。通过丰富的文物和展览，您可以一览全北地区的历史与文化。这里不仅向学生开放，普通市民和外部访客也能随时来参观呢。二楼走廊还贴心地准备了可以学习的空间。此外，博物馆周围还有凉亭和绿地，特别适合散步休息。要不要进去看看，或者在周围感受一下这份宁静呢？",
+          "enRouteUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access",
+            "tour_10_museum:study-space",
+            "tour_10_museum:green-space"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_10_museum:role",
+            "tour_10_museum:exhibits",
+            "tour_10_museum:public-access",
+            "tour_10_museum:study-space",
+            "tour_10_museum:green-space"
+          ]
+        }
+      }
     },
     "tour_11_student_town": {
       "status": "active",
-      "text": "이곳은 다양한 학생 편의시설이 모여 있는 학생타운입니다. 학생들을 위한 생활 및 편의시설이 한곳에 모여 있는 공간입니다. 기존에는 학생타운 1과 2로 나뉘어 있었지만 최근 공사를 통해 하나의 학생타운으로 통합되었습니다. 이곳에서는 편의점과 카페뿐 아니라 서점, 미용실, 우체국, 안경점도 이용할 수 있습니다. 전북대학교 기념품샵에서 학교 굿즈나 방문객을 위한 선물을 구매할 수도 있습니다. 또한 AI 모의면접실이 마련되어 있어 취업 준비에 활용할 수 있습니다.",
+      "text": "지금 가고 있는 곳은 학생들을 위한 생활 및 편의시설이 한곳에 모여 있는 학생타운이에요. 도착하기 전에 먼저 소개해 드리면, 기존에는 학생타운 1과 2로 나뉘어 있었지만 최근 공사를 통해 하나의 학생타운으로 통합되었답니다. 이곳에서는 편의점과 카페뿐 아니라 서점·미용실·우체국·안경점도 이용할 수 있어요. 전북대학교 기념품샵에서 학교 굿즈나 방문객을 위한 선물을 구매할 수도 있죠. 게다가 취업 준비에 활용할 수 있는 AI 모의면접실도 마련되어 있답니다. 정말 알찬 공간이죠? 조금만 더 걸어가서 직접 확인해 봐요.",
+      "enRouteText": "지금 가고 있는 곳은 학생들을 위한 생활 및 편의시설이 한곳에 모여 있는 학생타운이에요. 도착하기 전에 먼저 소개해 드리면, 기존에는 학생타운 1과 2로 나뉘어 있었지만 최근 공사를 통해 하나의 학생타운으로 통합되었답니다. 이곳에서는 편의점과 카페뿐 아니라 서점·미용실·우체국·안경점도 이용할 수 있어요. 전북대학교 기념품샵에서 학교 굿즈나 방문객을 위한 선물을 구매할 수도 있죠. 게다가 취업 준비에 활용할 수 있는 AI 모의면접실도 마련되어 있답니다. 정말 알찬 공간이죠? 조금만 더 걸어가서 직접 확인해 봐요.",
+      "arrivalText": "이곳은 다양한 학생 편의시설이 모여 있는 학생타운입니다. 학생들을 위한 생활 및 편의시설이 한곳에 모여 있는 공간이에요. 눈앞에 보이는 건물을 한번 살펴볼까요? 편의점과 카페뿐 아니라 서점·미용실·우체국·안경점도 이용할 수 있답니다. 전북대학교 기념품샵에서 학교 굿즈나 방문객을 위한 선물을 구매해 보는 건 어떨까요? 취업 준비에 활용할 수 있는 AI 모의면접실도 마련되어 있어요. 기존에는 학생타운 1과 2로 나뉘어 있었지만 최근 공사를 통해 하나의 학생타운으로 통합되었답니다. 정말 편리한 공간이죠?",
+      "arrivalEnabled": true,
       "contentFingerprint": "da16ad9e2d6179778338a212dd1542936c5a71136f975cba65c965c22bd9f8a8",
       "contentVersion": "da16ad9e2d617977",
       "model": "gemini-3.6-flash",
@@ -190,12 +1087,98 @@
         "tour_11_student_town:integration",
         "tour_11_student_town:gift-shop"
       ],
+      "enRouteUsedFactIds": [
+        "tour_11_student_town:role",
+        "tour_11_student_town:facilities",
+        "tour_11_student_town:ai-interview",
+        "tour_11_student_town:integration",
+        "tour_11_student_town:gift-shop"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_11_student_town:role",
+        "tour_11_student_town:facilities",
+        "tour_11_student_town:ai-interview",
+        "tour_11_student_town:integration",
+        "tour_11_student_town:gift-shop"
+      ],
       "targetDurationSeconds": 55,
-      "validatedAt": "2026-08-25T14:45:53.264932+00:00"
+      "validatedAt": "2026-08-27T18:24:56.201253+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 학생들을 위한 생활 및 편의시설이 한곳에 모여 있는 학생타운이에요. 도착하기 전에 먼저 소개해 드리면, 기존에는 학생타운 1과 2로 나뉘어 있었지만 최근 공사를 통해 하나의 학생타운으로 통합되었답니다. 이곳에서는 편의점과 카페뿐 아니라 서점·미용실·우체국·안경점도 이용할 수 있어요. 전북대학교 기념품샵에서 학교 굿즈나 방문객을 위한 선물을 구매할 수도 있죠. 게다가 취업 준비에 활용할 수 있는 AI 모의면접실도 마련되어 있답니다. 정말 알찬 공간이죠? 조금만 더 걸어가서 직접 확인해 봐요.",
+          "arrivalText": "이곳은 다양한 학생 편의시설이 모여 있는 학생타운입니다. 학생들을 위한 생활 및 편의시설이 한곳에 모여 있는 공간이에요. 눈앞에 보이는 건물을 한번 살펴볼까요? 편의점과 카페뿐 아니라 서점·미용실·우체국·안경점도 이용할 수 있답니다. 전북대학교 기념품샵에서 학교 굿즈나 방문객을 위한 선물을 구매해 보는 건 어떨까요? 취업 준비에 활용할 수 있는 AI 모의면접실도 마련되어 있어요. 기존에는 학생타운 1과 2로 나뉘어 있었지만 최근 공사를 통해 하나의 학생타운으로 통합되었답니다. 정말 편리한 공간이죠?",
+          "enRouteUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview",
+            "tour_11_student_town:integration",
+            "tour_11_student_town:gift-shop"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview",
+            "tour_11_student_town:integration",
+            "tour_11_student_town:gift-shop"
+          ]
+        },
+        "en": {
+          "enRouteText": "As we are heading to 학생타운, let me share what makes this place special. It brings all daily convenience facilities together in one spot. Beyond cafes and convenience stores, you can visit a bookstore, hair salon, post office, and optical shop. Students even use the AI mock interview room for job prep. Isn't it neat?",
+          "arrivalText": "Look in front of you! This is 학생타운, where all student convenience facilities are gathered in one place. Isn't it handy? You can find a convenience store, cafe, bookstore, hair salon, post office, and optical shop here. There is even an AI mock interview room for job prep. It really makes our campus life complete!",
+          "enRouteUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次に向かうのは、学生のための生活・便宜施設が一箇所に集まる학생타운です。到着する前に少しご紹介しますね。ここはコンビニやカフェだけでなく、書店、美容室、郵便局、眼鏡店も利用できます。就職準備に役立つAI模擬面接室や、記念品ショップで全北大学校のグッズを買うこともできますよ。何でも揃う便利な場所なので、到着したらぜひ覗いてみてくださいね。",
+          "arrivalText": "目の前に見えているのが학생타운です。ここは学生のための生活・便宜施設が一所に集まっている場所なんですよ。以前は1と2に分かれていましたが、最近の工事で一つの학생타운に統合されました。建物に入ってみませんか。コンビニやカフェだけでなく、書店、美容室、郵便局、眼鏡店まで揃っています。さらにAI模擬面接室もあり、就職準備に活用できるんですよ。전북대학교の記念品ショップで、素敵なグッズやお土産を探してみるのもおすすめです。",
+          "enRouteUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview",
+            "tour_11_student_town:gift-shop"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview",
+            "tour_11_student_town:integration",
+            "tour_11_student_town:gift-shop"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正前往학생타운。在到达之前，让我为您介绍一下吧。这里原本分为학생타운 1和2，最近整合为一体。这里是集中了学生生活与便利设施的空间。除了便利店和咖啡厅，还有书店、理发店、邮局和眼镜店。在전북대학교纪念品店，还能买到学校굿즈和送给访客的礼物呢。此外，里面还准备了AI模拟面试室，方便大家准备就业。等会儿到了，您不妨去选个小礼物吧！",
+          "arrivalText": "我们已经来到 학생타운 前面啦！这里是集成了各种学生生活与便利设施的空间。以前这里分为 학생타운 1 和 2，最近通过工程合并成了一个 학생타운。你看，这里不仅有便利店和咖啡馆，还有书店、理发店、邮局和眼镜店。准备就业时还能利用这里的 AI 模拟面试室呢。在 전북대학교 纪念品店，还能买到校园 Goods 和送给访客的礼物。是不是非常方便呢？",
+          "enRouteUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview",
+            "tour_11_student_town:integration",
+            "tour_11_student_town:gift-shop"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_11_student_town:role",
+            "tour_11_student_town:facilities",
+            "tour_11_student_town:ai-interview",
+            "tour_11_student_town:integration",
+            "tour_11_student_town:gift-shop"
+          ]
+        }
+      }
     },
     "tour_12_old_gate": {
       "status": "active",
-      "text": "이곳은 전북대생들의 대표적인 약속 장소인 구정문입니다. 이곳은 전북대생들이 대표적인 만남의 장소이자 약속 지점으로 이용하는 곳입니다. 구정문을 나서면 음식점과 카페 및 술집 등이 밀집한 전북대 대표 상권이 이어집니다. 이곳은 전북대의 대학로 역할을 하며 특히 저녁 시간에 학생들이 많이 찾습니다. 학생들이 약속을 잡을 때 구정문에서 만나라고 할 만큼 자주 이용됩니다.",
+      "text": "지금 가고 있는 곳은 전북대생들의 대표적인 만남의 장소이자 약속 지점인 구정문이에요. 학생들이 약속을 잡을 때 구정문에서 만나라고 할 만큼 자주 이용되는 곳이랍니다. 구정문을 나서면 음식점과 카페 및 술집 등이 밀집한 전북대 대표 상권이 이어져요. 전북대의 대학로 역할을 하며 특히 저녁 시간에 학생들이 많이 찾는데요. 오늘 저녁엔 우리도 구정문 근처에서 맛있는 음식을 먹어보는 건 어떨까요? 곧 만나게 될 구정문이 정말 기대돼요.",
+      "enRouteText": "지금 가고 있는 곳은 전북대생들의 대표적인 만남의 장소이자 약속 지점인 구정문이에요. 학생들이 약속을 잡을 때 구정문에서 만나라고 할 만큼 자주 이용되는 곳이랍니다. 구정문을 나서면 음식점과 카페 및 술집 등이 밀집한 전북대 대표 상권이 이어져요. 전북대의 대학로 역할을 하며 특히 저녁 시간에 학생들이 많이 찾는데요. 오늘 저녁엔 우리도 구정문 근처에서 맛있는 음식을 먹어보는 건 어떨까요? 곧 만나게 될 구정문이 정말 기대돼요.",
+      "arrivalText": "이곳은 전북대생들의 대표적인 약속 장소인 구정문입니다. 학생들이 약속을 잡을 때 구정문에서 만나라고 할 정도로 자주 이용하는 만남의 지점이에요. 눈앞을 둘러보면 구정문을 나서자마자 음식점과 카페 및 술집 등이 밀집한 전북대 대표 상권이 펼쳐집니다. 전북대의 대학로 역할을 하며 특히 저녁 시간에 학생들이 많이 찾아요. 눈앞의 거리를 함께 바라볼까요? 나중에 이곳 상권도 꼭 직접 이용해 보세요.",
+      "arrivalEnabled": true,
       "contentFingerprint": "7392d19494f7ec241ad79f5c64d7aab98ae459654302eebd72a710b343916a85",
       "contentVersion": "7392d19494f7ec24",
       "model": "gemini-3.6-flash",
@@ -206,12 +1189,93 @@
         "tour_12_old_gate:college-street",
         "tour_12_old_gate:student-expression"
       ],
+      "enRouteUsedFactIds": [
+        "tour_12_old_gate:meeting-place",
+        "tour_12_old_gate:commercial-area",
+        "tour_12_old_gate:college-street",
+        "tour_12_old_gate:student-expression"
+      ],
+      "arrivalUsedFactIds": [
+        "tour_12_old_gate:meeting-place",
+        "tour_12_old_gate:commercial-area",
+        "tour_12_old_gate:college-street",
+        "tour_12_old_gate:student-expression"
+      ],
       "targetDurationSeconds": 50,
-      "validatedAt": "2026-08-25T14:46:08.444907+00:00"
+      "validatedAt": "2026-08-27T18:27:32.724473+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 전북대생들의 대표적인 만남의 장소이자 약속 지점인 구정문이에요. 학생들이 약속을 잡을 때 구정문에서 만나라고 할 만큼 자주 이용되는 곳이랍니다. 구정문을 나서면 음식점과 카페 및 술집 등이 밀집한 전북대 대표 상권이 이어져요. 전북대의 대학로 역할을 하며 특히 저녁 시간에 학생들이 많이 찾는데요. 오늘 저녁엔 우리도 구정문 근처에서 맛있는 음식을 먹어보는 건 어떨까요? 곧 만나게 될 구정문이 정말 기대돼요.",
+          "arrivalText": "이곳은 전북대생들의 대표적인 약속 장소인 구정문입니다. 학생들이 약속을 잡을 때 구정문에서 만나라고 할 정도로 자주 이용하는 만남의 지점이에요. 눈앞을 둘러보면 구정문을 나서자마자 음식점과 카페 및 술집 등이 밀집한 전북대 대표 상권이 펼쳐집니다. 전북대의 대학로 역할을 하며 특히 저녁 시간에 학생들이 많이 찾아요. 눈앞의 거리를 함께 바라볼까요? 나중에 이곳 상권도 꼭 직접 이용해 보세요.",
+          "enRouteUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ]
+        },
+        "en": {
+          "enRouteText": "We are heading to Gujeongmun now! This is our main meeting spot, where students always say, let's meet at Gujeongmun. Right outside lies JBNU's college street full of restaurants, cafes, and bars. Students love visiting in the evening. Are you excited to see where student life happens?",
+          "arrivalText": "Look around you! Here at 구정문, JBNU students gather all the time, saying let us meet at 구정문. Right outside lies our representative college street, filled with cafes, restaurants, and bars. It is our top meeting spot, especially lively in the evening. Doesn't it feel full of energy?",
+          "enRouteUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ]
+        },
+        "ja": {
+          "enRouteText": "今、私たちは구정문に向かっています。ここは全北大学の学生たちが代表的な待ち合わせ場所として使うスポットなんですよ。学生たちは、구정문で会おう、と約束するほどよく利用しています。門を出ると、飲食店やカフェ、居酒屋が立ち並ぶ代表的な商圏が広がっています。大学街として、特に夕方には多くの学生が集まりますよ。到着したら、活気ある街の雰囲気をぜひ感じてみてくださいね。",
+          "arrivalText": "目の前をご覧ください。ここが구정문です。学生たちが구정문で会おうと約束するほど、代表的な待ち合わせ場所なんですよ。門を出ると、飲食店やカフェ、居酒屋が集まる全北大の代表的な商圏が続いています。大学街の役割を果たしていて、特に夕方の時間に多くの学生が訪れます。活気あふれる雰囲気を感じてみてくださいね。",
+          "enRouteUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正一起前往구정문。这里是全北大学学生们最具代表性的见面地点，大家平时约见面时，常会说在구정문见。走出구정문，就会看到聚集了餐厅、咖啡厅和酒吧的全北大学代表商圈。这里发挥着大学街的作用，特别是晚上，许多学生都会来到这里。待会儿到了之后，您想先去哪家店坐坐呢？真是令人期待！",
+          "arrivalText": "看看眼前这扇구정문吧！这里是我们全北大学生最具代表性的约定地点。平时大家约定时，经常会说“在구정문见吧”。从구정문走出去，就会看到密布着餐厅、咖啡馆和酒吧的全北大学代表商圈。这里起着全北大学大学路的作用，特别是到了晚上，会有很多学生光顾。一会儿不妨去那里的街道散散步，感受一下热闹的氛围吧！",
+          "enRouteUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ],
+          "arrivalUsedFactIds": [
+            "tour_12_old_gate:meeting-place",
+            "tour_12_old_gate:commercial-area",
+            "tour_12_old_gate:college-street",
+            "tour_12_old_gate:student-expression"
+          ]
+        }
+      }
     },
     "docent_art_college_3_workshop": {
       "status": "active",
-      "text": "예술대학 3호관 앞에는 아는 사람만 아는 작업 공간이 있습니다. 이곳은 예술대학 대학원생들의 작업 공간으로 알려져 있습니다. 건물 앞에는 학생들이 직접 제작한 것으로 보이는 조형 작품들이 전시되어 있습니다. 오후부터 밤 사이 작업할 때 K-POP 노래가 자주 흘러나오는 것으로 알려져 있습니다. 근처를 지날 때 어떤 노래가 나오는지 귀 기울여 보는 것도 좋습니다.",
+      "text": "지금 가고 있는 곳은 아는 사람만 아는 캠퍼스의 숨은 장소 중 하나인데요. 바로 예술대학 대학원생들의 작업 공간으로 알려진 곳이에요. 도착하기 전에 먼저 소개해 드리면, 건물 앞에 학생들이 직접 제작한 것으로 보이는 조형 작품들이 전시되어 있답니다. 근처를 지날 때 어떤 노래가 나오는지 귀 기울여 보는 것도 좋아요. 어떤 작품이 기다리고 있을지 설레지 않나요? 천천히 계속 걸어가 봐요.",
+      "enRouteText": "지금 가고 있는 곳은 아는 사람만 아는 캠퍼스의 숨은 장소 중 하나인데요. 바로 예술대학 대학원생들의 작업 공간으로 알려진 곳이에요. 도착하기 전에 먼저 소개해 드리면, 건물 앞에 학생들이 직접 제작한 것으로 보이는 조형 작품들이 전시되어 있답니다. 근처를 지날 때 어떤 노래가 나오는지 귀 기울여 보는 것도 좋아요. 어떤 작품이 기다리고 있을지 설레지 않나요? 천천히 계속 걸어가 봐요.",
+      "arrivalText": "예술대학 3호관 앞에는 아는 사람만 아는 작업 공간이 있습니다. 여기는 예술대학 대학원생들의 작업 공간으로 알려져 있는데요. 건물 앞을 둘러볼까요? 학생들이 직접 제작한 것으로 보이는 조형 작품들이 전시되어 있어요. 오후부터 밤 사이 작업할 때 K-POP 노래가 자주 흘러나오는 것으로 알려져 있으니, 근처를 지날 때 어떤 노래가 나오는지 귀 기울여 보는 것도 좋겠네요. 멋진 작품들과 함께 캠퍼스의 특별한 매력을 느껴보세요.",
+      "arrivalEnabled": true,
       "contentFingerprint": "8a4e0627b7ee546f1cff985fe7f3e1717d0b5cecb01f997b7c0ed79db21cd163",
       "contentVersion": "8a4e0627b7ee546f",
       "model": "gemini-3.6-flash",
@@ -219,11 +1283,88 @@
       "usedFactIds": [
         "docent_art_college_3_workshop:graduate-workspace",
         "docent_art_college_3_workshop:student-artworks",
+        "docent_art_college_3_workshop:hidden-place",
+        "docent_art_college_3_workshop:listening-tip"
+      ],
+      "enRouteUsedFactIds": [
+        "docent_art_college_3_workshop:graduate-workspace",
+        "docent_art_college_3_workshop:student-artworks",
+        "docent_art_college_3_workshop:hidden-place",
+        "docent_art_college_3_workshop:listening-tip"
+      ],
+      "arrivalUsedFactIds": [
+        "docent_art_college_3_workshop:graduate-workspace",
+        "docent_art_college_3_workshop:student-artworks",
         "docent_art_college_3_workshop:kpop",
         "docent_art_college_3_workshop:listening-tip"
       ],
       "targetDurationSeconds": 45,
-      "validatedAt": "2026-08-25T14:46:24.523713+00:00"
+      "validatedAt": "2026-08-27T18:30:59.417583+00:00",
+      "translations": {
+        "ko": {
+          "enRouteText": "지금 가고 있는 곳은 아는 사람만 아는 캠퍼스의 숨은 장소 중 하나인데요. 바로 예술대학 대학원생들의 작업 공간으로 알려진 곳이에요. 도착하기 전에 먼저 소개해 드리면, 건물 앞에 학생들이 직접 제작한 것으로 보이는 조형 작품들이 전시되어 있답니다. 근처를 지날 때 어떤 노래가 나오는지 귀 기울여 보는 것도 좋아요. 어떤 작품이 기다리고 있을지 설레지 않나요? 천천히 계속 걸어가 봐요.",
+          "arrivalText": "예술대학 3호관 앞에는 아는 사람만 아는 작업 공간이 있습니다. 여기는 예술대학 대학원생들의 작업 공간으로 알려져 있는데요. 건물 앞을 둘러볼까요? 학생들이 직접 제작한 것으로 보이는 조형 작품들이 전시되어 있어요. 오후부터 밤 사이 작업할 때 K-POP 노래가 자주 흘러나오는 것으로 알려져 있으니, 근처를 지날 때 어떤 노래가 나오는지 귀 기울여 보는 것도 좋겠네요. 멋진 작품들과 함께 캠퍼스의 특별한 매력을 느껴보세요.",
+          "enRouteUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:hidden-place",
+            "docent_art_college_3_workshop:listening-tip"
+          ],
+          "arrivalUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:kpop",
+            "docent_art_college_3_workshop:listening-tip"
+          ]
+        },
+        "en": {
+          "enRouteText": "We are heading to a workspace for Art College graduate students. As we walk, listen for K-POP songs often playing here. When we arrive, be sure to look for student sculptures displayed in front of the building. What music and art will greet us today?",
+          "arrivalText": "Here we are! Look at the sculptures displayed in front of the building, which look made by students themselves. This hidden spot is known as a workspace for Art College graduate students. You might even hear great K-POP songs playing while they work!",
+          "enRouteUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:kpop"
+          ],
+          "arrivalUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:hidden-place",
+            "docent_art_college_3_workshop:kpop"
+          ]
+        },
+        "ja": {
+          "enRouteText": "次は芸術大学3号館前の作業空間へ向かいましょう。知る人ぞ知るキャンパスの隠れた場所なんですよ。ここは芸術大学の大学院生たちの作業空間として知られていて、建物の前には学生たちが直接制作した造形作品が展示されています。近くを通るときにどんな歌が聞こえるか、耳を澄ませてみてくださいね。もうすぐ到着しますよ。",
+          "arrivalText": "目の前をご覧ください。建物の前には、学生たちが直接作ったと思われる造形作品が展示されていますよね。ここは芸術大学の大学院生たちの作業スペースとして知られていて、知る人ぞ知るキャンパスの隠れた名所の一つなんですよ。近くを通るときにどんな曲が流れてくるか、耳を澄ませてみるのもおすすめです。学生たちの情熱を感じながら、ゆっくりと鑑賞してみてくださいね。",
+          "enRouteUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:hidden-place",
+            "docent_art_college_3_workshop:listening-tip"
+          ],
+          "arrivalUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:hidden-place",
+            "docent_art_college_3_workshop:listening-tip"
+          ]
+        },
+        "zh": {
+          "enRouteText": "我们现在正前往예술대학 3호관前面的作业空间。这里可是只有知情人才知道的校园隐秘角落呢。这里是艺术学院研究生们进行创作的专门空间。待会儿到达时，您能看到建筑物前展示着学生们亲手制作的造型艺术作品。听说从下午到夜间创作时，这里还经常播放K-POP歌曲呢。快和我一起过去看看吧！",
+          "arrivalText": "我们现在来到了예술대학 3호관前面的作业空间。请看看眼前，建筑物前面展示着学生们亲自制作的雕塑作品呢！这里是예술대학研究生们的作业空间，也是校园里只有知情人才知道的隐藏宝藏地点。经过这里时，倾听一下流淌出的乐声也很不错哦。希望这个充满艺术气息的角落能带给你好心情！",
+          "enRouteUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:hidden-place",
+            "docent_art_college_3_workshop:kpop"
+          ],
+          "arrivalUsedFactIds": [
+            "docent_art_college_3_workshop:graduate-workspace",
+            "docent_art_college_3_workshop:student-artworks",
+            "docent_art_college_3_workshop:hidden-place",
+            "docent_art_college_3_workshop:listening-tip"
+          ]
+        }
+      }
     }
   }
 }

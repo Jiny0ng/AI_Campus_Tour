@@ -1709,6 +1709,1006 @@
       "locale": "ko-KR",
       "style": "core-docent",
       "contentVersion": "v1"
+    },
+    "en-route-docent:tour_01_new_gate:ko": {
+      "audioId": "eeb325f00f3eb4c6ad81818d84d4d6a3c7a18e7eaaac9fbdf36084b2df982d1d",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/eeb325f00f3eb4c6ad81818d84d4d6a3c7a18e7eaaac9fbdf36084b2df982d1d.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_02_international_center:ko": {
+      "audioId": "4fc80034ca916e24aaf1657e91583d8494affb8709d57a6b69fd40a415dd7e24",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/4fc80034ca916e24aaf1657e91583d8494affb8709d57a6b69fd40a415dd7e24.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_03_university_headquarters:ko": {
+      "audioId": "c997cf7a7b658d84ce89db17f4f3a4eb28d01d80c2fc8465260a5a6c36cce663",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/c997cf7a7b658d84ce89db17f4f3a4eb28d01d80c2fc8465260a5a6c36cce663.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "2128eeea34cace18",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_04_jinsudang:ko": {
+      "audioId": "11e4cdc268df1194638e27deb883a37de0b2d781d1d1a9a885e54d3344453320",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/11e4cdc268df1194638e27deb883a37de0b2d781d1d1a9a885e54d3344453320.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_05_engineering_entrance:ko": {
+      "audioId": "29dde84e1298020cd72d753a2649c0210aef3f4c1780dbe59b4c0731feb68e31",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/29dde84e1298020cd72d753a2649c0210aef3f4c1780dbe59b4c0731feb68e31.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_06_central_library:ko": {
+      "audioId": "4742a08062e43bd433ffeb77b0961c07c53099e44c204646e3e465866217ec54",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/4742a08062e43bd433ffeb77b0961c07c53099e44c204646e3e465866217ec54.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_07_geonji_plaza:ko": {
+      "audioId": "fa832280500f3341de365529013d0a2bc88bd77fa3cfa986c5c6e3e0e8c4c827",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/fa832280500f3341de365529013d0a2bc88bd77fa3cfa986c5c6e3e0e8c4c827.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_08_stadium_swing:ko": {
+      "audioId": "c9dcb793c0eda3122f7c0362fecfb50a4fa16aed898b1b982017984cfa5695ea",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/c9dcb793c0eda3122f7c0362fecfb50a4fa16aed898b1b982017984cfa5695ea.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_09_basketball_court:ko": {
+      "audioId": "4189bcacf0a1b111c4233e2c42d908203a1b2a186550f3080b826ff1c4f879fa",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/4189bcacf0a1b111c4233e2c42d908203a1b2a186550f3080b826ff1c4f879fa.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_10_museum:ko": {
+      "audioId": "cea9b46081d3d5500f6e4145f067e3dfe01348566ab367037fa4cb75d42ab7f0",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/cea9b46081d3d5500f6e4145f067e3dfe01348566ab367037fa4cb75d42ab7f0.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_11_student_town:ko": {
+      "audioId": "6aca1d441ae870586e28d14aac3938b8b4030691097be742324f1703c560b09c",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/6aca1d441ae870586e28d14aac3938b8b4030691097be742324f1703c560b09c.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_12_old_gate:ko": {
+      "audioId": "1c6446f18de1e0aea1a268a60e6457e507a09e03376467a380bd6eb875a9952c",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/1c6446f18de1e0aea1a268a60e6457e507a09e03376467a380bd6eb875a9952c.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:docent_art_college_3_workshop:ko": {
+      "audioId": "4e79a92b9f56a4529bbc55097414b1be1528c0b2ec26bc9e47b1840a8ce95931",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/4e79a92b9f56a4529bbc55097414b1be1528c0b2ec26bc9e47b1840a8ce95931.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "en-route-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_01_new_gate:ko": {
+      "audioId": "f98aea5dc8604e1db9e81d754fc0bf860f5f8a41ab4511dfc7af26b22de8c2c1",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/f98aea5dc8604e1db9e81d754fc0bf860f5f8a41ab4511dfc7af26b22de8c2c1.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_02_international_center:ko": {
+      "audioId": "112f9736f549a839b9fca7b83fda225f5e2d92b3c68cb81b82cbb6ff88eb249f",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/112f9736f549a839b9fca7b83fda225f5e2d92b3c68cb81b82cbb6ff88eb249f.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_04_jinsudang:ko": {
+      "audioId": "ddd57cd2200c387dd1d78cc854ddf17a8dfc193956850ae94a8d49784b20c6da",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/ddd57cd2200c387dd1d78cc854ddf17a8dfc193956850ae94a8d49784b20c6da.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_05_engineering_entrance:ko": {
+      "audioId": "c6e7cb6fc456c3168f84312b9256970f193fd846386cb1c1164d4aa581ceb6d4",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/c6e7cb6fc456c3168f84312b9256970f193fd846386cb1c1164d4aa581ceb6d4.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_06_central_library:ko": {
+      "audioId": "c9fd4ceb8a332abc3ca4e6a7b0125de8b239d3771674ad8d2b786e15dba3018b",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/c9fd4ceb8a332abc3ca4e6a7b0125de8b239d3771674ad8d2b786e15dba3018b.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_07_geonji_plaza:ko": {
+      "audioId": "8054e7ac1ea3469dfdbd912a88ec264bd5e52e3a2b398ca401966b8082b802ec",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/8054e7ac1ea3469dfdbd912a88ec264bd5e52e3a2b398ca401966b8082b802ec.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_08_stadium_swing:ko": {
+      "audioId": "e391101c8f35e2a3ebea064467f8e5a5b784bc4bc71f84b53dfd307cc58b21cd",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/e391101c8f35e2a3ebea064467f8e5a5b784bc4bc71f84b53dfd307cc58b21cd.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_09_basketball_court:ko": {
+      "audioId": "b4213e18f2c0f9a5e1ac1cdf61970a1a9063ac919d24ef7ec3e0f235e6a32b5f",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/b4213e18f2c0f9a5e1ac1cdf61970a1a9063ac919d24ef7ec3e0f235e6a32b5f.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_10_museum:ko": {
+      "audioId": "d8b5dda5cd050851de1548df945734778aa660ef3ff49cb63ca1b632e6697627",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/d8b5dda5cd050851de1548df945734778aa660ef3ff49cb63ca1b632e6697627.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_11_student_town:ko": {
+      "audioId": "a7b3146d43e663d133ceb8b4393a297ccd48f754acca558152a359c4431ebedf",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/a7b3146d43e663d133ceb8b4393a297ccd48f754acca558152a359c4431ebedf.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_12_old_gate:ko": {
+      "audioId": "2811e85505b895319f7ae8a01d467de596094c2de46e03cd8daab573eac4e0e2",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/2811e85505b895319f7ae8a01d467de596094c2de46e03cd8daab573eac4e0e2.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:docent_art_college_3_workshop:ko": {
+      "audioId": "b7d0273b79774501352aea5a403f6fd8d073139c9e57f36f91aea8c41d32c30a",
+      "objectName": "assets/core-docent/ko-KR/Sulafat/b7d0273b79774501352aea5a403f6fd8d073139c9e57f36f91aea8c41d32c30a.wav",
+      "locale": "ko-KR",
+      "language": "ko",
+      "style": "arrival-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_01_new_gate:en": {
+      "audioId": "06bb1737b103e807e207ad2acd1ee4c4676ea563dda9c09dd6899819e4a54a14",
+      "objectName": "assets/core-docent/en-US/Sulafat/06bb1737b103e807e207ad2acd1ee4c4676ea563dda9c09dd6899819e4a54a14.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_01_new_gate:en": {
+      "audioId": "6ff08218a688a5696262e67ed7df1f7c7dd19ef1b7719f1c6c77f44d5749b87e",
+      "objectName": "assets/core-docent/en-US/Sulafat/6ff08218a688a5696262e67ed7df1f7c7dd19ef1b7719f1c6c77f44d5749b87e.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_02_international_center:en": {
+      "audioId": "2cc31732804177e778b64877d0d7638c7bd0090a8334d977bd07955466ba0486",
+      "objectName": "assets/core-docent/en-US/Sulafat/2cc31732804177e778b64877d0d7638c7bd0090a8334d977bd07955466ba0486.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_02_international_center:en": {
+      "audioId": "35563cee3d46d47fbca97564669af5d0c33a13e218454e32329f8369e0332125",
+      "objectName": "assets/core-docent/en-US/Sulafat/35563cee3d46d47fbca97564669af5d0c33a13e218454e32329f8369e0332125.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_03_university_headquarters:en": {
+      "audioId": "93dd4af38425680889606d923fab90bdc8d7bf00facd248ac2769a953cd2f702",
+      "objectName": "assets/core-docent/en-US/Sulafat/93dd4af38425680889606d923fab90bdc8d7bf00facd248ac2769a953cd2f702.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "2128eeea34cace18",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_04_jinsudang:en": {
+      "audioId": "e4cd5db3b75afe1902719d457918231414f2704053f502fd2f56acdc57e94f03",
+      "objectName": "assets/core-docent/en-US/Sulafat/e4cd5db3b75afe1902719d457918231414f2704053f502fd2f56acdc57e94f03.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_04_jinsudang:en": {
+      "audioId": "2216954db95f7a593f0d44b604cda776064831e452adb6548e8470bef0bf7a3e",
+      "objectName": "assets/core-docent/en-US/Sulafat/2216954db95f7a593f0d44b604cda776064831e452adb6548e8470bef0bf7a3e.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_05_engineering_entrance:en": {
+      "audioId": "a9d8f179f7e72d955d73ac5d86d0b09629045e57edd26218cd0b27ba77ec5503",
+      "objectName": "assets/core-docent/en-US/Sulafat/a9d8f179f7e72d955d73ac5d86d0b09629045e57edd26218cd0b27ba77ec5503.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_05_engineering_entrance:en": {
+      "audioId": "7868f942ecf4391436e24e8e9d508bc27d21bf68c685a51b4e7ef9e3c3a33ec3",
+      "objectName": "assets/core-docent/en-US/Sulafat/7868f942ecf4391436e24e8e9d508bc27d21bf68c685a51b4e7ef9e3c3a33ec3.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_06_central_library:en": {
+      "audioId": "01b2ae94ee1b6638e85adb186cd0e90111490ed8c1a5ab82e8230dd2a150c37a",
+      "objectName": "assets/core-docent/en-US/Sulafat/01b2ae94ee1b6638e85adb186cd0e90111490ed8c1a5ab82e8230dd2a150c37a.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_06_central_library:en": {
+      "audioId": "4e05b60462106ba29dc4521a87c2b3f7806808973e9a71e40f6efc608eb16c86",
+      "objectName": "assets/core-docent/en-US/Sulafat/4e05b60462106ba29dc4521a87c2b3f7806808973e9a71e40f6efc608eb16c86.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_07_geonji_plaza:en": {
+      "audioId": "eeace87d3158b6e65389e07434ffa3388afa94857e75c60063e690893c89c810",
+      "objectName": "assets/core-docent/en-US/Sulafat/eeace87d3158b6e65389e07434ffa3388afa94857e75c60063e690893c89c810.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_07_geonji_plaza:en": {
+      "audioId": "8b9ba2d524d2556558475ad4ae9d1b6464bfcf3fbb53e7e066e46dcf5f60206c",
+      "objectName": "assets/core-docent/en-US/Sulafat/8b9ba2d524d2556558475ad4ae9d1b6464bfcf3fbb53e7e066e46dcf5f60206c.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_08_stadium_swing:en": {
+      "audioId": "cbf930e389783de40cd776473ceafb4038b5011a6a34c2e4c9ff65ccc2d6f70b",
+      "objectName": "assets/core-docent/en-US/Sulafat/cbf930e389783de40cd776473ceafb4038b5011a6a34c2e4c9ff65ccc2d6f70b.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_08_stadium_swing:en": {
+      "audioId": "0ed71886c8ed05555e2cc4109af1d09b445ebba2973ec72fccdd655fa2621b7f",
+      "objectName": "assets/core-docent/en-US/Sulafat/0ed71886c8ed05555e2cc4109af1d09b445ebba2973ec72fccdd655fa2621b7f.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_09_basketball_court:en": {
+      "audioId": "3079882f6568d5724c17ec218ce96a39651524964cee406b09991489654a613f",
+      "objectName": "assets/core-docent/en-US/Sulafat/3079882f6568d5724c17ec218ce96a39651524964cee406b09991489654a613f.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_09_basketball_court:en": {
+      "audioId": "d4ab2720336209506125b283974176ca4ef9f7b34edcc9afba92de481edfe60a",
+      "objectName": "assets/core-docent/en-US/Sulafat/d4ab2720336209506125b283974176ca4ef9f7b34edcc9afba92de481edfe60a.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_10_museum:en": {
+      "audioId": "5fabdbe15fd589c6f621e629733f4f0890d77fa555c57d99611b4225e2229609",
+      "objectName": "assets/core-docent/en-US/Sulafat/5fabdbe15fd589c6f621e629733f4f0890d77fa555c57d99611b4225e2229609.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_10_museum:en": {
+      "audioId": "e216651cfc3b2ebf20fc7f66a080e3af292424bf20a57d9050ff03b6567e1e27",
+      "objectName": "assets/core-docent/en-US/Sulafat/e216651cfc3b2ebf20fc7f66a080e3af292424bf20a57d9050ff03b6567e1e27.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_11_student_town:en": {
+      "audioId": "52db9eb7ba880a7216713cafecdb223096205e6e9172a46385553a05dd4cca88",
+      "objectName": "assets/core-docent/en-US/Sulafat/52db9eb7ba880a7216713cafecdb223096205e6e9172a46385553a05dd4cca88.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_11_student_town:en": {
+      "audioId": "5c83d304cabda4ad77531fa4a615258aed21fb850ba88a46ed225df5ff8d23e4",
+      "objectName": "assets/core-docent/en-US/Sulafat/5c83d304cabda4ad77531fa4a615258aed21fb850ba88a46ed225df5ff8d23e4.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_12_old_gate:en": {
+      "audioId": "7ec82fd18b287f47a321dd3406449d10c3c68e446734b53d2afa526a200225c5",
+      "objectName": "assets/core-docent/en-US/Sulafat/7ec82fd18b287f47a321dd3406449d10c3c68e446734b53d2afa526a200225c5.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_12_old_gate:en": {
+      "audioId": "3413c1e54e227e2c67aa6a9e6a3f3efc2545a4beadbfa08bced9b575a93906a5",
+      "objectName": "assets/core-docent/en-US/Sulafat/3413c1e54e227e2c67aa6a9e6a3f3efc2545a4beadbfa08bced9b575a93906a5.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:docent_art_college_3_workshop:en": {
+      "audioId": "a72ed5564f1d2debff9d03a4986c8b3ea23037107455072b281e20e19bbf84ed",
+      "objectName": "assets/core-docent/en-US/Sulafat/a72ed5564f1d2debff9d03a4986c8b3ea23037107455072b281e20e19bbf84ed.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "en-route-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:docent_art_college_3_workshop:en": {
+      "audioId": "f3e9c9bc004dcc43cb4141ad56094a87f23c4ccfccb7e2364caa93dd4953271a",
+      "objectName": "assets/core-docent/en-US/Sulafat/f3e9c9bc004dcc43cb4141ad56094a87f23c4ccfccb7e2364caa93dd4953271a.wav",
+      "locale": "en-US",
+      "language": "en",
+      "style": "arrival-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_01_new_gate:ja": {
+      "audioId": "7e480128990f2025a5c9259974d789add188ff1d4a4526309b9250e2dd36b3e6",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/7e480128990f2025a5c9259974d789add188ff1d4a4526309b9250e2dd36b3e6.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_01_new_gate:ja": {
+      "audioId": "8fb21a4e6aa1f6ff0ce17a1b70d735e248051103729550ca9244f8731511e613",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/8fb21a4e6aa1f6ff0ce17a1b70d735e248051103729550ca9244f8731511e613.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_02_international_center:ja": {
+      "audioId": "b580e3a0ee65c76f871bd0c8b83e4f7c6359cf781f10f228e87ea59a96560c60",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/b580e3a0ee65c76f871bd0c8b83e4f7c6359cf781f10f228e87ea59a96560c60.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_02_international_center:ja": {
+      "audioId": "4da9d07f361f9d97dc4e96dca9d11ca36582f0b5e712ec42e8dafd8c5905f5f1",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/4da9d07f361f9d97dc4e96dca9d11ca36582f0b5e712ec42e8dafd8c5905f5f1.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_03_university_headquarters:ja": {
+      "audioId": "8941b940cfe2770d81922d2b6696d8f817d20faca2bdc6ad3cdd8f6e2b1bd891",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/8941b940cfe2770d81922d2b6696d8f817d20faca2bdc6ad3cdd8f6e2b1bd891.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "2128eeea34cace18",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_04_jinsudang:ja": {
+      "audioId": "daf4ca3db71cb2ee53d6247f0bb65eaa2b724b619a84de95ffe32a34ab82b139",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/daf4ca3db71cb2ee53d6247f0bb65eaa2b724b619a84de95ffe32a34ab82b139.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_04_jinsudang:ja": {
+      "audioId": "3e3c913c43b243630a669c477b6ef85302f29dbb77cbf56b73ab4e04861bba7b",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/3e3c913c43b243630a669c477b6ef85302f29dbb77cbf56b73ab4e04861bba7b.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_05_engineering_entrance:ja": {
+      "audioId": "ce648fe86e7fb267e4bfdceac9d7dd24b86ad623c5e8d8e6b06f26831c796d50",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/ce648fe86e7fb267e4bfdceac9d7dd24b86ad623c5e8d8e6b06f26831c796d50.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_05_engineering_entrance:ja": {
+      "audioId": "344101dc712fd822dfa486dd25d3eb1d3d98a3f7591204cf16367051270a22e7",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/344101dc712fd822dfa486dd25d3eb1d3d98a3f7591204cf16367051270a22e7.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_06_central_library:ja": {
+      "audioId": "ce62cf4991a8a55c55857632916451792dbd4cb2229a04f651deb261a249c9d4",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/ce62cf4991a8a55c55857632916451792dbd4cb2229a04f651deb261a249c9d4.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_06_central_library:ja": {
+      "audioId": "f469ada30b5f5a54e6ba64b0f08b398175b66bf7a0cd234e10d2a52a990e6673",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/f469ada30b5f5a54e6ba64b0f08b398175b66bf7a0cd234e10d2a52a990e6673.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_07_geonji_plaza:ja": {
+      "audioId": "5f156dbbd1577358f12c0580289fad8c91b6f88b3fe14c52ff9d79c58d721f65",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/5f156dbbd1577358f12c0580289fad8c91b6f88b3fe14c52ff9d79c58d721f65.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_07_geonji_plaza:ja": {
+      "audioId": "8a3b66836628b11e2edd7bfd194323d2bbaf4236f5488ed3440c134173a1248e",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/8a3b66836628b11e2edd7bfd194323d2bbaf4236f5488ed3440c134173a1248e.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_08_stadium_swing:ja": {
+      "audioId": "1c06acdd56b9965e9903472491d5474faa903a90e845aa11bcc4843e2f9eb2f6",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/1c06acdd56b9965e9903472491d5474faa903a90e845aa11bcc4843e2f9eb2f6.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_08_stadium_swing:ja": {
+      "audioId": "0709596ca5b60c90948758d589af1093713ce1f573d4f1f38dee570abf6ad1ee",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/0709596ca5b60c90948758d589af1093713ce1f573d4f1f38dee570abf6ad1ee.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_09_basketball_court:ja": {
+      "audioId": "73c191eb495e1d8b1dc2fd335e3600e22d4ca7eb1687bfe179c76cec97bb22a5",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/73c191eb495e1d8b1dc2fd335e3600e22d4ca7eb1687bfe179c76cec97bb22a5.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_09_basketball_court:ja": {
+      "audioId": "082062e1f72b94e4ff0d1bc1c6ac2ef3ad176b84f0580782f8ea29c1221e2a9d",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/082062e1f72b94e4ff0d1bc1c6ac2ef3ad176b84f0580782f8ea29c1221e2a9d.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_10_museum:ja": {
+      "audioId": "817ce12da28a97d708a46a4de1505ba3de38fbd1af41e5bcc04bf105e8913b26",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/817ce12da28a97d708a46a4de1505ba3de38fbd1af41e5bcc04bf105e8913b26.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_10_museum:ja": {
+      "audioId": "02a54697c232df7b6ad20a94f869a0567d5f14acef4844f451069575a615fcc7",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/02a54697c232df7b6ad20a94f869a0567d5f14acef4844f451069575a615fcc7.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_11_student_town:ja": {
+      "audioId": "d07dae006e0be1d167501c813a062790c619fb9d88c7f407aa78b523cd36d494",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/d07dae006e0be1d167501c813a062790c619fb9d88c7f407aa78b523cd36d494.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_11_student_town:ja": {
+      "audioId": "415c66d3da05c2ca00fbaf25b433cb4b1a4c8f3df7608ee8626559dfacc91201",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/415c66d3da05c2ca00fbaf25b433cb4b1a4c8f3df7608ee8626559dfacc91201.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_12_old_gate:ja": {
+      "audioId": "dab4019d926a4b00534dd1afa8dea834b0dcbc68d591b82ae76ea8b145b75aa7",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/dab4019d926a4b00534dd1afa8dea834b0dcbc68d591b82ae76ea8b145b75aa7.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_12_old_gate:ja": {
+      "audioId": "71892c94522b6b254696b9a91681f3511d0dab844788370fbd7b57d29e400fd5",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/71892c94522b6b254696b9a91681f3511d0dab844788370fbd7b57d29e400fd5.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:docent_art_college_3_workshop:ja": {
+      "audioId": "998eb014d85cc6206ddff819f5623ccd691bd6126a4c39d90ebba3e1caf0fc80",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/998eb014d85cc6206ddff819f5623ccd691bd6126a4c39d90ebba3e1caf0fc80.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "en-route-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:docent_art_college_3_workshop:ja": {
+      "audioId": "4a4d81b05cab5fc827212a9fbe8f15db146f5963bfce8c657e1548385b2320e9",
+      "objectName": "assets/core-docent/ja-JP/Sulafat/4a4d81b05cab5fc827212a9fbe8f15db146f5963bfce8c657e1548385b2320e9.wav",
+      "locale": "ja-JP",
+      "language": "ja",
+      "style": "arrival-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_01_new_gate:zh": {
+      "audioId": "c6df4898f1b71c9f40585c9f30f83ce54ad73574661ff0cfdb9fd84262c7cc67",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/c6df4898f1b71c9f40585c9f30f83ce54ad73574661ff0cfdb9fd84262c7cc67.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_01_new_gate:zh": {
+      "audioId": "e2ca10f3b1ad05764f578756a36c369e2c8fba7697d94b0d61ed94811d7ae9a6",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/e2ca10f3b1ad05764f578756a36c369e2c8fba7697d94b0d61ed94811d7ae9a6.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "b39b88f0a0ebeb22",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_02_international_center:zh": {
+      "audioId": "bc647c4b14a41232254685313ed21f9e378937496eb8538f89883b280d7dd54f",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/bc647c4b14a41232254685313ed21f9e378937496eb8538f89883b280d7dd54f.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_02_international_center:zh": {
+      "audioId": "6f9395b6fea2c5b260f6fa5424784adbb867f3bf87b93191f71723ded7cca6f1",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/6f9395b6fea2c5b260f6fa5424784adbb867f3bf87b93191f71723ded7cca6f1.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "fc526472d7c1a16e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_03_university_headquarters:zh": {
+      "audioId": "41240f65a10ccd909d8841662b161a8e397e21fa98e058dd58756bfcc6661526",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/41240f65a10ccd909d8841662b161a8e397e21fa98e058dd58756bfcc6661526.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "2128eeea34cace18",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_04_jinsudang:zh": {
+      "audioId": "0c9c27174e07865525f9c20f34b0bf0cb7ad8147a4ec76f87ff51e6bbab85244",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/0c9c27174e07865525f9c20f34b0bf0cb7ad8147a4ec76f87ff51e6bbab85244.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_04_jinsudang:zh": {
+      "audioId": "0276316a94f645e116c2974fbe1aa4bad90a2dde1b76a7e1ba505b1e5ac2000b",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/0276316a94f645e116c2974fbe1aa4bad90a2dde1b76a7e1ba505b1e5ac2000b.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "aed8aa89b71f3a23",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_05_engineering_entrance:zh": {
+      "audioId": "72e98884e12016655f9d6a6716052e5e5d636d8552e59ec9168c6a9e02884545",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/72e98884e12016655f9d6a6716052e5e5d636d8552e59ec9168c6a9e02884545.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_05_engineering_entrance:zh": {
+      "audioId": "40f3a9691d1d0f7f9a61f9b71067e43bf9b57de1921bb846eae78f819e3106a7",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/40f3a9691d1d0f7f9a61f9b71067e43bf9b57de1921bb846eae78f819e3106a7.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "fbe639a3697ff48e",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_06_central_library:zh": {
+      "audioId": "947f7e6df62a42e993cd2cb5925f01b40fc18c7c987266e5272ef01104abbe46",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/947f7e6df62a42e993cd2cb5925f01b40fc18c7c987266e5272ef01104abbe46.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_06_central_library:zh": {
+      "audioId": "983d9a8c9e6079dff2fe4586da5ec2080b6f46e37e6ec4d9dce3094da23c59c0",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/983d9a8c9e6079dff2fe4586da5ec2080b6f46e37e6ec4d9dce3094da23c59c0.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "e3b9907919152c25",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_07_geonji_plaza:zh": {
+      "audioId": "6bb05acec8a4bb92ffab3a598058db9d129bbb6fe133b2b1154e7af0bec46d79",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/6bb05acec8a4bb92ffab3a598058db9d129bbb6fe133b2b1154e7af0bec46d79.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_07_geonji_plaza:zh": {
+      "audioId": "251fac1e6279d31cd300ca60ec87cf55af8d0fdc80715c2c805769b2e6c7e6f2",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/251fac1e6279d31cd300ca60ec87cf55af8d0fdc80715c2c805769b2e6c7e6f2.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "356be3549c9a3342",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_08_stadium_swing:zh": {
+      "audioId": "53b3ad95adcd4c32fd37799c0c32ead308a1e27d99c064ef9aedb8d1259a4cff",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/53b3ad95adcd4c32fd37799c0c32ead308a1e27d99c064ef9aedb8d1259a4cff.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_08_stadium_swing:zh": {
+      "audioId": "2cb4a91ccdf54c6c6078cdec757bfe85757f948507d267ddd3d8521a96a8ec85",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/2cb4a91ccdf54c6c6078cdec757bfe85757f948507d267ddd3d8521a96a8ec85.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "9f41a606a2ec5f3c",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_09_basketball_court:zh": {
+      "audioId": "2c2b6bc3d9491ebea64487a00075649fa46493f316b8301e1f0d0d9ba5ea5a33",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/2c2b6bc3d9491ebea64487a00075649fa46493f316b8301e1f0d0d9ba5ea5a33.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_09_basketball_court:zh": {
+      "audioId": "1b65eb3fd29d631919302f2679399b1574ee36b0613c0c75eab0df00b71f4d7b",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/1b65eb3fd29d631919302f2679399b1574ee36b0613c0c75eab0df00b71f4d7b.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "9b2c623444525617",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_10_museum:zh": {
+      "audioId": "2ba11d6ad0082758751b69b40135b5bd8085c739a014e6248d8a0b56cb817886",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/2ba11d6ad0082758751b69b40135b5bd8085c739a014e6248d8a0b56cb817886.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_10_museum:zh": {
+      "audioId": "fe3cfe6eb7d7f92033bb5e4599efe692cce39054245d159df735256151ada85e",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/fe3cfe6eb7d7f92033bb5e4599efe692cce39054245d159df735256151ada85e.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "269a2590ae641120",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_11_student_town:zh": {
+      "audioId": "c685c5fe77ae45d902db7eed67e9cc43187c1e4a18aff902f55a2c6a2314c67e",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/c685c5fe77ae45d902db7eed67e9cc43187c1e4a18aff902f55a2c6a2314c67e.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_11_student_town:zh": {
+      "audioId": "8fd384a640082b067853f37c7c1cd5788879983b884b441f30dc247279a7dd53",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/8fd384a640082b067853f37c7c1cd5788879983b884b441f30dc247279a7dd53.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "da16ad9e2d617977",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:tour_12_old_gate:zh": {
+      "audioId": "cab73603f01d6241e6815f6f089a9c041d1f9a9f2ed54863dfa8c58dc6eeb7dd",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/cab73603f01d6241e6815f6f089a9c041d1f9a9f2ed54863dfa8c58dc6eeb7dd.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:tour_12_old_gate:zh": {
+      "audioId": "3ee660b46f0d7da38490a3e13d15f367334e452708d97be1ed29043cd2dd05ed",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/3ee660b46f0d7da38490a3e13d15f367334e452708d97be1ed29043cd2dd05ed.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "7392d19494f7ec24",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "en-route-docent:docent_art_college_3_workshop:zh": {
+      "audioId": "d77d452bb85f5b8614247b322ca997b89fdf23648bf56d3bd8b520f8c843b292",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/d77d452bb85f5b8614247b322ca997b89fdf23648bf56d3bd8b520f8c843b292.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "en-route-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
+    },
+    "arrival-docent:docent_art_college_3_workshop:zh": {
+      "audioId": "bf64aafc7cbfde45d7e7a762d618fec12f8efa3603be01c3ebb75ea86d5cbcd7",
+      "objectName": "assets/core-docent/cmn-CN/Sulafat/bf64aafc7cbfde45d7e7a762d618fec12f8efa3603be01c3ebb75ea86d5cbcd7.wav",
+      "locale": "cmn-CN",
+      "language": "zh",
+      "style": "arrival-docent",
+      "contentVersion": "8a4e0627b7ee546f",
+      "mediaType": "audio/wav",
+      "preset": "bubbly-proud-senior-v1"
     }
   }
 }
