@@ -154,7 +154,7 @@ jobs:
             # startup failures, then fail closed.
             graph_qa_ready=0
             for attempt in $(seq 1 3); do
-              if docker-compose exec -T backend python -c "from urllib.request import Request,urlopen; import json; body=json.dumps({'question':'중앙도서관 근처 카페 알려줘','language':'ko','current_stop_id':'','current_place_name':''},ensure_ascii=False).encode(); request=Request('http://127.0.0.1:8000/tour/questions',data=body,headers={'Content-Type':'application/json'},method='POST'); payload=json.load(urlopen(request,timeout=45)); assert payload.get('queryType')=='nearby'; assert isinstance(payload.get('evidence'),list) and payload['evidence']"; then
+              if docker-compose exec -T backend python -c "from urllib.request import Request,urlopen; import json; body=json.dumps({'question':'여기근처카페알려줘','language':'ko','current_stop_id':'tour_01_new_gate','current_place_name':'신정문','current_lat':35.8482924,'current_lng':127.1320171,'history':[]},ensure_ascii=False).encode(); request=Request('http://127.0.0.1:8000/tour/questions',data=body,headers={'Content-Type':'application/json'},method='POST'); payload=json.load(urlopen(request,timeout=45)); assert payload.get('queryType')=='nearby'; assert isinstance(payload.get('evidence'),list) and payload['evidence']"; then
                 graph_qa_ready=1
                 break
               fi

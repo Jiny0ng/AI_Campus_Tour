@@ -57,6 +57,10 @@ class GraphQaTemplateTests(unittest.TestCase):
         self.assertIn("HAS_FLOOR", query)
         self.assertIn("HAS_FACILITY|HAS_ROOM", query)
         self.assertIn("WITH place, proximity\n        ORDER BY", query)
+        self.assertIn("toFloat(origin.latitude)", query)
+
+    def test_current_place_converts_imported_coordinates_to_float(self):
+        self.assertIn("toFloat(entity.latitude)", QUERY_TEMPLATES["current_place"])
 
     def test_parses_named_korean_proximity_question(self):
         self.assertEqual(

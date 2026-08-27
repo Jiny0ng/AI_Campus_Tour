@@ -36,7 +36,7 @@ QUERY_TEMPLATES: dict[Intent, str] = {
            OR (NOT $use_current_gps AND (entity.place_id = $current_stop_id OR entity.spot_id = $current_stop_id
                OR entity.building_id = $current_stop_id OR entity.facility_id = $current_stop_id))
         WITH entity, CASE WHEN $use_current_gps
-             THEN point.distance(point({latitude: entity.latitude, longitude: entity.longitude}),
+             THEN point.distance(point({latitude: toFloat(entity.latitude), longitude: toFloat(entity.longitude)}),
                                  point({latitude: $current_lat, longitude: $current_lng}))
              ELSE 0 END AS currentDistanceMeters
         ORDER BY currentDistanceMeters LIMIT 1
@@ -75,7 +75,7 @@ QUERY_TEMPLATES: dict[Intent, str] = {
                   WHEN $entity_name <> '' AND origin.name STARTS WITH $entity_name THEN 1
                   WHEN $entity_name <> '' THEN 2
                   WHEN $use_current_gps THEN point.distance(
-                       point({latitude: origin.latitude, longitude: origin.longitude}),
+                       point({latitude: toFloat(origin.latitude), longitude: toFloat(origin.longitude)}),
                        point({latitude: $current_lat, longitude: $current_lng}))
                   ELSE 0 END AS originRank
         ORDER BY originRank LIMIT 1
