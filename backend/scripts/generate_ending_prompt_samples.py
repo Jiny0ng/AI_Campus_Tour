@@ -152,7 +152,7 @@ def tail_wav(audio: bytes, seconds: int = TAIL_SECONDS) -> bytes:
     return output.getvalue()
 
 
-def split_text_chunks(text: str, max_chars: int = 110) -> list[str]:
+def split_text_chunks(text: str, max_chars: int = 60) -> list[str]:
     """Group complete sentences into TTS requests below the observed cutoff."""
     sentences = [value.strip() for value in re.findall(r"[^.!?]+[.!?]?", text) if value.strip()]
     chunks: list[str] = []
@@ -251,7 +251,10 @@ def synthesize_verified(text: str) -> tuple[bytes, str, dict[str, object]]:
     failures: list[dict[str, object]] = []
     for attempt in range(1, MAX_SYNTHESIS_ATTEMPTS + 1):
         candidate_text = fallback_text(text, attempt)
-        chunked = attempt == MAX_SYNTHESIS_ATTEMPTS
+        # The Pro endpoint repeatedly truncated these Korean scripts when a
+        # single request exceeded roughly 140 characters. Start long scripts
+        # in sentence chunks instead of spending two doomed full-text calls.
+        chunked = len(candidate_text) > 140 or attempt == MAX_SYNTHESIS_ATTEMPTS
         raw_audio, chunk_count = synthesize_candidate(candidate_text, chunked)
         wave_passed, metrics = waveform_confidently_complete(raw_audio)
         transcript = ""
@@ -307,7 +310,7 @@ def main() -> int:
 
     preset = replace(
         BUBBLY_DOCENT,
-        id="bubbly-proud-senior-story-sample-v9",
+        id="bubbly-proud-senior-story-sample-v10",
         # Do not inherit BUBBLY_DOCENT.prompt here: it includes the legacy
         # SHORT_ENDINGS instruction to end the final syllable immediately,
         # which conflicts with the reviewed natural-ending direction below.
@@ -320,7 +323,7 @@ def main() -> int:
     generated = []
     for position, (entity_id, text) in enumerate(sample_texts().items(), start=1):
         asset_id = f"sample-story:{entity_id}:ko"
-        version = "story-prompt-sample-v9"
+        version = "story-prompt-sample-v10"
         print(json.dumps({"generating": asset_id, "progress": f"{position}/3"}, ensure_ascii=False), flush=True)
         audio, verified_text, quality = synthesize_verified(text)
         content_hash = audio_id_for(verified_text, "ko-KR", "core-docent", version)
