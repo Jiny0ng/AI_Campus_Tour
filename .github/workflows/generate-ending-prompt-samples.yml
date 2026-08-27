@@ -24,6 +24,9 @@ jobs:
             set -Eeuo pipefail
             cd ~/AI_Campus_Tour
             export TTS_MANIFEST_PATH="/runtime/audio_content/audio_manifest.json"
+            # The ending verifier uses google-cloud-speech. Build the current
+            # dependency image first; unchanged requirements reuse Docker cache.
+            docker-compose --profile audio build audio-asset-generator
             docker-compose --profile audio run --rm audio-asset-generator \
               python /app/scripts/generate_ending_prompt_samples.py --upload
             docker-compose restart backend
