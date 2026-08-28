@@ -7,3 +7,7 @@ system:network-unavailable:ja,ja-JP,インターネット接続が不安定で�
 system:audio-unavailable:ja,ja-JP,音声案内を準備できません。画面の案内をご確認ください。,true,v1,system
 system:network-unavailable:zh,cmn-CN,网络连接不稳定，请查看屏幕上的指引。,true,v1,system
 system:audio-unavailable:zh,cmn-CN,无法提供语音指引，请查看屏幕上的指引。,true,v1,system
+system:first-stop-microphone-tip:ko,ko-KR,이동하는 중에 궁금한 게 있다면 화면 중간의 마이크 버튼을 눌러 물어봐 주세요. 제가 대답해 드릴게요.,true,v1,system
+system:first-stop-microphone-tip:en,en-US,If you have a question along the way, tap the microphone button in the middle of the screen and ask me.,true,v1,system
+system:first-stop-microphone-tip:ja,ja-JP,移動中に気になることがあれば、画面中央のマイクボタンを押して質問してくださいね。,true,v1,system
+system:first-stop-microphone-tip:zh,cmn-CN,途中有任何疑问时，请点击屏幕中央的麦克风按钮向我提问。,true,v1,system

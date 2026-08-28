@@ -85,7 +85,7 @@ services:
       - TTS_MANIFEST_PATH=${TTS_MANIFEST_PATH:-/campusdata/audio_content/audio_manifest.json}
       - TTS_BATCH_TIMEOUT_SECONDS=${TTS_BATCH_TIMEOUT_SECONDS:-60}
       - DOCENT_SCRIPT_MODEL=${DOCENT_SCRIPT_MODEL:-gemini-3.6-flash}
-      - DOCENT_SCRIPT_PROMPT_VERSION=${DOCENT_SCRIPT_PROMPT_VERSION:-v3}
+      - DOCENT_SCRIPT_PROMPT_VERSION=${DOCENT_SCRIPT_PROMPT_VERSION:-v1}
       - AUDIO_SYSTEM_PUBLIC_DIR=/frontend/audio/system
     profiles: ["audio"]
     restart: "no"

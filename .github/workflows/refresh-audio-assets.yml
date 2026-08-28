@@ -27,10 +27,14 @@ jobs:
           script: |
             set -Eeuo pipefail
             cd ~/AI_Campus_Tour
-            export TTS_MANIFEST_PATH="/runtime/audio_content/audio_manifest.json"
-            # Override any legacy value left in the VM's persistent .env so a
-            # prompt rollout invalidates and regenerates every docent script.
-            export DOCENT_SCRIPT_PROMPT_VERSION="v3"
+            candidate_dir="runtime/audio_content/candidate"
+            mkdir -p "$candidate_dir"
+            # Start from the reviewed assets committed with this release. A
+            # deliberate prompt/content change still invalidates fingerprints.
+            cp campusdata/audio_content/audio_manifest.json "$candidate_dir/audio_manifest.json"
+            cp campusdata/audio_content/generated_docents.json "$candidate_dir/generated_docents.json"
+            export TTS_MANIFEST_PATH="/runtime/audio_content/candidate/audio_manifest.json"
+            export DOCENT_SCRIPT_PROMPT_VERSION="v1"
             # The deployed revision is the content source of truth. The script
             # compares content hashes and synthesizes/uploads only changed rows.
             docker-compose --profile audio run --rm audio-asset-generator \
@@ -38,4 +42,21 @@ jobs:
             docker-compose --profile audio run --rm audio-asset-generator
             docker-compose --profile audio run --rm audio-asset-generator \
               python /app/scripts/validate_audio_manifest.py --require-pro-wav --check-storage
+            mv "$candidate_dir/audio_manifest.json" runtime/audio_content/audio_manifest.json
+            mv "$candidate_dir/generated_docents.json" runtime/audio_content/generated_docents.json
+            export TTS_MANIFEST_PATH="/runtime/audio_content/audio_manifest.json"
             docker-compose restart backend
+            backend_ready=0
+            for attempt in $(seq 1 30); do
+              if docker-compose exec -T backend python -c "from urllib.request import urlopen; assert urlopen('http://127.0.0.1:8000/', timeout=5).status == 200"; then
+                backend_ready=1
+                break
+              fi
+              sleep 2
+            done
+            test "$backend_ready" -eq 1
+            # Verify every language through the same HTTP asset path used by
+            # the application after the backend has loaded the new registry.
+            for language in ko en ja zh; do
+              docker-compose exec -T backend python -c "from urllib.request import urlopen; response=urlopen('http://127.0.0.1:8000/tts/assets/en-route-docent:tour_01_new_gate:$language', timeout=10); assert response.status == 200; assert response.headers.get_content_type() == 'audio/wav'; assert response.read(4) == b'RIFF'"
+            done

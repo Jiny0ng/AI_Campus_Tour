@@ -7,7 +7,7 @@ import { FloatingButton } from "@/components/Common";
 import { MobileShell } from "@/components/Layout";
 import { campusCenter } from "@/constants/campus";
 import { APP_ROUTES } from "@/constants/routes";
-import { useAppSettings } from "@/contexts/AppSettingsContext";
+import { useAppSettings, type AppLocale } from "@/contexts/AppSettingsContext";
 import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import { clientDebug, clientDebugError } from "@/lib/clientDebug";
 import { trackedFetch } from "@/lib/networkFetch";
@@ -30,6 +30,12 @@ type CampusTourScreenProps = {
 
 const segmentInfoCache = new Map<string, CampusTourSegmentInfo>();
 const segmentRequestCache = new Map<string, Promise<CampusTourSegmentInfo>>();
+const FIRST_STOP_MICROPHONE_TIP: Record<AppLocale, string> = {
+  ko: "이동하는 중에 궁금한 게 있다면 화면 중간의 마이크 버튼을 눌러 물어봐 주세요. 제가 대답해 드릴게요.",
+  en: "If you have a question along the way, tap the microphone button in the middle of the screen and ask me.",
+  ja: "移動中に気になることがあれば、画面中央のマイクボタンを押して質問してくださいね。",
+  zh: "途中有任何疑问时，请点击屏幕中央的麦克风按钮向我提问。",
+};
 const CURRENT_LOCATION_STOP_ID = "current_location";
 const OFF_ROUTE_THRESHOLD_METERS = 15;
 
@@ -368,15 +374,14 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       if (
         outcome === "completed"
         && narrationStop.id === "tour_01_new_gate"
-        && locale === "ko"
       ) {
         await speak({
-          id: `first-stop-microphone-tip:${tourSessionIdRef.current}`,
-          text: "이동하는 중에 궁금한 게 있다면 화면 중간의 마이크 버튼을 눌러 물어봐 주세요. 제가 대답해 드릴게요.",
-          locale: "ko",
+          id: `first-stop-microphone-tip:${tourSessionIdRef.current}:${locale}`,
+          text: FIRST_STOP_MICROPHONE_TIP[locale],
+          locale,
           category: "system",
           priority: 45,
-          source: { kind: "tts" },
+          source: { kind: "asset", assetId: `system:first-stop-microphone-tip:${locale}` },
           interruptible: true,
           resumePolicy: "discard",
         });

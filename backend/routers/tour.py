@@ -323,10 +323,12 @@ _tour_data_cache: Dict[str, Dict[str, Any]] = {}
 
 @lru_cache(maxsize=1)
 def active_generated_docents() -> Dict[str, Dict[str, Any]]:
-    path = os.path.join(
+    default_manifest_path = os.path.join(
         os.path.dirname(__file__), "..", "..", "campusdata", "audio_content",
-        "generated_docents.json",
+        "audio_manifest.json",
     )
+    manifest_path = os.getenv("TTS_MANIFEST_PATH", default_manifest_path)
+    path = os.path.join(os.path.dirname(manifest_path), "generated_docents.json")
     if not os.path.exists(path):
         return {}
     try:

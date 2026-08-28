@@ -69,11 +69,9 @@ jobs:
             # 2. 최신 코드 가져오기. Generated audio state lives outside Git
             # so a code rollback/reset cannot restore deleted MP3 references.
             mkdir -p runtime/audio_content
-            audio_runtime_bootstrapped=0
             if [[ ! -s runtime/audio_content/audio_manifest.json ]]; then
               cp campusdata/audio_content/audio_manifest.json runtime/audio_content/audio_manifest.json
               cp campusdata/audio_content/generated_docents.json runtime/audio_content/generated_docents.json
-              audio_runtime_bootstrapped=1
             fi
             git fetch --all
             git reset --hard origin/main
@@ -94,13 +92,25 @@ jobs:
             # 3. 빌드 성공 후 새 컨테이너로 교체
             docker-compose build
             docker-compose --profile seed build data-loader
-            if [[ "$audio_runtime_bootstrapped" -eq 1 ]]; then
-              docker-compose --profile audio run --rm audio-asset-generator \
-                python /app/scripts/validate_audio_manifest.py --require-pro-wav --check-storage
-            else
-              docker-compose --profile audio run --rm audio-asset-generator \
-                python /app/scripts/validate_audio_manifest.py --require-pro-wav
-            fi
+            # Build a complete candidate registry before touching the active
+            # files or stopping healthy containers. GCS uploads are immutable;
+            # only the two validated registry files are promoted together.
+            candidate_dir="runtime/audio_content/candidate"
+            mkdir -p "$candidate_dir"
+            # Checked-in, reviewed multilingual scripts/assets are the release
+            # source of truth. Runtime state must not silently replace them.
+            cp campusdata/audio_content/audio_manifest.json "$candidate_dir/audio_manifest.json"
+            cp campusdata/audio_content/generated_docents.json "$candidate_dir/generated_docents.json"
+            export TTS_MANIFEST_PATH="/runtime/audio_content/candidate/audio_manifest.json"
+            export DOCENT_SCRIPT_PROMPT_VERSION="v1"
+            docker-compose --profile audio run --rm audio-asset-generator \
+              python /app/scripts/generate_docent_assets.py --apply
+            docker-compose --profile audio run --rm audio-asset-generator
+            docker-compose --profile audio run --rm audio-asset-generator \
+              python /app/scripts/validate_audio_manifest.py --require-pro-wav --check-storage
+            mv "$candidate_dir/audio_manifest.json" runtime/audio_content/audio_manifest.json
+            mv "$candidate_dir/generated_docents.json" runtime/audio_content/generated_docents.json
+            export TTS_MANIFEST_PATH="/runtime/audio_content/audio_manifest.json"
             docker-compose down --remove-orphans
             docker-compose up -d neo4j
             # 기준 CSV를 비파괴 방식으로 반영한다. --reset은 운영 데이터를 삭제하므로 사용하지 않는다.

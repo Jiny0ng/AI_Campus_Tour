@@ -22,8 +22,48 @@ from services.audio_storage import read_object  # noqa: E402
 from services.tts_presets import BUBBLY_DOCENT  # noqa: E402
 
 
+SUPPORTED_LANGUAGES = ("ko", "en", "ja", "zh")
+LOCALE_CODES = {"ko": "ko-KR", "en": "en-US", "ja": "ja-JP", "zh": "cmn-CN"}
+REQUIRED_SYSTEM_ASSETS = {
+    f"system:first-stop-microphone-tip:{language}" for language in SUPPORTED_LANGUAGES
+}
+
+
 def is_review_sample(asset_id: str) -> bool:
     return asset_id.startswith(("sample-ending:", "sample-story:"))
+
+
+def required_asset_errors(assets: dict, scripts: dict) -> list[str]:
+    errors: list[str] = []
+    for entity_id, script in scripts.items():
+        if not isinstance(script, dict) or script.get("status") != "active":
+            continue
+        expected = ["en-route-docent"]
+        if script.get("arrivalEnabled"):
+            expected.append("arrival-docent")
+        translations = script.get("translations")
+        if not isinstance(translations, dict):
+            errors.append(f"{entity_id}:missing-translations")
+            continue
+        for language in SUPPORTED_LANGUAGES:
+            if not isinstance(translations.get(language), dict):
+                errors.append(f"{entity_id}:{language}:missing-translation")
+                continue
+            for style in expected:
+                asset_id = f"{style}:{entity_id}:{language}"
+                asset = assets.get(asset_id)
+                if not isinstance(asset, dict):
+                    errors.append(f"{asset_id}:missing-for-active-script")
+                elif asset.get("contentVersion") != script.get("contentVersion"):
+                    errors.append(f"{asset_id}:content-version-mismatch")
+                elif asset.get("language") != language:
+                    errors.append(f"{asset_id}:language-mismatch")
+                elif asset.get("locale") != LOCALE_CODES[language]:
+                    errors.append(f"{asset_id}:locale-mismatch")
+    for asset_id in sorted(REQUIRED_SYSTEM_ASSETS):
+        if not isinstance(assets.get(asset_id), dict):
+            errors.append(f"{asset_id}:missing-required-system-asset")
+    return errors
 
 
 def main() -> int:
@@ -55,25 +95,14 @@ def main() -> int:
             errors.append(f"{asset_id}:not-pro-wav")
         elif args.check_storage and read_object(object_name) is None:
             errors.append(f"{asset_id}:missing-storage-object")
+    scripts = {}
     if GENERATED_DOCENTS_PATH.is_file():
         generated = json.loads(GENERATED_DOCENTS_PATH.read_text(encoding="utf-8"))
         scripts = generated.get("scripts", {})
         if generated.get("version") != 1 or not isinstance(scripts, dict):
             errors.append("generated_docents:invalid-root")
-        else:
-            for entity_id, script in scripts.items():
-                if not isinstance(script, dict) or script.get("status") != "active":
-                    continue
-                expected = ["en-route-docent"]
-                if script.get("arrivalEnabled"):
-                    expected.append("arrival-docent")
-                for style in expected:
-                    asset_id = f"{style}:{entity_id}:ko"
-                    asset = assets.get(asset_id)
-                    if not isinstance(asset, dict):
-                        errors.append(f"{asset_id}:missing-for-active-script")
-                    elif asset.get("contentVersion") != script.get("contentVersion"):
-                        errors.append(f"{asset_id}:content-version-mismatch")
+            scripts = {}
+    errors.extend(required_asset_errors(assets, scripts))
     print(json.dumps({"assets": len(assets), "invalid": errors}, ensure_ascii=False))
     return 1 if errors else 0
 
