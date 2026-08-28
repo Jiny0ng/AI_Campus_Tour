@@ -27,13 +27,13 @@ jobs:
           script: |
             set -Eeuo pipefail
             cd ~/AI_Campus_Tour
-            candidate_dir="runtime/audio_content/candidate"
-            mkdir -p "$candidate_dir"
+            candidate_dir="$(mktemp -d runtime/audio_content/candidate.XXXXXX)"
+            candidate_name="${candidate_dir##*/}"
             # Start from the reviewed assets committed with this release. A
             # deliberate prompt/content change still invalidates fingerprints.
             cp campusdata/audio_content/audio_manifest.json "$candidate_dir/audio_manifest.json"
             cp campusdata/audio_content/generated_docents.json "$candidate_dir/generated_docents.json"
-            export TTS_MANIFEST_PATH="/runtime/audio_content/candidate/audio_manifest.json"
+            export TTS_MANIFEST_PATH="/runtime/audio_content/$candidate_name/audio_manifest.json"
             export DOCENT_SCRIPT_PROMPT_VERSION="v1"
             # The deployed revision is the content source of truth. The script
             # compares content hashes and synthesizes/uploads only changed rows.

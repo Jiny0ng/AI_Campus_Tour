@@ -95,13 +95,13 @@ jobs:
             # Build a complete candidate registry before touching the active
             # files or stopping healthy containers. GCS uploads are immutable;
             # only the two validated registry files are promoted together.
-            candidate_dir="runtime/audio_content/candidate"
-            mkdir -p "$candidate_dir"
+            candidate_dir="$(mktemp -d runtime/audio_content/candidate.XXXXXX)"
+            candidate_name="${candidate_dir##*/}"
             # Checked-in, reviewed multilingual scripts/assets are the release
             # source of truth. Runtime state must not silently replace them.
             cp campusdata/audio_content/audio_manifest.json "$candidate_dir/audio_manifest.json"
             cp campusdata/audio_content/generated_docents.json "$candidate_dir/generated_docents.json"
-            export TTS_MANIFEST_PATH="/runtime/audio_content/candidate/audio_manifest.json"
+            export TTS_MANIFEST_PATH="/runtime/audio_content/$candidate_name/audio_manifest.json"
             docker-compose --profile audio run --rm audio-asset-generator \
               python /app/scripts/generate_docent_assets.py --apply
             docker-compose --profile audio run --rm audio-asset-generator
