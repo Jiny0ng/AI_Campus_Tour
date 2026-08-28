@@ -27,6 +27,8 @@ sys.path.insert(0, str(BACKEND_DIR))
 from services.audio_storage import is_configured, read_object, write_object  # noqa: E402
 from services.tts_presets import preset_for  # noqa: E402
 from services.docent_generation import (  # noqa: E402
+    LOCALE_CODES,
+    SUPPORTED_LANGUAGES,
     content_fingerprint,
     generate_and_validate,
     load_docent_specs,
@@ -71,6 +73,7 @@ def exception_details(error: BaseException) -> str:
 
 def synthesize_with_retry(
     text: str,
+    locale: str,
     *,
     entity_id: str,
     position: int,
@@ -82,6 +85,7 @@ def synthesize_with_retry(
         attempt_started = time.monotonic()
         print(json.dumps({
             "ttsStarted": entity_id,
+            "locale": locale,
             "progress": f"{position}/{total}",
             "attempt": attempt + 1,
             "maxAttempts": len(delays) + 1,
@@ -91,12 +95,13 @@ def synthesize_with_retry(
         try:
             content = _synthesize_with_google(
                 text,
-                "ko-KR",
+                locale,
                 "core-docent",
                 timeout_seconds=timeout_seconds,
             )
             print(json.dumps({
                 "ttsSynthesized": entity_id,
+                "locale": locale,
                 "progress": f"{position}/{total}",
                 "attempt": attempt + 1,
                 "elapsedSeconds": round(time.monotonic() - attempt_started, 2),
@@ -108,6 +113,7 @@ def synthesize_with_retry(
             if attempt >= len(delays):
                 print(json.dumps({
                     "ttsFailed": entity_id,
+                    "locale": locale,
                     "progress": f"{position}/{total}",
                     "attempt": attempt + 1,
                     "elapsedSeconds": elapsed,
@@ -117,6 +123,7 @@ def synthesize_with_retry(
             delay = delays[attempt]
             print(json.dumps({
                 "ttsRetrying": entity_id,
+                "locale": locale,
                 "progress": f"{position}/{total}",
                 "attempt": attempt + 1,
                 "elapsedSeconds": elapsed,
@@ -125,6 +132,7 @@ def synthesize_with_retry(
             }, ensure_ascii=False), file=sys.stderr, flush=True)
             time.sleep(delay)
     raise AssertionError("unreachable")
+
 
 
 def make_llm(model: str):
@@ -187,6 +195,8 @@ def main() -> int:
             and existing.get("contentFingerprint") == fingerprint
             and isinstance(existing.get("enRouteText"), str)
             and (not arrival_enabled[spec.entity_id] or isinstance(existing.get("arrivalText"), str))
+            and isinstance(existing.get("translations"), dict)
+            and all(lang in existing["translations"] for lang in SUPPORTED_LANGUAGES)
         ):
             reusable[spec.entity_id] = existing
         elif (
@@ -194,6 +204,8 @@ def main() -> int:
             and pending.get("contentFingerprint") == fingerprint
             and isinstance(pending.get("enRouteText"), str)
             and (not arrival_enabled[spec.entity_id] or isinstance(pending.get("arrivalText"), str))
+            and isinstance(pending.get("translations"), dict)
+            and all(lang in pending["translations"] for lang in SUPPORTED_LANGUAGES)
         ):
             reusable[spec.entity_id] = {**pending, "status": "active"}
         else:
@@ -220,52 +232,65 @@ def main() -> int:
     if stale_specs:
         llm = make_llm(model)
         for spec, fingerprint in stale_specs:
-            last_error: Exception | None = None
             generation_attempts = max(1, int(os.getenv("DOCENT_GENERATION_MAX_ATTEMPTS", "4")))
-            for attempt in range(generation_attempts):
-                try:
-                    en_route_text, en_route_fact_ids = generate_and_validate(spec, llm, "en_route")
-                    if arrival_enabled[spec.entity_id]:
-                        arrival_text, arrival_fact_ids = generate_and_validate(spec, llm, "arrival")
-                    else:
-                        arrival_text, arrival_fact_ids = "", []
-                    break
-                except Exception as error:
-                    last_error = error
-                    if attempt == generation_attempts - 1:
-                        print(
-                            f"Docent generation failed for {spec.entity_id}: {error}",
-                            file=sys.stderr,
-                        )
-                        return 1
-            else:
-                raise AssertionError(last_error)
+            # Always generate Korean first (baseline), then other languages
+            translations: dict[str, dict] = {}
+            for lang in SUPPORTED_LANGUAGES:
+                last_error: Exception | None = None
+                for attempt in range(generation_attempts):
+                    try:
+                        en_route_text, en_route_fact_ids = generate_and_validate(spec, llm, "en_route", lang)
+                        if arrival_enabled[spec.entity_id]:
+                            arrival_text, arrival_fact_ids = generate_and_validate(spec, llm, "arrival", lang)
+                        else:
+                            arrival_text, arrival_fact_ids = "", []
+                        translations[lang] = {
+                            "enRouteText": en_route_text,
+                            "arrivalText": arrival_text,
+                            "enRouteUsedFactIds": en_route_fact_ids,
+                            "arrivalUsedFactIds": arrival_fact_ids,
+                        }
+                        print(json.dumps({
+                            "generated": spec.entity_id,
+                            "language": lang,
+                            "enRouteCharacters": len(en_route_text),
+                            "arrivalCharacters": len(arrival_text),
+                            "arrivalEnabled": arrival_enabled[spec.entity_id],
+                        }, ensure_ascii=False), flush=True)
+                        break
+                    except Exception as error:
+                        last_error = error
+                        if attempt == generation_attempts - 1:
+                            print(
+                                f"Docent generation failed for {spec.entity_id} [{lang}]: {error}",
+                                file=sys.stderr,
+                            )
+                            return 1
+                else:
+                    raise AssertionError(last_error)
+
+            ko = translations["ko"]
             candidates[spec.entity_id] = {
                 "status": "active",
-                "text": en_route_text,
-                "enRouteText": en_route_text,
-                "arrivalText": arrival_text,
+                # Backward-compatible top-level Korean fields
+                "text": ko["enRouteText"],
+                "enRouteText": ko["enRouteText"],
+                "arrivalText": ko["arrivalText"],
                 "arrivalEnabled": arrival_enabled[spec.entity_id],
                 "contentFingerprint": fingerprint,
                 "contentVersion": fingerprint[:16],
                 "model": model,
                 "promptVersion": prompt_version,
-                "usedFactIds": en_route_fact_ids,
-                "enRouteUsedFactIds": en_route_fact_ids,
-                "arrivalUsedFactIds": arrival_fact_ids,
+                "usedFactIds": ko["enRouteUsedFactIds"],
+                "enRouteUsedFactIds": ko["enRouteUsedFactIds"],
+                "arrivalUsedFactIds": ko["arrivalUsedFactIds"],
                 "targetDurationSeconds": spec.target_duration_seconds,
                 "validatedAt": datetime.now(timezone.utc).isoformat(),
+                # Multilingual translations
+                "translations": translations,
             }
-            print(json.dumps({
-                "generated": spec.entity_id,
-                "enRouteCharacters": len(en_route_text),
-                "arrivalCharacters": len(arrival_text),
-                "arrivalEnabled": arrival_enabled[spec.entity_id],
-            }, ensure_ascii=False), flush=True)
 
-    # Persist validated scripts before the slower TTS phase. This file is not
-    # served by the application; it only lets a failed batch resume without
-    # paying for and varying the same Gemini generations again.
+    # Persist validated scripts before the slower TTS phase.
     atomic_save(PENDING_REGISTRY_PATH, {"version": 1, "scripts": candidates})
 
     next_manifest = copy.deepcopy(manifest)
@@ -273,21 +298,39 @@ def main() -> int:
     next_registry["scripts"].update(candidates)
     uploaded = 0
     reused_audio = 0
-    assets_to_activate = [
-        (spec, "en-route-docent", candidates[spec.entity_id]["enRouteText"])
-        for spec in specs
-    ] + [
-        (spec, "arrival-docent", candidates[spec.entity_id]["arrivalText"])
-        for spec in specs if candidates[spec.entity_id].get("arrivalEnabled")
-    ]
+
+    # Build list of (spec, asset_style, language, text) for all languages
+    assets_to_activate = []
+    for lang in SUPPORTED_LANGUAGES:
+        locale_code = LOCALE_CODES[lang]
+        for spec in specs:
+            script_entry = candidates[spec.entity_id]
+            translations = script_entry.get("translations", {})
+            lang_data = translations.get(lang, {})
+            # Fall back to top-level ko fields if translation missing (e.g. reused from old registry)
+            if lang == "ko" and not lang_data:
+                lang_data = {
+                    "enRouteText": script_entry.get("enRouteText", ""),
+                    "arrivalText": script_entry.get("arrivalText", ""),
+                }
+            if not lang_data:
+                continue
+            en_route_text = lang_data.get("enRouteText", "")
+            arrival_text = lang_data.get("arrivalText", "")
+            if en_route_text:
+                assets_to_activate.append((spec, "en-route-docent", lang, locale_code, en_route_text))
+            if arrival_text and script_entry.get("arrivalEnabled"):
+                assets_to_activate.append((spec, "arrival-docent", lang, locale_code, arrival_text))
+
     total_specs = len(assets_to_activate)
-    for position, (spec, asset_style, text) in enumerate(assets_to_activate, start=1):
-        script = candidates[spec.entity_id]
-        content_version = script["contentVersion"]
-        audio_id = audio_id_for(text, "ko-KR", "core-docent", f"{content_version}:{asset_style}")
-        object_name = object_name_for(audio_id, "ko-KR", "core-docent")
+    for position, (spec, asset_style, lang, locale_code, text) in enumerate(assets_to_activate, start=1):
+        script_entry = candidates[spec.entity_id]
+        content_version = script_entry["contentVersion"]
+        audio_id = audio_id_for(text, locale_code, "core-docent", f"{content_version}:{asset_style}:{lang}")
+        object_name = object_name_for(audio_id, locale_code, "core-docent")
         print(json.dumps({
             "ttsCheckingStorage": spec.entity_id,
+            "language": lang,
             "progress": f"{position}/{total_specs}",
             "objectName": object_name,
         }, ensure_ascii=False), flush=True)
@@ -296,20 +339,22 @@ def main() -> int:
             try:
                 content = synthesize_with_retry(
                     text,
+                    locale_code,
                     entity_id=spec.entity_id,
                     position=position,
                     total=total_specs,
                 )
             except TtsUnavailable:
                 return 1
-            preset = preset_for("core-docent", "ko-KR")
+            preset = preset_for("core-docent", locale_code)
             write_object(
                 object_name,
                 content,
                 {
                     "content_hash": audio_id,
                     "entity_id": spec.entity_id,
-                    "locale": "ko-KR",
+                    "language": lang,
+                    "locale": locale_code,
                     "style": "core-docent",
                     "content_version": content_version,
                     "media_type": preset.media_type,
@@ -324,6 +369,7 @@ def main() -> int:
             uploaded += 1
             print(json.dumps({
                 "ttsUploaded": spec.entity_id,
+                "language": lang,
                 "progress": f"{position}/{total_specs}",
                 "objectName": object_name,
                 "audioBytes": len(content),
@@ -332,17 +378,20 @@ def main() -> int:
             reused_audio += 1
             print(json.dumps({
                 "ttsReused": spec.entity_id,
+                "language": lang,
                 "progress": f"{position}/{total_specs}",
                 "objectName": object_name,
             }, ensure_ascii=False), flush=True)
-        next_manifest["assets"][f"{asset_style}:{spec.entity_id}:ko"] = {
+        preset = preset_for("core-docent", locale_code)
+        next_manifest["assets"][f"{asset_style}:{spec.entity_id}:{lang}"] = {
             "audioId": audio_id,
             "objectName": object_name,
-            "locale": "ko-KR",
+            "locale": locale_code,
+            "language": lang,
             "style": asset_style,
             "contentVersion": content_version,
-            "mediaType": preset_for("core-docent", "ko-KR").media_type,
-            "preset": preset_for("core-docent", "ko-KR").id,
+            "mediaType": preset.media_type,
+            "preset": preset.id,
         }
 
     # Activate only after every script passed both validators and every audio

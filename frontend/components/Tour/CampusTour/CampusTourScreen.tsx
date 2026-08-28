@@ -273,17 +273,17 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   const narrationStop = nextStop ?? currentStop;
   const enRouteNarrationText = useMemo(() => {
     if (!narrationStop) return "";
-    return (locale === "ko" ? narrationStop.enRouteDocentText || narrationStop.docentText : "")
+    return (narrationStop.enRouteDocentText || narrationStop.docentText)
       || segmentInfo?.tips.find((tipInfo) => (
         tipInfo.name.includes(narrationStop.name)
         || narrationStop.name.includes(tipInfo.name)
       ))?.tip
       || narrationStop.description;
-  }, [locale, narrationStop, segmentInfo?.tips]);
-  const hasReviewedNarration = locale === "ko" && Boolean(narrationStop?.enRouteDocentText || narrationStop?.docentText);
+  }, [narrationStop, segmentInfo?.tips]);
+  const hasReviewedNarration = Boolean(narrationStop?.enRouteDocentText || narrationStop?.docentText);
 
   useEffect(() => {
-    if (locale !== "ko" || status.playback !== "idle" || status.request) return;
+    if (status.playback !== "idle" || status.request) return;
     const spot = gpsDocentSpots.find((candidate) => (
       candidate.distanceMeters <= 60
       && Boolean(candidate.docentText)
@@ -298,9 +298,9 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
       audioAssetId: spot.audioAssetId,
     });
     void speak({
-      id: `gps-docent-spot:${tourSessionIdRef.current}:${spot.id}:ko`,
+      id: `gps-docent-spot:${tourSessionIdRef.current}:${spot.id}:${locale}`,
       text: spot.docentText,
-      locale: "ko",
+      locale,
       category: "location-docent",
       priority: 25,
       source: { kind: "asset", assetId: spot.audioAssetId },
@@ -385,7 +385,7 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
   }, [enRouteNarrationText, hasReviewedNarration, locale, narrationStop, speak]);
 
   useEffect(() => {
-    if (!nextStop || arrivedStopId !== nextStop.id || locale !== "ko") return;
+    if (!nextStop || arrivedStopId !== nextStop.id) return;
     if (!nextStop.arrivalDocentEnabled || !nextStop.arrivalDocentText) return;
     if (segmentDistanceMeters > 0 && segmentDistanceMeters <= 50) return;
     const narrationId = `arrival:${nextStop.id}:${locale}`;

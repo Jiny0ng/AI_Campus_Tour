@@ -63,6 +63,7 @@ class NearbyDocentSpotsRequest(BaseModel):
     latitude: float
     longitude: float
     radius_meters: float = Field(default=60, ge=10, le=100)
+    language: Literal["ko", "en", "ja", "zh"] = "ko"
 
 
 # 퓨샷 프롬프트 로드 유틸리티
@@ -229,6 +230,7 @@ def get_gps_nearby_docent_spots(
     latitude: float,
     longitude: float,
     radius_meters: float = 60,
+    language: str = "ko",
 ):
     """Return docent spots inside the user's current GPS radius."""
     with driver.session() as session:
@@ -265,7 +267,7 @@ def get_gps_nearby_docent_spots(
     for spot in spots:
         entity_id = str(spot.get("id", ""))
         asset_prefix = "en-route-docent" if entity_id in generated else "core-docent"
-        spot["audioAssetId"] = f"{asset_prefix}:{entity_id}:ko"
+        spot["audioAssetId"] = f"{asset_prefix}:{entity_id}:{language}"
         results.append(spot)
     return results
 
@@ -307,6 +309,7 @@ async def nearby_docent_spots_by_gps(req: NearbyDocentSpotsRequest, request: Req
         req.latitude,
         req.longitude,
         req.radius_meters,
+        language=req.language,
     )
     return {
         "status": "success",
@@ -315,7 +318,7 @@ async def nearby_docent_spots_by_gps(req: NearbyDocentSpotsRequest, request: Req
     }
 
 
-_tour_data_cache: Optional[Dict[str, Any]] = None
+_tour_data_cache: Dict[str, Dict[str, Any]] = {}
 
 
 @lru_cache(maxsize=1)
@@ -360,11 +363,11 @@ def tour_stop_docent_texts() -> Dict[str, str]:
     return reviewed
 
 
-def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
-    """Build the fixed route once and reuse it for every tour start."""
+def build_tour_data(driver, language: str = "ko", refresh: bool = False) -> Dict[str, Any]:
+    """Build the fixed route once per language and reuse it for every tour start."""
     global _tour_data_cache
-    if _tour_data_cache is not None and not refresh:
-        return _tour_data_cache
+    if language in _tour_data_cache and not refresh:
+        return _tour_data_cache[language]
     route_stops = get_tour_stops(driver)
     if len(route_stops) < 2:
         raise HTTPException(status_code=500, detail="투어 경로에는 두 개 이상의 경유지가 필요합니다.")
@@ -375,12 +378,23 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
     for i, route_stop in enumerate(route_stops):
         name = route_stop["name"]
         docent_context = get_docent_context(driver, route_stop["place_id"])
-        generated_docent = reviewed_docents.get(route_stop["place_id"], "")
         generated_entry = generated_docents.get(route_stop["place_id"], {})
+
+        # Extract language-specific docent text from translations dict
+        translations = generated_entry.get("translations", {})
+        lang_data = translations.get(language, {})
+        if lang_data:
+            docent_text = lang_data.get("enRouteText", "")
+            arrival_text = lang_data.get("arrivalText", "")
+        else:
+            # Fall back to top-level fields (always Korean)
+            docent_text = reviewed_docents.get(route_stop["place_id"], "")
+            arrival_text = str(generated_entry.get("arrivalText", ""))
+
         overview, insights = build_stop_presentation(
             docent_context,
             f"{name}입니다.",
-            generated_docent,
+            docent_text,
         )
         stops_data.append({
             "id": route_stop["place_id"],
@@ -388,9 +402,9 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
             "description": overview,
             "overview": overview,
             "insights": insights,
-            "docentText": generated_docent,
-            "enRouteDocentText": str(generated_entry.get("enRouteText", generated_docent)),
-            "arrivalDocentText": str(generated_entry.get("arrivalText", "")),
+            "docentText": docent_text,
+            "enRouteDocentText": docent_text,
+            "arrivalDocentText": arrival_text,
             "arrivalDocentEnabled": bool(generated_entry.get("arrivalEnabled", False)),
             "docentContext": docent_context,
             "tags": [],
@@ -425,16 +439,17 @@ def build_tour_data(driver, refresh: bool = False) -> Dict[str, Any]:
             "points": path_segment
         })
 
-    _tour_data_cache = {
+    result = {
         "courseTitle": "JBNU Campus Tour",
         "stops": stops_data,
         "routeSegments": route_segments,
     }
-    return _tour_data_cache
+    _tour_data_cache[language] = result
+    return result
 
 
 def warm_tour_cache(driver) -> None:
-    build_tour_data(driver, refresh=True)
+    build_tour_data(driver, language="ko", refresh=True)
 
 
 @router.post("/init")
@@ -443,7 +458,7 @@ async def init_tour(req: TourRequest, request: Request):
     return {
         "status": "success",
         "message": "단일 캠퍼스 투어 경로 생성 완료",
-        "data": build_tour_data(request.app.state.neo4j_driver),
+        "data": build_tour_data(request.app.state.neo4j_driver, language=req.language),
     }
 
 @router.post("/segment")
@@ -481,6 +496,19 @@ def get_tour_segment(req: SegmentRequest, request: Request):
 
     # 2. 바운딩 박스 계산 (50m 반경 확장)
     delta_deg = 0.00045 # 약 50m
+
+    # [Fix] 거리가 너무 멀면(약 2km 이상 차이) 캠퍼스 전체가 바운딩 박스에 잡혀 LLM이 마비됨
+    # 서울에서 켰을 때 발생하는 버그 방지용 (빈 팁 반환)
+    if abs(cur_lat - nxt_lat) > 0.02 or abs(cur_lng - nxt_lng) > 0.02:
+        return {
+            "status": "success",
+            "current_location": req.current_location,
+            "next_location": req.next_location,
+            "pois": [],
+            "tips": [],
+            "nearbySpots": [],
+        }
+
     min_lat = min(cur_lat, nxt_lat) - delta_deg
     max_lat = max(cur_lat, nxt_lat) + delta_deg
     min_lng = min(cur_lng, nxt_lng) - delta_deg

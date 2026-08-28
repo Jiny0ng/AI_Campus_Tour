@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useRouter } from "next/navigation";
 import { translateProperNoun } from "@/lib/properNouns";
 
 export type AppLocale = "ko" | "en" | "ja" | "zh";
@@ -459,10 +460,15 @@ export function AppSettingsProvider({ children }: { children: ReactNode }) {
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, [volume]);
+  const router = useRouter();
 
   const setLocale = useCallback((nextLocale: AppLocale) => {
     setLocaleState(nextLocale);
-  }, []);
+    // 쿠키에도 저장해서 서버 컴포넌트(tour/page.tsx)에서 읽을 수 있게 함
+    document.cookie = `campus-tour-locale=${nextLocale}; path=/; SameSite=Lax; max-age=31536000`;
+    // 서버 컴포넌트에서 새 언어로 데이터를 다시 불러오도록 페이지 새로고침
+    router.refresh();
+  }, [router]);
 
   const toggleMute = useCallback(() => {
     setVolume((currentVolume) => {
