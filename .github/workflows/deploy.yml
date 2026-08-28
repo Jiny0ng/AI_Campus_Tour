@@ -85,7 +85,7 @@ jobs:
             export TTS_MANIFEST_PATH="/runtime/audio_content/audio_manifest.json"
             # The deployed code owns the active docent prompt schema. Do not
             # let a stale value in the VM's persistent .env reuse old scripts.
-            export DOCENT_SCRIPT_PROMPT_VERSION="v3"
+            export DOCENT_SCRIPT_PROMPT_VERSION="v1"
             echo "DEPLOY_URL=https://$CAMPUS_DOMAIN"
             docker-compose config --services
             
@@ -102,7 +102,6 @@ jobs:
             cp campusdata/audio_content/audio_manifest.json "$candidate_dir/audio_manifest.json"
             cp campusdata/audio_content/generated_docents.json "$candidate_dir/generated_docents.json"
             export TTS_MANIFEST_PATH="/runtime/audio_content/candidate/audio_manifest.json"
-            export DOCENT_SCRIPT_PROMPT_VERSION="v1"
             docker-compose --profile audio run --rm audio-asset-generator \
               python /app/scripts/generate_docent_assets.py --apply
             docker-compose --profile audio run --rm audio-asset-generator

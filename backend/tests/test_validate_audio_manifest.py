@@ -4,6 +4,7 @@ from scripts.validate_audio_manifest import (
     LOCALE_CODES,
     REQUIRED_SYSTEM_ASSETS,
     SUPPORTED_LANGUAGES,
+    is_legacy_manifest_asset,
     is_review_sample,
     required_asset_errors,
 )
@@ -15,6 +16,10 @@ class ValidateAudioManifestTests(unittest.TestCase):
         self.assertTrue(is_review_sample("sample-story:docent_leopard_statue:ko"))
         self.assertFalse(is_review_sample("en-route-docent:tour_01_new_gate:ko"))
         self.assertFalse(is_review_sample("arrival-docent:tour_01_new_gate:ko"))
+
+    def test_mp3_manifest_entries_are_legacy(self):
+        self.assertTrue(is_legacy_manifest_asset({"objectName": "assets/old.mp3"}))
+        self.assertFalse(is_legacy_manifest_asset({"objectName": "assets/current.wav"}))
 
     def test_every_supported_language_has_a_required_system_asset(self):
         self.assertEqual(

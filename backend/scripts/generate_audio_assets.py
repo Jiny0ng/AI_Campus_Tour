@@ -79,7 +79,11 @@ def synthesize_with_retry(text: str, locale: str, style: str) -> bytes:
 
 def read_rows(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8-sig") as file:
-        return [dict(row) for row in csv.DictReader(file)]
+        rows = [dict(row) for row in csv.DictReader(file)]
+    for line_number, row in enumerate(rows, start=2):
+        if None in row or any(value is None for value in row.values()):
+            raise ValueError(f"{path.name}:{line_number}: malformed CSV row")
+    return rows
 
 
 def managed_rows() -> list[dict[str, str]]:

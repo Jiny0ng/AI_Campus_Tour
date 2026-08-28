@@ -33,6 +33,10 @@ def is_review_sample(asset_id: str) -> bool:
     return asset_id.startswith(("sample-ending:", "sample-story:"))
 
 
+def is_legacy_manifest_asset(asset: dict) -> bool:
+    return str(asset.get("objectName", "")).lower().endswith(".mp3")
+
+
 def required_asset_errors(assets: dict, scripts: dict) -> list[str]:
     errors: list[str] = []
     for entity_id, script in scripts.items():
@@ -86,6 +90,11 @@ def main() -> int:
         # never requested by the application. Production preset enforcement is
         # limited to actual navigation/docent assets.
         if is_review_sample(asset_id):
+            continue
+        # Old manifests can retain inactive MP3 entries until the explicit
+        # cleanup job removes their storage objects. Required active assets are
+        # checked separately below, so legacy entries must not block rollout.
+        if is_legacy_manifest_asset(asset):
             continue
         object_name = str(asset.get("objectName", ""))
         if args.require_pro_wav and (
