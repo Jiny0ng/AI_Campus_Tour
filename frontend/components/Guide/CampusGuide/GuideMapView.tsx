@@ -7,6 +7,7 @@ type GuideMapViewProps = {
   selectedPlaceId?: string;
   onSelectPlace: (place: GuidePlace) => void;
   recenterUserLocationToken?: number;
+  onLocationPermissionDenied?: () => void;
 };
 
 export function GuideMapView({
@@ -15,6 +16,7 @@ export function GuideMapView({
   selectedPlaceId,
   onSelectPlace,
   recenterUserLocationToken = 0,
+  onLocationPermissionDenied,
 }: GuideMapViewProps) {
   const markers = places.map((place) => ({
     id: place.id,
@@ -33,6 +35,7 @@ export function GuideMapView({
           if (place) onSelectPlace(place);
         }}
         recenterUserLocationToken={recenterUserLocationToken}
+        onLocationPermissionDenied={onLocationPermissionDenied}
       />
     </div>
   );

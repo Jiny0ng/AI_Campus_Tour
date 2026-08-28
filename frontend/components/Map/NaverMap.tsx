@@ -20,6 +20,7 @@ type NaverMapProps = {
   maxZoom?: number;
   onReady?: (map: naver.maps.Map) => void;
   onError?: (error: Error) => void;
+  onLocationPermissionDenied?: () => void;
   onMarkerClick?: (markerId: string) => void;
 };
 
@@ -235,6 +236,7 @@ export function NaverMap({
   maxZoom = 21,
   onReady,
   onError,
+  onLocationPermissionDenied,
   onMarkerClick,
 }: NaverMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -401,16 +403,40 @@ export function NaverMap({
   }, [followUserLocation]);
 
   useEffect(() => {
-    if (
-      recenterUserLocationToken <= handledRecenterTokenRef.current
-      || !userLocation
-      || !mapRef.current
-      || !window.naver?.maps
-    ) {
+    if (recenterUserLocationToken <= handledRecenterTokenRef.current) {
       return;
     }
 
     handledRecenterTokenRef.current = recenterUserLocationToken;
+
+    if (!userLocation) {
+      if (!navigator.geolocation) {
+        onLocationPermissionDenied?.();
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const nextLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(nextLocation);
+          isFollowingUserRef.current = true;
+          mapRef.current?.setZoom(18);
+          if (mapRef.current && window.naver?.maps) {
+            mapRef.current.setCenter(
+              new window.naver.maps.LatLng(nextLocation.lat, nextLocation.lng),
+            );
+          }
+        },
+        () => onLocationPermissionDenied?.(),
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10_000 },
+      );
+      return;
+    }
+
+    if (!mapRef.current || !window.naver?.maps) return;
+
     isFollowingUserRef.current = true;
     clientDebug("map", "recenter-requested", {
       token: recenterUserLocationToken,
@@ -422,7 +448,7 @@ export function NaverMap({
       new window.naver.maps.LatLng(userLocation.lat, userLocation.lng),
     );
     clientDebug("map", "recenter-applied", { zoomTarget: 18 });
-  }, [recenterUserLocationToken, userLocation]);
+  }, [onLocationPermissionDenied, recenterUserLocationToken, userLocation]);
 
   useEffect(() => {
     if (typeof window === "undefined") {

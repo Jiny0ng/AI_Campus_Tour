@@ -176,6 +176,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
           selectedPlaceId={selectedPlace?.id}
           onSelectPlace={handleSelectPlace}
           recenterUserLocationToken={recenterUserLocationToken}
+          onLocationPermissionDenied={() => window.alert(t("guide.gpsPermission"))}
         />
 
         <div className="pointer-events-auto absolute left-4 right-4 top-6 z-30">
