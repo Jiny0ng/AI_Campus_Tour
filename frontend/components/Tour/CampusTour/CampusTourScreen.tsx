@@ -10,6 +10,7 @@ import { APP_ROUTES } from "@/constants/routes";
 import { useAppSettings, type AppLocale } from "@/contexts/AppSettingsContext";
 import { useAudioGuide } from "@/contexts/AudioGuideContext";
 import { clientDebug, clientDebugError } from "@/lib/clientDebug";
+import { resolveCampusLocation } from "@/lib/campusLocation";
 import { trackedFetch } from "@/lib/networkFetch";
 import { recordVisitedPlace } from "@/lib/audioGuide/sessionReport";
 import type {
@@ -500,16 +501,22 @@ export function CampusTourScreen({ data }: CampusTourScreenProps) {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const nextLocation = {
+        const reportedLocation = {
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         };
+        const locationResolution = resolveCampusLocation(reportedLocation);
+        const nextLocation = locationResolution.coordinate;
         setUserLocation(nextLocation);
         setLocationAccuracy(position.coords.accuracy);
         clientDebug("geolocation", "position", {
           ...nextLocation,
           accuracyMeters: Math.round(position.coords.accuracy),
           heading: position.coords.heading,
+          substituted: locationResolution.substituted,
+          distanceFromNewMainGateMeters: Math.round(
+            locationResolution.distanceFromNewMainGateMeters,
+          ),
         });
 
         if (startLocationInitializedRef.current) return;

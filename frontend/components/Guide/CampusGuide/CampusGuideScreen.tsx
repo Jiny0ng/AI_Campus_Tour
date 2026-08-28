@@ -8,6 +8,7 @@ import { MobileShell } from "@/components/Layout";
 import { APP_ROUTES } from "@/constants/routes";
 import { useAppSettings } from "@/contexts/AppSettingsContext";
 import { distanceMeters } from "@/lib/drivingNavigation";
+import { resolveCampusLocation } from "@/lib/campusLocation";
 import { destinationToPlace, destinationToSearchParams } from "@/lib/guideDestination";
 import { trackedFetch } from "@/lib/networkFetch";
 import type { CampusCoordinate, CampusGuideData, GuideDestination, GuidePlace, GuidePurpose } from "@/types";
@@ -40,10 +41,10 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
   useEffect(() => {
     if (!navigator.geolocation) return;
     const watchId = navigator.geolocation.watchPosition(
-      (position) => setCurrentLocation({
+      (position) => setCurrentLocation(resolveCampusLocation({
         lat: position.coords.latitude,
         lng: position.coords.longitude,
-      }),
+      }).coordinate),
       () => undefined,
       { enableHighAccuracy: true, maximumAge: 5000, timeout: 10_000 },
     );

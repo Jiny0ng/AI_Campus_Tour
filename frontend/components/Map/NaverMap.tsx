@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/cn";
 import type { CampusCoordinate } from "@/types";
 import { clientDebug } from "@/lib/clientDebug";
+import { resolveCampusLocation } from "@/lib/campusLocation";
 import type { NaverMapMarker, NaverMapRoute } from "@/types/naver-map";
 
 type NaverMapProps = {
@@ -361,10 +362,10 @@ export function NaverMap({
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const nextLocation = {
+        const nextLocation = resolveCampusLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-        };
+        }).coordinate;
 
         setUserLocation(prev => {
           const isFirstLocation = prev === null;
@@ -416,10 +417,10 @@ export function NaverMap({
       }
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const nextLocation = {
+          const nextLocation = resolveCampusLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-          };
+          }).coordinate;
           setUserLocation(nextLocation);
           isFollowingUserRef.current = true;
           mapRef.current?.setZoom(18);

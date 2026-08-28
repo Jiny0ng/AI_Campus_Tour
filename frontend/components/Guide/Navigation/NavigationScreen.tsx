@@ -15,6 +15,7 @@ import {
 } from "@/lib/drivingNavigation";
 import { navigationSpeech } from "@/lib/audioGuide/navigationText";
 import { destinationFromSearchParams } from "@/lib/guideDestination";
+import { resolveCampusLocation } from "@/lib/campusLocation";
 import { trackedFetch } from "@/lib/networkFetch";
 import {
   getArrivalTime,
@@ -136,10 +137,10 @@ export function NavigationScreen({ data }: NavigationScreenProps) {
 
     const watchId = navigator.geolocation.watchPosition(
       (position) => {
-        const nextLocation = {
+        const nextLocation = resolveCampusLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
-        };
+        }).coordinate;
         setCurrentLocation(nextLocation);
         setLocationAccuracy(position.coords.accuracy);
         setLocationWarning(null);
