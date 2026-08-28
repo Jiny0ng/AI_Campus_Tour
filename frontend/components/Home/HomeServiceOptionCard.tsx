@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, Map, MapPin } from "lucide-react";
 import { cn } from "@/lib/cn";
 import type { HomeServiceOption } from "@/types";
@@ -17,6 +18,7 @@ const serviceIcon = {
 };
 
 export function HomeServiceOptionCard({ option }: HomeServiceOptionCardProps) {
+  const router = useRouter();
   const { t } = useAppSettings();
   const { unlock } = useAudioGuide();
   const active = option.id === "tour";
@@ -25,8 +27,11 @@ export function HomeServiceOptionCard({ option }: HomeServiceOptionCardProps) {
   return (
     <Link
       href={option.href}
-      onPointerDown={() => {
-        if (active) void unlock();
+      onClick={async (event) => {
+        if (!active) return;
+        event.preventDefault();
+        await unlock();
+        router.push(option.href);
       }}
       className={cn(
         "flex h-[57px] items-center gap-3 rounded-card border bg-surface px-3 transition active:scale-[0.99]",

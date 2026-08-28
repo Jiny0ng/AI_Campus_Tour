@@ -350,14 +350,18 @@ export function AiTourSheet({ currentStop, nextStop, userLocation, onNext, onPre
           </button>
           <button
             type="button"
-            aria-label={status.playback === "paused" ? t("audio.resume") : t("audio.pause")}
+            aria-label={status.playback === "paused" || status.playback === "blocked"
+              ? t("audio.resume")
+              : t("audio.pause")}
             className="grid size-9 place-items-center rounded-full bg-primary-soft text-primary"
             onClick={(event) => {
               event.stopPropagation();
-              if (status.playback === "paused") resume(); else pause();
+              if (status.playback === "paused" || status.playback === "blocked") resume(); else pause();
             }}
           >
-            {status.playback === "paused" ? <Play size={18} /> : <Pause size={18} />}
+            {status.playback === "paused" || status.playback === "blocked"
+              ? <Play size={18} />
+              : <Pause size={18} />}
           </button>
           <button
             type="button"
