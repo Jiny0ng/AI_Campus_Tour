@@ -256,6 +256,8 @@ export function NaverMap({
   const clientId = process.env.NEXT_PUBLIC_NAVER_MAP_CLIENT_ID;
   const initialCenterRef = useRef(center);
   const initialZoomRef = useRef(zoom);
+  initialCenterRef.current = center;
+  initialZoomRef.current = zoom;
 
   useEffect(() => {
     let cancelled = false;
@@ -479,7 +481,7 @@ export function NaverMap({
       duration: 1000,
       easing: "easeOutCubic",
     });
-  }, [center.lat, center.lng, zoom]);
+  }, [center.lat, center.lng, ready, zoom]);
 
   useEffect(() => {
     const map = mapRef.current;

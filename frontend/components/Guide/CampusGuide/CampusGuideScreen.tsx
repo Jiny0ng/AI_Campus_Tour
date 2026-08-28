@@ -172,6 +172,7 @@ export function CampusGuideScreen({ data }: CampusGuideScreenProps) {
       <main className="relative min-h-dvh overflow-hidden bg-map">
         <GuideMapView
           places={visiblePlaces}
+          center={currentLocation}
           selectedPlaceId={selectedPlace?.id}
           onSelectPlace={handleSelectPlace}
           recenterUserLocationToken={recenterUserLocationToken}

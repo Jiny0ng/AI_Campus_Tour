@@ -1,9 +1,9 @@
 import { NaverMap } from "@/components/Map";
-import { campusCenter } from "@/constants/campus";
-import type { GuidePlace } from "@/types";
+import type { CampusCoordinate, GuidePlace } from "@/types";
 
 type GuideMapViewProps = {
   places: GuidePlace[];
+  center: CampusCoordinate;
   selectedPlaceId?: string;
   onSelectPlace: (place: GuidePlace) => void;
   recenterUserLocationToken?: number;
@@ -11,6 +11,7 @@ type GuideMapViewProps = {
 
 export function GuideMapView({
   places,
+  center,
   selectedPlaceId,
   onSelectPlace,
   recenterUserLocationToken = 0,
@@ -24,7 +25,7 @@ export function GuideMapView({
   return (
     <div className="absolute inset-0 overflow-hidden bg-map">
       <NaverMap
-        center={campusCenter}
+        center={center}
         zoom={16}
         markers={markers}
         onMarkerClick={(markerId) => {
